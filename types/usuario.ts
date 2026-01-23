@@ -12,6 +12,7 @@ export interface IUsuario {
 	criadoEm: Date;
 	atualizadoEm: Date;
 	nomeSocial?: string;
+	coordenadoriaId?: string;
 }
 
 export enum IPermissao {
@@ -19,6 +20,7 @@ export enum IPermissao {
 	TEC,
 	ADM,
 	USR,
+	PONTO_FOCAL,
 }
 
 export interface ICreateUsuario {
@@ -29,6 +31,7 @@ export interface ICreateUsuario {
 	permissao?: IPermissao;
 	status?: boolean;
 	nomeSocial?: string;
+	coordenadoriaId?: string;
 }
 
 export interface IUpdateUsuario {
@@ -37,6 +40,7 @@ export interface IUpdateUsuario {
 	nomeSocial?: string;
 	avatar?: string;
 	permissao?: IPermissao;
+	coordenadoriaId?: string;
 }
 
 export interface IPaginadoUsuario {

@@ -21,11 +21,13 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 import * as usuario from '@/services/usuarios';
-import { IPermissao, IUsuario } from '@/types/usuario';
+import * as coordenadoria from '@/services/coordenadorias';
+import { IPermissao, IUsuario, INovoUsuario } from '@/types/usuario';
+import { ICoordenadoria } from '@/types/coordenadoria';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { useTransition } from 'react';
+import { useTransition, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -34,7 +36,8 @@ const formSchemaUsuario = z.object({
 	nome: z.string(),
 	login: z.string(),
 	email: z.string().email(),
-	permissao: z.enum(['DEV', 'TEC', 'ADM', 'USR']),
+	permissao: z.enum(['DEV', 'TEC', 'ADM', 'USR', 'PONTO_FOCAL']),
+	coordenadoriaId: z.string().optional(),
 });
 
 const formSchema = z.object({
@@ -44,10 +47,13 @@ const formSchema = z.object({
 interface FormUsuarioProps {
 	isUpdating: boolean;
 	user?: Partial<IUsuario>;
+	onClose?: () => void;
 }
 
-export default function FormUsuario({ isUpdating, user }: FormUsuarioProps) {
+export default function FormUsuario({ isUpdating, user, onClose }: FormUsuarioProps) {
 	const [isPending, startTransition] = useTransition();
+	const [isSearching, setIsSearching] = useState(false);
+	const [coordenadorias, setCoordenadorias] = useState<ICoordenadoria[]>([]);
 	const formUsuario = useForm<z.infer<typeof formSchemaUsuario>>({
 		resolver: zodResolver(formSchemaUsuario),
 		defaultValues: {
@@ -55,9 +61,24 @@ export default function FormUsuario({ isUpdating, user }: FormUsuarioProps) {
 			login: user?.login || '',
 			nome: user?.nome || '',
 			permissao:
-				(user?.permissao as unknown as 'DEV' | 'TEC' | 'ADM' | 'USR') ?? 'USR',
+				(user?.permissao as unknown as 'DEV' | 'TEC' | 'ADM' | 'USR' | 'PONTO_FOCAL') ?? 'USR',
+			coordenadoriaId: user?.coordenadoriaId || '',
 		},
 	});
+
+	const { data: session } = useSession();
+
+	useEffect(() => {
+		async function carregarCoordenadorias() {
+			if (session?.access_token) {
+				const resp = await coordenadoria.listaCompleta(session.access_token);
+				if (resp.ok && resp.data) {
+					setCoordenadorias(resp.data as ICoordenadoria[]);
+				}
+			}
+		}
+		carregarCoordenadorias();
+	}, [session]);
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -66,27 +87,53 @@ export default function FormUsuario({ isUpdating, user }: FormUsuarioProps) {
 		},
 	});
 
-	const { data: session, update } = useSession();
-
 	async function onSubmit(values: z.infer<typeof formSchema>) {
 		const token = session?.access_token;
+		
 		if (!token) {
-			toast.error('Não autorizado');
+			toast.error('Não autorizado', { description: 'Sessão inválida. Faça login novamente.' });
 			return;
 		}
-		const { login } = values;
-		const resp = await usuario.buscarNovo(login, token);
-
-		if (resp.error) {
-			toast.error('Algo deu errado', { description: resp.error });
+		
+		if (!values.login || values.login.trim() === '') {
+			toast.error('Login inválido', { description: 'Digite um login válido' });
+			return;
 		}
 
-		if (resp.ok && resp.data) {
-			const usuario = resp.data as IUsuario;
-			toast.success('Usuário encontrado', { description: usuario.nome });
-			formUsuario.setValue('nome', usuario.nome);
-			formUsuario.setValue('email', usuario.email);
-			formUsuario.setValue('login', usuario.login);
+		setIsSearching(true);
+		try {
+			const { login } = values;
+			const resp = await usuario.buscarNovo(login.trim(), token);
+
+			if (!resp.ok || resp.error) {
+				// Se for erro 401, a sessão expirou
+				if (resp.status === 401) {
+					toast.error('Sessão expirada', { 
+						description: 'Por favor, faça login novamente' 
+					});
+				} else {
+					toast.error('Erro ao buscar usuário', { 
+						description: resp.error || 'Não foi possível encontrar o usuário' 
+					});
+				}
+				return;
+			}
+
+			if (resp.data && 'login' in resp.data && 'nome' in resp.data && 'email' in resp.data) {
+				const usuarioEncontrado = resp.data as INovoUsuario;
+				toast.success('Usuário encontrado', { description: usuarioEncontrado.nome });
+				formUsuario.setValue('nome', usuarioEncontrado.nome);
+				formUsuario.setValue('email', usuarioEncontrado.email);
+				formUsuario.setValue('login', usuarioEncontrado.login);
+				form.reset();
+			} else {
+				toast.error('Dados inválidos', { description: 'A resposta não contém os dados esperados' });
+			}
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+			toast.error('Erro ao buscar usuário', { description: errorMessage });
+		} finally {
+			setIsSearching(false);
 		}
 	}
 
@@ -95,6 +142,7 @@ export default function FormUsuario({ isUpdating, user }: FormUsuarioProps) {
 			if (isUpdating && user?.id) {
 				const resp = await usuario.atualizar(user?.id, {
 					permissao: values.permissao as unknown as IPermissao,
+					coordenadoriaId: values.coordenadoriaId || undefined,
 				});
 
 				if (resp.error) {
@@ -102,29 +150,24 @@ export default function FormUsuario({ isUpdating, user }: FormUsuarioProps) {
 				}
 
 				if (resp.ok) {
-					await update({
-						...session,
-						usuario: {
-							...session?.usuario,
-							permissao: IPermissao,
-						},
-					});
-
 					toast.success('Usuário Atualizado', { description: resp.status });
+					onClose?.();
 				}
 			} else {
-				const { email, login, nome, permissao } = values;
+				const { email, login, nome, permissao, coordenadoriaId } = values;
 				const resp = await usuario.criar({
 					email,
 					login,
 					nome,
 					permissao: permissao as unknown as IPermissao,
+					coordenadoriaId: coordenadoriaId || undefined,
 				});
 				if (resp.error) {
 					toast.error('Algo deu errado', { description: resp.error });
 				}
 				if (resp.ok) {
 					toast.success('Usuário Criado', { description: resp.status });
+					onClose?.();
 				}
 			}
 		});
@@ -155,9 +198,9 @@ export default function FormUsuario({ isUpdating, user }: FormUsuarioProps) {
 						/>
 
 						<Button
-							disabled={form.formState.isLoading || !form.formState.isValid}
+							disabled={isSearching || !form.formState.isValid}
 							type='submit'>
-							{form.formState.isLoading || form.formState.isSubmitting ? (
+							{isSearching ? (
 								<>
 									Buscar <Loader2 className='animate-spin' />
 								</>
@@ -245,6 +288,7 @@ export default function FormUsuario({ isUpdating, user }: FormUsuarioProps) {
 										<SelectItem value='DEV'>Desenvolvedor</SelectItem>
 										<SelectItem value='TEC'>Técnico</SelectItem>
 										<SelectItem value='ADM'>Administrador</SelectItem>
+										<SelectItem value='PONTO_FOCAL'>Ponto Focal</SelectItem>
 										<SelectItem value='USR'>Usuário</SelectItem>
 									</SelectContent>
 								</Select>
@@ -252,6 +296,34 @@ export default function FormUsuario({ isUpdating, user }: FormUsuarioProps) {
 							</FormItem>
 						)}
 					/>
+					{(formUsuario.watch('permissao') === 'PONTO_FOCAL' || formUsuario.watch('permissao') === 'TEC') && (
+						<FormField
+							control={formUsuario.control}
+							name='coordenadoriaId'
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Coordenadoria</FormLabel>
+									<Select
+										onValueChange={field.onChange}
+										defaultValue={field.value}>
+										<FormControl>
+											<SelectTrigger>
+												<SelectValue placeholder={'Selecione a coordenadoria'} />
+											</SelectTrigger>
+										</FormControl>
+										<SelectContent>
+											{coordenadorias.map((coord) => (
+												<SelectItem key={coord.id} value={coord.id}>
+													{coord.sigla} {coord.nome && `- ${coord.nome}`}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					)}
 					<div className='flex gap-2 items-center justify-end'>
 						<DialogClose asChild>
 							<Button variant={'outline'}>Voltar</Button>

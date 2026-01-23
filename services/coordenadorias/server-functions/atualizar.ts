@@ -1,0 +1,49 @@
+/** @format */
+
+'use server';
+
+import { redirect } from 'next/navigation';
+import { IUpdateCoordenadoria, ICoordenadoria, IRespostaCoordenadoria } from '@/types/coordenadoria';
+import { auth } from '@/lib/auth/auth';
+import { revalidateTag } from 'next/cache';
+
+export async function atualizar(
+	id: string,
+	data: IUpdateCoordenadoria,
+): Promise<IRespostaCoordenadoria> {
+	const session = await auth();
+	const baseURL = process.env.NEXT_PUBLIC_API_URL;
+	if (!session) redirect('/login');
+
+	const response: Response = await fetch(`${baseURL}coordenadorias/atualizar/${id}`, {
+		method: 'PATCH',
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${session?.access_token}`,
+		},
+		body: JSON.stringify(data),
+	});
+	const dataResponse = await response.json();
+	if (response.status === 200) {
+		revalidateTag('coordenadorias');
+		return {
+			ok: true,
+			error: null,
+			data: dataResponse as ICoordenadoria,
+			status: 200,
+		};
+	}
+	if (!dataResponse)
+		return {
+			ok: false,
+			error: 'Erro ao atualizar coordenadoria.',
+			data: null,
+			status: 500,
+		};
+	return {
+		ok: false,
+		error: dataResponse.message,
+		data: null,
+		status: dataResponse.statusCode,
+	};
+}

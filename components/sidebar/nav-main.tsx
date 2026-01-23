@@ -1,6 +1,6 @@
 /** @format */
 
-import { ChevronRight, House, LucideProps, Users } from 'lucide-react';
+import { ChevronRight, House, LucideProps, Users, Upload, Building2 } from 'lucide-react';
 
 import {
 	Collapsible,
@@ -57,6 +57,16 @@ export async function NavMain() {
 			titulo: 'Usuários',
 			url: '/usuarios',
 			permissao: 'usuario_buscar_tudo',
+		},
+		{
+			icone: Building2,
+			titulo: 'Coordenadorias',
+			url: '/coordenadorias',
+		},
+		{
+			icone: Upload,
+			titulo: 'Importar Planilha',
+			url: '/importar-planilha',
 		},
 	];
 

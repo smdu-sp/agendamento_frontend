@@ -3,8 +3,10 @@ export {
     buscarPorId,
     buscarNovo,
     listaCompleta,
-    validaUsuario
+    validaUsuario,
+    buscarTecnicosPorCoordenadoria
 } from './query-functions';
+export type { ITecnico } from './query-functions';
 
 export {
     atualizar,

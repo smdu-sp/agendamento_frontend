@@ -11,17 +11,17 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from '@/components/ui/dialog';
-import { IUsuario } from '@/types/usuario';
+import { ICoordenadoria } from '@/types/coordenadoria';
 import { Plus, SquarePen } from 'lucide-react';
 import { useState } from 'react';
-import FormUsuario from './form-usuario';
+import FormCoordenadoria from './form-coordenadoria';
 
 export default function ModalUpdateAndCreate({
 	isUpdating,
-	user,
+	coordenadoria,
 }: {
 	isUpdating: boolean;
-	user?: Partial<IUsuario>;
+	coordenadoria?: Partial<ICoordenadoria>;
 }) {
 	const [open, setOpen] = useState(false);
 
@@ -51,13 +51,13 @@ export default function ModalUpdateAndCreate({
 			</DialogTrigger>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>{isUpdating ? 'Editar ' : 'Criar '}Usuário</DialogTitle>
+					<DialogTitle>{isUpdating ? 'Editar ' : 'Criar '}Coordenadoria</DialogTitle>
 					<DialogDescription>
-						Gerencie as informações do usuário selecioando
+						Gerencie as informações da coordenadoria
 					</DialogDescription>
 				</DialogHeader>
-				<FormUsuario
-					user={user}
+				<FormCoordenadoria
+					coordenadoria={coordenadoria}
 					isUpdating={isUpdating}
 					onClose={() => setOpen(false)}
 				/>
