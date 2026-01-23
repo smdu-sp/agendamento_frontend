@@ -4,6 +4,8 @@ export enum StatusAgendamento {
 	AGENDADO = 'AGENDADO',
 	CANCELADO = 'CANCELADO',
 	CONCLUIDO = 'CONCLUIDO',
+	ATENDIDO = 'ATENDIDO',
+	NAO_REALIZADO = 'NAO_REALIZADO',
 }
 
 export interface IAgendamento {

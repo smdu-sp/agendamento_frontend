@@ -3,6 +3,7 @@
 import { ChevronsUpDown } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -16,6 +17,7 @@ import {
 	SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { auth } from '@/lib/auth/auth';
+import { IPermissao } from '@/types/usuario';
 import Link from 'next/link';
 import BtnSignOut from '../btn-signout';
 // import { useRouter } from "next/navigation";
@@ -39,6 +41,40 @@ export async function NavUser() {
 		}
 		const nomes = nome.split(' ');
 		return `${nomes[0]} ${nomes[nomes.length - 1]}`;
+	}
+
+	function obterPermissaoInfo(permissao: IPermissao | string): { texto: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' | 'success' } {
+		// Se for string, tenta mapear
+		if (typeof permissao === 'string') {
+			const permissaoUpper = permissao.toUpperCase();
+			if (permissaoUpper === 'DEV') {
+				return { texto: 'Desenvolvedor', variant: 'default' };
+			}
+			if (permissaoUpper === 'TEC') {
+				return { texto: 'Técnico', variant: 'default' };
+			}
+			if (permissaoUpper === 'ADM') {
+				return { texto: 'Administrador', variant: 'destructive' };
+			}
+			if (permissaoUpper === 'USR') {
+				return { texto: 'Usuário', variant: 'secondary' };
+			}
+			if (permissaoUpper === 'PONTO_FOCAL') {
+				return { texto: 'Ponto Focal', variant: 'success' };
+			}
+			return { texto: 'Usuário', variant: 'secondary' };
+		}
+		
+		// Se for enum, converte para string legível
+		const permissoes: Record<IPermissao, { texto: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' | 'success' }> = {
+			[IPermissao.DEV]: { texto: 'Desenvolvedor', variant: 'default' },
+			[IPermissao.TEC]: { texto: 'Técnico', variant: 'default' },
+			[IPermissao.ADM]: { texto: 'Administrador', variant: 'destructive' },
+			[IPermissao.USR]: { texto: 'Usuário', variant: 'secondary' },
+			[IPermissao.PONTO_FOCAL]: { texto: 'Ponto Focal', variant: 'success' },
+		};
+		
+		return permissoes[permissao] || { texto: 'Usuário', variant: 'secondary' };
 	}
 
 	return (
@@ -65,6 +101,14 @@ export async function NavUser() {
 											session.usuario.nomeSocial || session.usuario.nome,
 										)}
 									</span>
+									<div className='mt-0.5'>
+										<Badge 
+											variant={obterPermissaoInfo(session.usuario.permissao).variant}
+											className='text-[10px] px-1.5 py-0 h-4'
+										>
+											{obterPermissaoInfo(session.usuario.permissao).texto}
+										</Badge>
+									</div>
 								</div>
 								<ChevronsUpDown className='ml-auto size-4' />
 							</SidebarMenuButton>
@@ -92,7 +136,15 @@ export async function NavUser() {
 													session.usuario.nomeSocial || session.usuario.nome,
 												)}
 											</span>
-											<span className='truncate text-xs'>
+											<div className='mt-0.5'>
+												<Badge 
+													variant={obterPermissaoInfo(session.usuario.permissao).variant}
+													className='text-[10px] px-1.5 py-0 h-4'
+												>
+													{obterPermissaoInfo(session.usuario.permissao).texto}
+												</Badge>
+											</div>
+											<span className='truncate text-xs text-muted-foreground mt-1'>
 												{session.usuario.email}
 											</span>
 										</div>
