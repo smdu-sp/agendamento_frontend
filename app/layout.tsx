@@ -14,8 +14,8 @@ const myFont = localFont({
 });
 
 export const metadata: Metadata = {
-	title: 'Template 2025',
-	description: 'Template 2025',
+	title: 'Gerenciador de Agendamentos',
+	description: 'Gerenciador de Agendamentos',
 };
 
 export default function RootLayout({

@@ -142,7 +142,7 @@ export default function ListaAgendamentos() {
 			<Card>
 				<CardHeader>
 					<CardTitle>
-						Agendamentos
+						Data
 						{dataSelecionada && (
 							<span className='text-base font-normal text-muted-foreground ml-2'>
 								- {format(dataSelecionada, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
