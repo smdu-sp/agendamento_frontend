@@ -11,17 +11,17 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from '@/components/ui/dialog';
-import { IMotivo } from '@/types/motivo';
+import { ITipoAgendamento } from '@/types/tipo-agendamento';
 import { Plus, SquarePen } from 'lucide-react';
 import { useState } from 'react';
-import FormMotivo from './form-motivo';
+import FormTipoAgendamento from './form-tipo-agendamento';
 
 export default function ModalUpdateAndCreate({
 	isUpdating,
-	motivo,
+	tipoAgendamento,
 }: {
 	isUpdating: boolean;
-	motivo?: Partial<IMotivo>;
+	tipoAgendamento?: Partial<ITipoAgendamento>;
 }) {
 	const [open, setOpen] = useState(false);
 
@@ -51,13 +51,13 @@ export default function ModalUpdateAndCreate({
 			</DialogTrigger>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>{isUpdating ? 'Editar ' : 'Criar '}Motivo de não atendimento</DialogTitle>
+					<DialogTitle>{isUpdating ? 'Editar ' : 'Criar '}Tipo de Agendamento</DialogTitle>
 					<DialogDescription>
-						Gerencie os motivos usados quando o atendimento não é realizado
+						Gerencie os tipos de agendamento (ex.: Vistoria, Licenciamento)
 					</DialogDescription>
 				</DialogHeader>
-				<FormMotivo
-					motivo={motivo}
+				<FormTipoAgendamento
+					tipoAgendamento={tipoAgendamento}
 					isUpdating={isUpdating}
 					onClose={() => setOpen(false)}
 				/>

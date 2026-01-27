@@ -4,25 +4,25 @@ import DataTable, { TableSkeleton } from '@/components/data-table';
 import { Filtros } from '@/components/filtros';
 import Pagination from '@/components/pagination';
 import { auth } from '@/lib/auth/auth';
-import * as motivo from '@/services/motivos';
-import { IPaginadoMotivo, IMotivo } from '@/types/motivo';
+import * as tipoAgendamento from '@/services/tipos-agendamento';
+import { IPaginadoTipoAgendamento, ITipoAgendamento } from '@/types/tipo-agendamento';
 import { Suspense } from 'react';
 import { columns } from './_components/columns';
 import ModalUpdateAndCreate from './_components/modal-update-create';
 
-export default async function MotivosSuspense({
+export default async function TiposAgendamentoSuspense({
 	searchParams,
 }: {
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
 	return (
 		<Suspense fallback={<TableSkeleton />}>
-			<Motivos searchParams={searchParams} />
+			<TiposAgendamento searchParams={searchParams} />
 		</Suspense>
 	);
 }
 
-async function Motivos({
+async function TiposAgendamento({
 	searchParams,
 }: {
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -30,11 +30,11 @@ async function Motivos({
 	let { pagina = 1, limite = 10, total = 0 } = await searchParams;
 	let ok = false;
 	const { busca = '', status = '' } = await searchParams;
-	let dados: IMotivo[] = [];
+	let dados: ITipoAgendamento[] = [];
 
 	const session = await auth();
 	if (session && session.access_token) {
-		const response = await motivo.buscarTudo(
+		const response = await tipoAgendamento.buscarTudo(
 			session.access_token || '',
 			+pagina,
 			+limite,
@@ -43,31 +43,23 @@ async function Motivos({
 		);
 		const { data } = response;
 		ok = response.ok;
-		if (ok) {
-			if (data) {
-				const paginado = data as IPaginadoMotivo;
-				pagina = paginado.pagina || 1;
-				limite = paginado.limite || 10;
-				total = paginado.total || 0;
-				dados = paginado.data || [];
-			}
+		if (ok && data) {
+			const paginado = data as IPaginadoTipoAgendamento;
+			pagina = paginado.pagina || 1;
+			limite = paginado.limite || 10;
+			total = paginado.total || 0;
+			dados = paginado.data || [];
 		}
 	}
 
 	const statusSelect = [
-		{
-			label: 'Ativo',
-			value: 'ATIVO',
-		},
-		{
-			label: 'Inativo',
-			value: 'INATIVO',
-		},
+		{ label: 'Ativo', value: 'ATIVO' },
+		{ label: 'Inativo', value: 'INATIVO' },
 	];
 
 	return (
 		<div className=' w-full px-0 md:px-8 relative pb-20 md:pb-14 h-full md:container mx-auto'>
-			<h1 className='text-xl md:text-4xl font-bold'>Motivos de não atendimento</h1>
+			<h1 className='text-xl md:text-4xl font-bold'>Tipos de Agendamento</h1>
 			<div className='flex flex-col max-w-sm mx-auto md:max-w-full gap-3 my-5   w-full '>
 				<Filtros
 					camposFiltraveis={[
@@ -75,7 +67,7 @@ async function Motivos({
 							nome: 'Busca',
 							tag: 'busca',
 							tipo: 0,
-							placeholder: 'Digite o texto do motivo de não atendimento',
+							placeholder: 'Digite a descrição do tipo',
 						},
 						{
 							nome: 'Status',

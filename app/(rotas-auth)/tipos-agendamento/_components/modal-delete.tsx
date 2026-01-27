@@ -14,7 +14,7 @@ import {
 	AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import * as motivo from '@/services/motivos';
+import * as tipoAgendamentoService from '@/services/tipos-agendamento';
 import { Trash2, Check } from 'lucide-react';
 import { useTransition } from 'react';
 import { toast } from 'sonner';
@@ -39,12 +39,12 @@ export default function ModalDelete({
 		}
 
 		startTransition(async () => {
-			const resp = await motivo.desativar(id, session.access_token);
+			const resp = await tipoAgendamentoService.desativar(id, session.access_token);
 			if (resp.error) {
 				toast.error('Algo deu errado', { description: resp.error });
 			}
 			if (resp.ok) {
-				toast.success(status ? 'Motivo Desativado' : 'Motivo Ativado');
+				toast.success(status ? 'Tipo de agendamento desativado' : 'Tipo de agendamento ativado');
 				router.refresh();
 			}
 		});
@@ -77,12 +77,12 @@ export default function ModalDelete({
 			<AlertDialogContent>
 				<AlertDialogHeader>
 					<AlertDialogTitle>
-						{status ? 'Reativar motivo?' : 'Desativar motivo?'}
+						{status ? 'Reativar tipo de agendamento?' : 'Desativar tipo de agendamento?'}
 					</AlertDialogTitle>
 					<AlertDialogDescription>
 						{status
-							? 'Esta ação irá reativar o motivo de não atendimento.'
-							: 'Esta ação irá desativar o motivo. Ele não será mais visível ao registrar não realização.'}
+							? 'Esta ação irá reativar o tipo de agendamento.'
+							: 'Esta ação irá desativar o tipo. Ele não será mais visível em listagens.'}
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 				<AlertDialogFooter>

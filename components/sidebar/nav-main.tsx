@@ -1,6 +1,6 @@
 /** @format */
 
-import { ChevronRight, House, LucideProps, Users, Upload, Building2 } from 'lucide-react';
+import { ChevronRight, House, LucideProps, Users, Upload, Building2, Tags, ListX } from 'lucide-react';
 
 import {
 	Collapsible,
@@ -62,6 +62,16 @@ export async function NavMain() {
 			icone: Building2,
 			titulo: 'Coordenadorias',
 			url: '/coordenadorias',
+		},
+		{
+			icone: Tags,
+			titulo: 'Tipos de Agendamento',
+			url: '/tipos-agendamento',
+		},
+		{
+			icone: ListX,
+			titulo: 'Motivos de não atendimento',
+			url: '/motivos',
 		},
 		{
 			icone: Upload,

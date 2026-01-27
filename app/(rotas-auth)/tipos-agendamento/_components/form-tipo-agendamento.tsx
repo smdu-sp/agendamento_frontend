@@ -13,8 +13,8 @@ import {
 	FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import * as motivo from '@/services/motivos';
-import { IMotivo } from '@/types/motivo';
+import * as tipoAgendamentoService from '@/services/tipos-agendamento';
+import { ITipoAgendamento } from '@/types/tipo-agendamento';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useTransition } from 'react';
@@ -29,25 +29,25 @@ const formSchema = z.object({
 	status: z.boolean().optional(),
 });
 
-interface FormMotivoProps {
+interface FormTipoAgendamentoProps {
 	isUpdating: boolean;
-	motivo?: Partial<IMotivo>;
+	tipoAgendamento?: Partial<ITipoAgendamento>;
 	onClose?: () => void;
 }
 
-export default function FormMotivo({
+export default function FormTipoAgendamento({
 	isUpdating,
-	motivo: motivoData,
+	tipoAgendamento: tipoData,
 	onClose,
-}: FormMotivoProps) {
+}: FormTipoAgendamentoProps) {
 	const [isPending, startTransition] = useTransition();
 	const router = useRouter();
 	const { data: session } = useSession();
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
-			texto: motivoData?.texto || '',
-			status: motivoData?.status ?? true,
+			texto: tipoData?.texto || '',
+			status: tipoData?.status ?? true,
 		},
 	});
 
@@ -58,30 +58,37 @@ export default function FormMotivo({
 		}
 
 		startTransition(async () => {
-			if (isUpdating && motivoData?.id) {
-				const resp = await motivo.atualizar(motivoData.id, {
-					texto: values.texto,
-					status: values.status,
-				}, session.access_token);
+			if (isUpdating && tipoData?.id) {
+				const resp = await tipoAgendamentoService.atualizar(
+					tipoData.id,
+					{
+						texto: values.texto,
+						status: values.status,
+					},
+					session.access_token,
+				);
 
 				if (resp.error) {
 					toast.error('Algo deu errado', { description: resp.error });
 				}
 
 				if (resp.ok) {
-					toast.success('Motivo Atualizado');
+					toast.success('Tipo de agendamento atualizado');
 					router.refresh();
 				}
 			} else {
-				const resp = await motivo.criar({
-					texto: values.texto,
-					status: values.status ?? true,
-				}, session.access_token);
+				const resp = await tipoAgendamentoService.criar(
+					{
+						texto: values.texto,
+						status: values.status ?? true,
+					},
+					session.access_token,
+				);
 				if (resp.error) {
 					toast.error('Algo deu errado', { description: resp.error });
 				}
 				if (resp.ok) {
-					toast.success('Motivo Criado');
+					toast.success('Tipo de agendamento criado');
 					router.refresh();
 					onClose?.();
 				}
@@ -99,10 +106,10 @@ export default function FormMotivo({
 					name='texto'
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>Texto do motivo de não atendimento</FormLabel>
+							<FormLabel>Descrição do tipo</FormLabel>
 							<FormControl>
 								<Input
-									placeholder='Ex: Cliente não compareceu'
+									placeholder='Ex: Vistoria, Licenciamento...'
 									{...field}
 								/>
 							</FormControl>

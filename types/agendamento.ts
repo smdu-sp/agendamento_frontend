@@ -20,7 +20,8 @@ export interface IAgendamento {
 	importado: boolean;
 	legado: boolean;
 	resumo?: string;
-	motivoId?: string;
+	tipoAgendamentoId?: string;
+	motivoNaoAtendimentoId?: string;
 	coordenadoriaId?: string;
 	tecnicoId?: string;
 	tecnicoRF?: string;
@@ -28,7 +29,8 @@ export interface IAgendamento {
 	status: StatusAgendamento;
 	criadoEm: Date;
 	atualizadoEm: Date;
-	motivo?: { id: string; texto: string } | null;
+	tipoAgendamento?: { id: string; texto: string } | null;
+	motivoNaoAtendimento?: { id: string; texto: string } | null;
 	coordenadoria?: { id: string; sigla: string; nome?: string | null } | null;
 	tecnico?: { id: string; nome: string; login: string } | null;
 }
@@ -42,7 +44,7 @@ export interface ICreateAgendamento {
 	dataFim?: string;
 	duracao?: number;
 	resumo?: string;
-	motivoId?: string;
+	tipoAgendamentoId?: string;
 	coordenadoriaId?: string;
 	tecnicoId?: string;
 	tecnicoRF?: string;
@@ -58,7 +60,7 @@ export interface IUpdateAgendamento {
 	dataFim?: string;
 	duracao?: number;
 	resumo?: string;
-	motivoId?: string;
+	motivoNaoAtendimentoId?: string;
 	coordenadoriaId?: string;
 	tecnicoId?: string;
 	tecnicoRF?: string;

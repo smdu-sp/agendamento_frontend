@@ -10,7 +10,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/dialog';
-import { CheckCircle2, XCircle } from 'lucide-react';
 import { IAgendamento, StatusAgendamento } from '@/types/agendamento';
 import * as agendamentoClient from '@/services/agendamentos/client-functions';
 import { useSession } from 'next-auth/react';
@@ -30,216 +29,153 @@ interface ConfirmarAtendimentoProps {
 	agendamento: IAgendamento;
 	onClose: () => void;
 	onSuccess: () => void;
-	tipoConfirmacao?: 'atendido' | 'nao-realizado';
 }
 
 export default function ConfirmarAtendimento({
 	agendamento,
 	onClose,
 	onSuccess,
-	tipoConfirmacao,
 }: ConfirmarAtendimentoProps) {
 	const { data: session } = useSession();
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
+	type StatusOpcao = '' | 'AGENDADO' | 'ATENDIDO' | 'NAO_REALIZADO';
+	const [statusSelecionado, setStatusSelecionado] = useState<StatusOpcao>('');
 	const [motivoSelecionado, setMotivoSelecionado] = useState<string>('');
 	const [motivos, setMotivos] = useState<IMotivo[]>([]);
-	const [showMotivoSelect, setShowMotivoSelect] = useState(tipoConfirmacao === 'nao-realizado');
 
-	// Carrega motivos quando necessário
-	const carregarMotivos = async () => {
-		if (!session?.access_token) return;
-		try {
-			const response = await motivoService.listaCompleta(session.access_token);
-			if (response.ok && response.data) {
-				setMotivos(response.data as IMotivo[]);
-			}
-		} catch (error) {
-			console.error('Erro ao carregar motivos:', error);
-		}
-	};
+	const ehEdicao = agendamento.status === 'ATENDIDO' || agendamento.status === 'NAO_REALIZADO';
 
-	// Carrega motivos quando necessário
+	// Inicializa: na edição, preenche com o status atual (ATENDIDO ou NAO_REALIZADO)
 	useEffect(() => {
-		if (showMotivoSelect && motivos.length === 0 && session?.access_token) {
-			carregarMotivos();
+		if (ehEdicao) {
+			setStatusSelecionado(agendamento.status as 'ATENDIDO' | 'NAO_REALIZADO');
+			if (agendamento.status === 'NAO_REALIZADO') {
+				const id = agendamento.motivoNaoAtendimentoId || agendamento.motivoNaoAtendimento?.id || '';
+				setMotivoSelecionado(id);
+			} else {
+				setMotivoSelecionado('');
+			}
+		} else {
+			setStatusSelecionado('');
+			setMotivoSelecionado('');
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [showMotivoSelect]);
+	}, [ehEdicao, agendamento.status, agendamento.motivoNaoAtendimentoId, agendamento.motivoNaoAtendimento?.id]);
 
-	const handleConfirmarRealizado = async () => {
+	// Carrega motivos quando seleciona Não realizado
+	useEffect(() => {
+		if (statusSelecionado === 'NAO_REALIZADO' && motivos.length === 0 && session?.access_token) {
+			motivoService.listaCompleta(session.access_token).then((r) => {
+				if (r.ok && r.data) setMotivos(r.data as IMotivo[]);
+			});
+		}
+	}, [statusSelecionado, motivos.length, session?.access_token]);
+
+	const handleConfirmar = async () => {
 		if (!session?.access_token) {
 			toast.error('Não autorizado');
+			return;
+		}
+		if (!statusSelecionado) {
+			toast.error('Selecione o status');
+			return;
+		}
+		if (statusSelecionado === 'NAO_REALIZADO' && !motivoSelecionado) {
+			toast.error('Selecione um motivo para não realização.');
 			return;
 		}
 
 		setIsLoading(true);
 		try {
-			const response = await agendamentoClient.atualizar(
-				agendamento.id,
-				{
-					status: StatusAgendamento.ATENDIDO,
-				},
-				session.access_token,
-			);
+			const payload =
+				statusSelecionado === 'AGENDADO'
+					? { status: StatusAgendamento.AGENDADO }
+					: statusSelecionado === 'ATENDIDO'
+					? { status: StatusAgendamento.ATENDIDO }
+					: { status: StatusAgendamento.NAO_REALIZADO, motivoNaoAtendimentoId: motivoSelecionado };
+
+			const response = await agendamentoClient.atualizar(agendamento.id, payload, session.access_token);
 
 			if (response.error) {
-				toast.error('Erro ao confirmar atendimento', { description: response.error });
+				toast.error(response.error);
 			} else {
-				toast.success('Atendimento confirmado com sucesso!', {
-					description: 'O status foi atualizado para "Atendido".',
-				});
+				const msg =
+					statusSelecionado === 'AGENDADO'
+						? 'Revertido para Agendado. O técnico poderá confirmar novamente.'
+						: statusSelecionado === 'ATENDIDO'
+						? ehEdicao ? 'Alterado para Atendido.' : 'Atendimento confirmado.'
+						: ehEdicao ? 'Alterado para Não Realizado.' : 'Não realização registrada.';
+				toast.success(msg);
 				onSuccess();
 				onClose();
 				router.refresh();
 			}
-		} catch (error) {
-			toast.error('Erro inesperado', {
-				description: 'Não foi possível confirmar o atendimento.',
-			});
+		} catch {
+			toast.error('Erro ao salvar.');
 		} finally {
 			setIsLoading(false);
 		}
-	};
-
-	const handleConfirmarNaoRealizado = async () => {
-		if (!session?.access_token) {
-			toast.error('Não autorizado');
-			return;
-		}
-
-		if (!motivoSelecionado) {
-			toast.error('Selecione um motivo', {
-				description: 'É necessário selecionar um motivo para não realização.',
-			});
-			return;
-		}
-
-		setIsLoading(true);
-		try {
-			const response = await agendamentoClient.atualizar(
-				agendamento.id,
-				{
-					status: StatusAgendamento.NAO_REALIZADO,
-					motivoId: motivoSelecionado,
-				},
-				session.access_token,
-			);
-
-			if (response.error) {
-				toast.error('Erro ao registrar não realização', { description: response.error });
-			} else {
-				toast.success('Não realização registrada com sucesso!', {
-					description: 'O status foi atualizado para "Não Realizado".',
-				});
-				onSuccess();
-				onClose();
-				router.refresh();
-			}
-		} catch (error) {
-			toast.error('Erro inesperado', {
-				description: 'Não foi possível registrar a não realização.',
-			});
-		} finally {
-			setIsLoading(false);
-		}
-	};
-
-	const handleNaoRealizadoClick = async () => {
-		if (motivos.length === 0) {
-			await carregarMotivos();
-		}
-		setShowMotivoSelect(true);
 	};
 
 	return (
 		<Dialog open={true} onOpenChange={onClose}>
 			<DialogContent className='sm:max-w-[500px]'>
 				<DialogHeader>
-					<DialogTitle>
-						{tipoConfirmacao === 'atendido' 
-							? 'Confirmar Atendimento Realizado'
-							: tipoConfirmacao === 'nao-realizado'
-							? 'Registrar Não Realização'
-							: 'Confirmar Atendimento'}
-					</DialogTitle>
+					<DialogTitle>Alterar status do atendimento</DialogTitle>
 					<DialogDescription>
-						{tipoConfirmacao === 'atendido' 
-							? `Confirme que o atendimento foi realizado para ${agendamento.municipe || 'N/A'}.`
-							: tipoConfirmacao === 'nao-realizado'
-							? `Registre que o atendimento não foi realizado para ${agendamento.municipe || 'N/A'}.`
-							: `Confirme se o atendimento foi realizado ou não para o agendamento de ${agendamento.municipe || 'N/A'}.`}
+						Selecione o status do atendimento para {agendamento.municipe || 'N/A'}.
 					</DialogDescription>
 				</DialogHeader>
 
-				{showMotivoSelect && (
-					<div className='space-y-4 py-4'>
+				<div className='space-y-4 py-4'>
+					<div className='space-y-2'>
+						<label className='text-sm font-medium'>Status</label>
+						<Select
+							value={statusSelecionado || undefined}
+							onValueChange={(v) => setStatusSelecionado((v || '') as StatusOpcao)}>
+							<SelectTrigger>
+								<SelectValue placeholder='Selecione o status...' />
+							</SelectTrigger>
+							<SelectContent>
+								{ehEdicao && (
+									<SelectItem value='AGENDADO'>
+										Agendado (reverter confirmação — ex.: confirmou o agendamento errado)
+									</SelectItem>
+								)}
+								<SelectItem value='ATENDIDO'>Atendido</SelectItem>
+								<SelectItem value='NAO_REALIZADO'>Não realizado</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
+
+					{statusSelecionado === 'NAO_REALIZADO' && (
 						<div className='space-y-2'>
-							<label className='text-sm font-medium'>
-								Selecione o motivo da não realização:
-							</label>
-							<Select
-								value={motivoSelecionado}
-								onValueChange={setMotivoSelecionado}>
+							<label className='text-sm font-medium'>Motivo da não realização</label>
+							<Select value={motivoSelecionado || undefined} onValueChange={setMotivoSelecionado}>
 								<SelectTrigger>
 									<SelectValue placeholder='Selecione um motivo...' />
 								</SelectTrigger>
 								<SelectContent>
-									{motivos.map((motivo) => (
-										<SelectItem key={motivo.id} value={motivo.id}>
-											{motivo.texto}
+									{motivos.map((m) => (
+										<SelectItem key={m.id} value={m.id}>
+											{m.texto}
 										</SelectItem>
 									))}
 								</SelectContent>
 							</Select>
 						</div>
-					</div>
-				)}
+					)}
+				</div>
 
-				<DialogFooter className='flex-col sm:flex-row gap-2'>
-					<Button
-						variant='outline'
-						onClick={onClose}
-						disabled={isLoading}
-						className='w-full sm:w-auto'>
+				<DialogFooter>
+					<Button variant='outline' onClick={onClose} disabled={isLoading}>
 						Cancelar
 					</Button>
-					{tipoConfirmacao === 'atendido' ? (
-						<Button
-							onClick={handleConfirmarRealizado}
-							disabled={isLoading}
-							className='w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white'>
-							<CheckCircle2 className='mr-2 h-4 w-4' />
-							Confirmar Atendido
-						</Button>
-					) : !showMotivoSelect ? (
-						<>
-							<Button
-								variant='destructive'
-								onClick={handleNaoRealizadoClick}
-								disabled={isLoading}
-								className='w-full sm:w-auto bg-red-600 hover:bg-red-700'>
-								<XCircle className='mr-2 h-4 w-4' />
-								Não Realizado
-							</Button>
-							<Button
-								onClick={handleConfirmarRealizado}
-								disabled={isLoading}
-								className='w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white'>
-								<CheckCircle2 className='mr-2 h-4 w-4' />
-								Atendido
-							</Button>
-						</>
-					) : (
-						<Button
-							variant='destructive'
-							onClick={handleConfirmarNaoRealizado}
-							disabled={isLoading || !motivoSelecionado}
-							className='w-full sm:w-auto bg-red-600 hover:bg-red-700'>
-							<XCircle className='mr-2 h-4 w-4' />
-							Confirmar Não Realizado
-						</Button>
-					)}
+					<Button
+						onClick={handleConfirmar}
+						disabled={isLoading || !statusSelecionado || (statusSelecionado === 'NAO_REALIZADO' && !motivoSelecionado)}>
+						Confirmar
+					</Button>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>

@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
 import { IPermissao } from '@/types/usuario';
 import AtribuirTecnico from './atribuir-tecnico';
 import ConfirmarAtendimento from './confirmar-atendimento';
-import { CheckCircle2, XCircle } from 'lucide-react';
+import { Pencil, CheckCircle2 } from 'lucide-react';
 import { StatusAgendamento } from '@/types/agendamento';
 
 // Função auxiliar para formatar data/hora corretamente
@@ -67,9 +67,9 @@ export default function ListaAgendamentos() {
 	const [total, setTotal] = useState(0);
 	const [busca, setBusca] = useState('');
 	const [status, setStatus] = useState('');
-	const [dataSelecionada, setDataSelecionada] = useState<Date | undefined>(undefined);
+	const [dataSelecionada, setDataSelecionada] = useState<Date | undefined>(() => new Date());
 	const [loading, setLoading] = useState(true);
-	const [agendamentoParaConfirmar, setAgendamentoParaConfirmar] = useState<(IAgendamento & { _tipoConfirmacao?: 'atendido' | 'nao-realizado' }) | null>(null);
+	const [agendamentoParaConfirmar, setAgendamentoParaConfirmar] = useState<IAgendamento | null>(null);
 
 	useEffect(() => {
 		carregarAgendamentos();
@@ -248,23 +248,33 @@ export default function ListaAgendamentos() {
 											const isAdm = permissao === IPermissao.ADM || permissao === 'ADM';
 											const isDev = permissao === IPermissao.DEV || permissao === 'DEV';
 											const semTecnico = !agend.tecnico;
-											const podeAtribuir = isPontoFocal && semTecnico && agend.coordenadoriaId;
+											// Atribuir/editar técnico: Ponto Focal sempre (quando há coordenadoria); ADM/DEV só quando status Atendido ou Não Realizado
+											const podeAtribuir =
+												!!agend.coordenadoriaId &&
+												(isPontoFocal ||
+													((isAdm || isDev) &&
+														(agend.status === StatusAgendamento.ATENDIDO ||
+															agend.status === StatusAgendamento.NAO_REALIZADO)));
 											
 											// Verifica se o técnico logado é o técnico do agendamento
 											// O JWT usa 'sub' como campo do ID do usuário
 											const usuarioId = session?.usuario?.sub || (session?.usuario as any)?.id;
 											const tecnicoIdMatch = agend.tecnicoId === usuarioId;
 											
-											// Botões aparecem apenas para agendamentos que ainda não foram finalizados
-											// (AGENDADO ou CONCLUIDO, mas não ATENDIDO ou NAO_REALIZADO)
-											const statusPermiteConfirmacao = agend.status === StatusAgendamento.AGENDADO || 
-												agend.status === StatusAgendamento.CONCLUIDO;
+											// Pendentes: técnico ainda não confirmou (AGENDADO ou CONCLUIDO)
+											const statusPendente =
+												agend.status === StatusAgendamento.AGENDADO || agend.status === StatusAgendamento.CONCLUIDO;
+											// Já confirmados: técnico já alterou (ATENDIDO ou NAO_REALIZADO)
+											const statusJaConfirmado =
+												agend.status === StatusAgendamento.ATENDIDO || agend.status === StatusAgendamento.NAO_REALIZADO;
 											
-											// Permite confirmar se:
-											// 1. É técnico E é o técnico do agendamento
-											// 2. OU é ADM/DEV (para testes e administração)
-											const podeConfirmar = (isTecnico && tecnicoIdMatch && statusPermiteConfirmacao) ||
-												((isAdm || isDev) && tecnicoIdMatch && statusPermiteConfirmacao);
+											// Confirmar: só técnico do agendamento (ou ADM/DEV que seja o técnico)
+											const basePode = (isTecnico || isAdm || isDev) && tecnicoIdMatch;
+											const podeConfirmar = basePode && statusPendente;   // mostra "Confirmar"
+											// Alterar: técnico do agendamento OU ADM/DEV/Ponto Focal (para reverter ex.: técnico confirmou errado)
+											const podeAlterar =
+												statusJaConfirmado &&
+												((isTecnico && tecnicoIdMatch) || isAdm || isDev || isPontoFocal);
 											
 
 											return (
@@ -318,28 +328,21 @@ export default function ListaAgendamentos() {
 													</TableCell>
 													<TableCell>
 														{podeConfirmar ? (
-															<div className='flex gap-2'>
-																<Button
-																	size='sm'
-																	variant='default'
-																	onClick={() => {
-																		setAgendamentoParaConfirmar({ ...agend, _tipoConfirmacao: 'atendido' } as any);
-																	}}
-																	className='bg-blue-600 hover:bg-blue-700 text-white'>
-																	<CheckCircle2 className='h-4 w-4 mr-1' />
-																	Atendido
-																</Button>
-																<Button
-																	size='sm'
-																	variant='destructive'
-																	onClick={() => {
-																		setAgendamentoParaConfirmar({ ...agend, _tipoConfirmacao: 'nao-realizado' } as any);
-																	}}
-																	className='bg-red-600 hover:bg-red-700'>
-																	<XCircle className='h-4 w-4 mr-1' />
-																	Não Realizado
-																</Button>
-															</div>
+															<Button
+																size='sm'
+																onClick={() => setAgendamentoParaConfirmar(agend)}
+																className='bg-emerald-600 hover:bg-emerald-700 text-white'>
+																<CheckCircle2 className='h-4 w-4 mr-1' />
+																Confirmar
+															</Button>
+														) : podeAlterar ? (
+															<Button
+																size='sm'
+																variant='outline'
+																onClick={() => setAgendamentoParaConfirmar(agend)}>
+																<Pencil className='h-4 w-4 mr-1' />
+																Alterar
+															</Button>
 														) : (
 															<span className='text-muted-foreground text-sm'>-</span>
 														)}
@@ -385,7 +388,6 @@ export default function ListaAgendamentos() {
 			{agendamentoParaConfirmar && (
 				<ConfirmarAtendimento
 					agendamento={agendamentoParaConfirmar}
-					tipoConfirmacao={agendamentoParaConfirmar._tipoConfirmacao}
 					onClose={() => setAgendamentoParaConfirmar(null)}
 					onSuccess={() => {
 						setAgendamentoParaConfirmar(null);
