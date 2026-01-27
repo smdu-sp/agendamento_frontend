@@ -21,6 +21,7 @@ export enum IPermissao {
 	ADM,
 	USR,
 	PONTO_FOCAL,
+	PORTARIA,
 }
 
 export interface ICreateUsuario {

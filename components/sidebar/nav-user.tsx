@@ -62,6 +62,9 @@ export async function NavUser() {
 			if (permissaoUpper === 'PONTO_FOCAL') {
 				return { texto: 'Ponto Focal', variant: 'success' };
 			}
+			if (permissaoUpper === 'PORTARIA') {
+				return { texto: 'Portaria', variant: 'secondary' };
+			}
 			return { texto: 'Usuário', variant: 'secondary' };
 		}
 		
@@ -72,6 +75,7 @@ export async function NavUser() {
 			[IPermissao.ADM]: { texto: 'Administrador', variant: 'destructive' },
 			[IPermissao.USR]: { texto: 'Usuário', variant: 'secondary' },
 			[IPermissao.PONTO_FOCAL]: { texto: 'Ponto Focal', variant: 'success' },
+			[IPermissao.PORTARIA]: { texto: 'Portaria', variant: 'secondary' },
 		};
 		
 		return permissoes[permissao] || { texto: 'Usuário', variant: 'secondary' };

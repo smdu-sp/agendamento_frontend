@@ -268,7 +268,10 @@ export default function ListaAgendamentos() {
 											
 
 											return (
-												<TableRow key={agend.id}>
+												<TableRow 
+													key={agend.id}
+													className={semTecnico ? 'bg-orange-100 hover:bg-orange-200' : ''}
+												>
 													<TableCell>
 														<span className='text-sm text-muted-foreground'>
 															{formatarDataHora(agend.dataHora)}

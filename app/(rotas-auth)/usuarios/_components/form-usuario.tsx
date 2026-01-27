@@ -36,7 +36,7 @@ const formSchemaUsuario = z.object({
 	nome: z.string(),
 	login: z.string(),
 	email: z.string().email(),
-	permissao: z.enum(['DEV', 'TEC', 'ADM', 'USR', 'PONTO_FOCAL']),
+	permissao: z.enum(['DEV', 'TEC', 'ADM', 'USR', 'PONTO_FOCAL', 'PORTARIA']),
 	coordenadoriaId: z.string().optional(),
 });
 
@@ -289,6 +289,7 @@ export default function FormUsuario({ isUpdating, user, onClose }: FormUsuarioPr
 										<SelectItem value='TEC'>Técnico</SelectItem>
 										<SelectItem value='ADM'>Administrador</SelectItem>
 										<SelectItem value='PONTO_FOCAL'>Ponto Focal</SelectItem>
+										<SelectItem value='PORTARIA'>Portaria</SelectItem>
 										<SelectItem value='USR'>Usuário</SelectItem>
 									</SelectContent>
 								</Select>
