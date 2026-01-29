@@ -9,6 +9,7 @@ import {
   Building2,
   Tags,
   ListX,
+  LayoutDashboard,
 } from "lucide-react";
 
 import {
@@ -153,6 +154,12 @@ export async function NavMain() {
                   : "Coordenadoria"}
               </SidebarGroupLabel>
               <SidebarMenu>
+                <SidebarMenuItem className="z-50">
+                  <Link href="/dashboard">
+                    <LayoutDashboard />
+                    <span>Dashboard</span>
+                  </Link>
+                </SidebarMenuItem>
                 <SidebarMenuItem className="z-50">
                   <Link href="/usuarios">
                     <Users />
