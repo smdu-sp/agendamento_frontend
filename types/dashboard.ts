@@ -19,6 +19,10 @@ export interface IDashboard {
   totalGeral: number;
   realizados: number;
   naoRealizados: number;
+  /** Apenas NAO_REALIZADO (para taxa de absenteísmo) */
+  apenasNaoRealizado: number;
+  /** Quantidade de dias distintos no período em que há pelo menos um agendamento */
+  diasComAgendamentos: number;
   porMes: IDashboardPorMes[];
   porAno: IDashboardPorAno[];
   motivosNaoRealizacao: IDashboardMotivoNaoRealizacao[];

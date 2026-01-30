@@ -28,7 +28,14 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Calendar, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import {
+  Calendar,
+  XCircle,
+  Loader2,
+  Percent,
+  UserX,
+  BarChart3,
+} from "lucide-react";
 import { toast } from "sonner";
 
 const MESES = [
@@ -120,10 +127,24 @@ export default function DashboardContent() {
     totalGeral: 0,
     realizados: 0,
     naoRealizados: 0,
+    apenasNaoRealizado: 0,
+    diasComAgendamentos: 0,
     porMes: [],
     porAno: [],
     motivosNaoRealizacao: [],
   };
+
+  const total = dados.totalGeral;
+  const percentualRealizados =
+    total > 0 ? ((dados.realizados / total) * 100).toFixed(1) : "0";
+  const percentualNaoRealizados =
+    total > 0 ? ((dados.naoRealizados / total) * 100).toFixed(1) : "0";
+  const taxaAbsenteismo =
+    total > 0 ? ((dados.apenasNaoRealizado / total) * 100).toFixed(1) : "0";
+  const mediaDiaria =
+    total > 0 && dados.diasComAgendamentos > 0
+      ? (total / dados.diasComAgendamentos).toFixed(1)
+      : "0";
 
   const chartConfigMes: ChartConfig = {
     mes: { label: "Mês" },
@@ -206,45 +227,78 @@ export default function DashboardContent() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* KPIs principais */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total no ano</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total de agendamentos
+            </CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{dados.totalGeral}</div>
             <p className="text-xs text-muted-foreground">
-              Agendamentos em {ano}
-              {coordenadoriaId ? " (filtro por coordenadoria)" : ""}
+              Período: {ano}
+              {coordenadoriaId ? " (por coordenadoria)" : ""}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Realizados</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-sm font-medium">% realizados</CardTitle>
+            <Percent className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {dados.realizados}
+              {percentualRealizados}%
             </div>
-            <p className="text-xs text-muted-foreground">Status: Atendido</p>
+            <p className="text-xs text-muted-foreground">
+              ATENDIDO + CONCLUIDO
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Não realizados
+              % não realizados
             </CardTitle>
             <XCircle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-destructive">
-              {dados.naoRealizados}
+              {percentualNaoRealizados}%
             </div>
             <p className="text-xs text-muted-foreground">
-              Status: Não realizado
+              NAO_REALIZADO + CANCELADO
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Taxa de absenteísmo
+            </CardTitle>
+            <UserX className="h-4 w-4 text-amber-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-amber-600">
+              {taxaAbsenteismo}%
+            </div>
+            <p className="text-xs text-muted-foreground">
+              NAO_REALIZADO / total
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Média diária</CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{mediaDiaria}</div>
+            <p className="text-xs text-muted-foreground">
+              Média por dia com agendamento ({dados.diasComAgendamentos} dias)
             </p>
           </CardContent>
         </Card>
