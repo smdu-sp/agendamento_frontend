@@ -14,7 +14,7 @@ export default async function Home() {
 
   // Usuário (USR) não tem permissão para ver nada
   const permissao = session.usuario?.permissao;
-  const isUsr = permissao === IPermissao.USR || permissao === "USR";
+  const isUsr = permissao as unknown as IPermissao === IPermissao.USR || permissao === "USR";
   if (isUsr) {
     return (
       <div className="w-full relative px-0 md:px-8 pb-10 md:pb-0 flex items-center justify-center min-h-[50vh]">
@@ -26,11 +26,11 @@ export default async function Home() {
   }
 
   let titulo = "Agendamentos";
-  if (permissao === IPermissao.TEC) {
+  if (permissao as unknown as IPermissao === IPermissao.TEC) {
     titulo = "Meus Agendamentos";
   } else if (
-    permissao === IPermissao.PONTO_FOCAL ||
-    permissao === IPermissao.COORDENADOR
+    permissao as unknown as IPermissao === IPermissao.PONTO_FOCAL ||
+    permissao as unknown as IPermissao === IPermissao.COORDENADOR
   ) {
     titulo = "Agendamentos da Coordenadoria";
   }
@@ -39,8 +39,8 @@ export default async function Home() {
     <div className=" w-full relative px-0 md:px-8 pb-10 md:pb-0">
       <div className="flex justify-between items-center mb-5">
         <h1 className="text-xl md:text-4xl font-bold">{titulo}</h1>
-        {(session.usuario?.permissao === IPermissao.ADM ||
-          session.usuario?.permissao === IPermissao.DEV) && (
+        {(session.usuario?.permissao as unknown as IPermissao === IPermissao.ADM ||
+          session.usuario?.permissao as unknown as IPermissao === IPermissao.DEV) && (
           <ImportarPlanilha />
         )}
       </div>

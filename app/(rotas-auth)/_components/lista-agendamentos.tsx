@@ -68,26 +68,6 @@ const formatarDataHora = (data: Date | string): string => {
   return format(dataLocal, "dd/MM/yyyy 'às' HH:mm");
 };
 
-// Função para mascarar CPF no formato NNN.XXX.XXX-NN
-const mascararCPF = (cpf: string | null | undefined): string => {
-  if (!cpf) return "-";
-
-  // Remove caracteres não numéricos
-  const apenasNumeros = cpf.replace(/\D/g, "");
-
-  // Verifica se tem 11 dígitos
-  if (apenasNumeros.length !== 11) {
-    return cpf; // Retorna o CPF original se não tiver 11 dígitos
-  }
-
-  // Formato: NNN.XXX.XXX-NN
-  // Mostra primeiros 3 dígitos, mascara 6 do meio, mostra últimos 2
-  const primeiros3 = apenasNumeros.substring(0, 3);
-  const ultimos2 = apenasNumeros.substring(9, 11);
-
-  return `${primeiros3}.XXX.XXX-${ultimos2}`;
-};
-
 export default function ListaAgendamentos() {
   const { data: session } = useSession();
   const [agendamentos, setAgendamentos] = useState<IAgendamento[]>([]);
@@ -499,8 +479,8 @@ export default function ListaAgendamentos() {
 
                       // Verifica se o técnico logado é o técnico do agendamento
                       // O JWT usa 'sub' como campo do ID do usuário
-                      const usuarioId =
-                        session?.usuario?.sub || (session?.usuario as any)?.id;
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      const usuarioId = session?.usuario?.sub || (session?.usuario as any)?.id;
                       const tecnicoIdMatch = agend.tecnicoId === usuarioId;
 
                       // Sem técnico: desabilita ações até o ponto focal atribuir
@@ -545,14 +525,7 @@ export default function ListaAgendamentos() {
                       return (
                         <TableRow
                           key={agend.id}
-                          style={
-                            deveDestacar
-                              ? {
-                                  backgroundColor: "#FFF3CD",
-                                }
-                              : undefined
-                          }
-                          className={deveDestacar ? "hover:opacity-90" : ""}
+                          className={deveDestacar ? "bg-yellow-100 hover:bg-yellow-200 text-black" : ""}
                         >
                           <TableCell>
                             <span className="text-sm text-muted-foreground">
@@ -562,7 +535,7 @@ export default function ListaAgendamentos() {
                           <TableCell>{agend.municipe || "-"}</TableCell>
                           <TableCell>
                             <span className="text-sm font-mono">
-                              {mascararCPF(agend.cpf)}
+                              {agend.cpf}
                             </span>
                           </TableCell>
                           <TableCell>{agend.processo || "-"}</TableCell>

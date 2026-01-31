@@ -132,6 +132,7 @@ export default function ImportarPlanilha() {
 					router.refresh();
 				}
 			} catch (error) {
+				console.error('Erro ao importar planilha:', error);
 				toast.error('Erro inesperado', {
 					description: 'Ocorreu um erro ao processar a importação. Tente novamente.',
 					duration: 5000,

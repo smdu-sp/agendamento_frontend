@@ -39,7 +39,7 @@ export default function AtribuirTecnico({
   tecnicoAtual,
   onSuccess,
 }: AtribuirTecnicoProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<boolean>(false);
   const [tecnicos, setTecnicos] = useState<ITecnico[]>([]);
   const [selectedTecnico, setSelectedTecnico] = useState<ITecnico | null>(
     tecnicoAtual
@@ -64,6 +64,7 @@ export default function AtribuirTecnico({
             setTecnicos(resp.data as ITecnico[]);
           }
         } catch (error) {
+          console.error("Erro ao carregar técnicos:", error);
           toast.error("Erro ao carregar técnicos");
         } finally {
           setIsLoading(false);
@@ -104,6 +105,7 @@ export default function AtribuirTecnico({
         }
       }
     } catch (error) {
+      console.error("Erro ao atribuir técnico:", error);
       toast.error("Erro inesperado", {
         description: "Não foi possível atribuir o técnico.",
       });

@@ -83,7 +83,7 @@ export default function DashboardContent() {
     if (!podeVerDashboard) return;
     if (isAdmOuDev) {
       coordenadorias.listaCompleta(session?.access_token).then((r) => {
-        if (r.ok && r.data) setCoordenadoriasLista(r.data);
+        if (r.ok && r.data && Array.isArray(r.data)) setCoordenadoriasLista(r.data);
       });
     }
   }, [isAdmOuDev, podeVerDashboard, session?.access_token]);

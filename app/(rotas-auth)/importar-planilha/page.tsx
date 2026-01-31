@@ -15,8 +15,8 @@ export default async function ImportarPlanilhaPage() {
 	// Verifica se o usuário tem permissão (ADM ou DEV)
 	// A permissão pode vir como string do JWT ou como número do enum
 	const permissao = session.usuario?.permissao;
-	const isAdm = permissao === IPermissao.ADM || permissao === 'ADM';
-	const isDev = permissao === IPermissao.DEV || permissao === 'DEV';
+	const isAdm = permissao as unknown as IPermissao === IPermissao.ADM || permissao === 'ADM';
+	const isDev = permissao as unknown as IPermissao === IPermissao.DEV || permissao === 'DEV';
 	if (!isAdm && !isDev) {
 		redirect('/');
 	}
