@@ -10,7 +10,7 @@ import { redirect } from 'next/navigation';
 
 export async function autorizar(id: string): Promise<IRespostaUsuario> {
 	const session = await auth();
-	if (!session) redirect('/login');
+	if (!session) redirect(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/login`);
 	const baseURL = process.env.NEXT_PUBLIC_API_URL;
 	const autorizado = await fetch(`${baseURL}usuarios/autorizar/${id}`, {
 		method: 'PATCH',

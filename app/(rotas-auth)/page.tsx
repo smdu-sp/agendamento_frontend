@@ -9,7 +9,7 @@ import ListaAgendamentos from "./_components/lista-agendamentos";
 export default async function Home() {
   const session = await auth();
   if (!session) {
-    redirect("/login");
+    redirect(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/login`);
   }
 
   // Usuário (USR) não tem permissão para ver nada

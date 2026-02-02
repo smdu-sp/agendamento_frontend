@@ -12,7 +12,7 @@ export async function importarPlanilha(
 ): Promise<IRespostaAgendamento> {
 	const session = await auth();
 	const baseURL = process.env.NEXT_PUBLIC_API_URL;
-	if (!session) redirect('/login');
+	if (!session) redirect(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/login`);
 
 	try {
 		const response: Response = await fetch(`${baseURL}agendamentos/importar-planilha`, {

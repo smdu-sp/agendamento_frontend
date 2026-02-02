@@ -9,7 +9,7 @@ import ImportarPlanilhaForm from './_components/importar-planilha-form';
 export default async function ImportarPlanilhaPage() {
 	const session = await auth();
 	if (!session) {
-		redirect('/login');
+		redirect(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/login`);
 	}
 
 	// Verifica se o usuário tem permissão (ADM ou DEV)
@@ -17,8 +17,8 @@ export default async function ImportarPlanilhaPage() {
 	const permissao = session.usuario?.permissao;
 	const isAdm = permissao as unknown as IPermissao === IPermissao.ADM || permissao === 'ADM';
 	const isDev = permissao as unknown as IPermissao === IPermissao.DEV || permissao === 'DEV';
-	if (!isAdm && !isDev) {
-		redirect('/');
+		if (!isAdm && !isDev) {
+		redirect(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/`);
 	}
 
 	return (

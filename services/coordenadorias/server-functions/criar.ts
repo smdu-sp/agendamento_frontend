@@ -10,7 +10,7 @@ import { revalidateTag } from 'next/cache';
 export async function criar(data: ICreateCoordenadoria): Promise<IRespostaCoordenadoria> {
 	const session = await auth();
 	const baseURL = process.env.NEXT_PUBLIC_API_URL;
-	if (!session) redirect('/login');
+	if (!session) redirect(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/login`);
 
 	const response: Response = await fetch(`${baseURL}coordenadorias/criar`, {
 		method: 'POST',

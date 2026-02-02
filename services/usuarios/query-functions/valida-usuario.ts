@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 
 export async function validaUsuario(): Promise<IRespostaUsuario> {
 	const session = await auth();
-	if (!session) redirect('/login');
+	if (!session) redirect(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/login`);
 	const baseURL = process.env.NEXT_PUBLIC_API_URL;
 	try {
 		const usuario = await fetch(`${baseURL}usuarios/valida-usuario`, {

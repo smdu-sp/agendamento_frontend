@@ -40,7 +40,7 @@ async function Usuarios({
       String(session?.usuario?.permissao) === "3"); // IPermissao.USR
   if (isUsr) {
     const { redirect } = await import("next/navigation");
-    redirect("/");
+    redirect(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/`);
   }
   if (session && session.access_token) {
     const response = await usuario.buscarTudo(
