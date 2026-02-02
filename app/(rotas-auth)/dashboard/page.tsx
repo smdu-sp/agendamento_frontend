@@ -12,7 +12,7 @@ export const metadata = {
 
 export default async function DashboardPage() {
   const session = await auth();
-  if (!session) redirect(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/login`);
+  if (!session) redirect("/login");
 
   const permissao = String(session.usuario?.permissao ?? "");
   const podeVerDashboard =

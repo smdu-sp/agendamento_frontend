@@ -86,7 +86,7 @@ export default {
 		},
 	},
 	pages: {
-		signIn: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/login`,
-		error: `${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/login`,
+		signIn: '/login',
+		error: '/login',
 	},
 } satisfies NextAuthConfig;

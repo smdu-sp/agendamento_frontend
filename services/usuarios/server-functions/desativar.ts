@@ -8,7 +8,7 @@ import { redirect } from 'next/navigation';
 
 export async function desativar(id: string) {
 	const session = await auth();
-	if (!session) redirect(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/login`);
+	if (!session) redirect('/login');
 	const baseURL = process.env.NEXT_PUBLIC_API_URL;
 	const desativado = await fetch(`${baseURL}usuarios/desativar/${id}`, {
 		method: 'DELETE',

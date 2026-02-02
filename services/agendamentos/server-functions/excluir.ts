@@ -10,7 +10,7 @@ import { revalidateTag } from 'next/cache';
 export async function excluir(id: string): Promise<IRespostaAgendamento> {
 	const session = await auth();
 	const baseURL = process.env.NEXT_PUBLIC_API_URL;
-	if (!session) redirect(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/login`);
+	if (!session) redirect('/login');
 
 	const response: Response = await fetch(`${baseURL}agendamentos/excluir/${id}`, {
 		method: 'DELETE',

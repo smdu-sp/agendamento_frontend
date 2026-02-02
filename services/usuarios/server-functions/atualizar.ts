@@ -13,7 +13,7 @@ export async function atualizar(
 ): Promise<IRespostaUsuario> {
   const session = await auth();
   const baseURL = process.env.NEXT_PUBLIC_API_URL;
-  if (!session) redirect(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/login`);
+  if (!session) redirect('/login');
   try {
     const response: Response = await fetch(`${baseURL}usuarios/atualizar/${id}`, {
       method: 'PATCH',
@@ -27,7 +27,7 @@ export async function atualizar(
     if (response.status === 200) {
       revalidateTag('users');
       revalidateTag('user-by-id');
-      revalidatePath(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/`);
+      revalidatePath('/');
       return {
         ok: true,
         error: null,
