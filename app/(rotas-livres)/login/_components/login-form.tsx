@@ -53,6 +53,7 @@ export function LoginForm() {
         login,
         senha,
         redirect: false,
+        callbackUrl: "/agendamento",
       });
       // NextAuth retorna { error } em falha; em sucesso não vem error (pode vir url, etc.)
       if (resp?.error) {
@@ -61,7 +62,7 @@ export function LoginForm() {
         });
       } else {
         toast.success("Login realizado com sucesso.");
-        window.location.href = resp?.url ?? "/";
+        window.location.href = resp?.url ?? "/agendamento";
       }
     } catch (e) {
       console.error(e);
