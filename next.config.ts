@@ -11,7 +11,8 @@ const nextConfig: NextConfig = {
 	},
 	allowedDevOrigins: [
 		'10.20.4.6',
-		'127.0.0.1'
+		'127.0.0.1',
+		'https://smulweb.prefeitura.sp.gov.br'
 	],
 };
 
