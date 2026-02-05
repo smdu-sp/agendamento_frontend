@@ -4,6 +4,10 @@ import Credentials from 'next-auth/providers/credentials';
 import type { NextAuthConfig } from 'next-auth';
 import { jwtDecode } from 'jwt-decode';
 
+// URL interna para chamadas server-side (dentro do Docker)
+// Fallback para NEXT_PUBLIC_API_URL em dev local
+const API_URL = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL;
+
 export default {
 	providers: [
 		Credentials({
@@ -17,7 +21,7 @@ export default {
 				if (credentials?.login && credentials?.senha) {
 					const { login, senha } = credentials;
 					const response = await fetch(
-						`${process.env.NEXT_PUBLIC_API_URL}login`,
+						`${API_URL}login`,
 						{
 							method: 'POST',
 							headers: { 'Content-Type': 'application/json' },
@@ -73,7 +77,7 @@ export default {
 				if (session.usuario.exp * 1000 < now.getTime()) {
 					try {
 						const response = await fetch(
-							`${process.env.NEXT_PUBLIC_API_URL}refresh`,
+							`${API_URL}refresh`,
 							{
 								method: 'POST',
 								headers: {
@@ -98,7 +102,7 @@ export default {
 				}
 				if (session.access_token) {
 					fetch(
-						`${process.env.NEXT_PUBLIC_API_URL}usuarios/valida-usuario`,
+						`${API_URL}usuarios/valida-usuario`,
 						{
 							headers: {
 								Authorization: `Bearer ${session.access_token}`,
