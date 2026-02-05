@@ -1,7 +1,7 @@
 /** @format */
 
 import Credentials from 'next-auth/providers/credentials';
-import type { NextAuthConfig, Session } from 'next-auth';
+import type { NextAuthConfig } from 'next-auth';
 import { jwtDecode } from 'jwt-decode';
 
 export default {
