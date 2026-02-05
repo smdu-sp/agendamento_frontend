@@ -3,6 +3,11 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+	basePath: "/agendamento",
+	output: "standalone",
+	env: {
+		NEXT_PUBLIC_BASE_PATH: '/agendamento'
+	},
 	/* config options here */
 	experimental: {
 		serverActions: {
@@ -12,7 +17,6 @@ const nextConfig: NextConfig = {
 	allowedDevOrigins: [
 		'10.20.4.6',
 		'127.0.0.1',
-		'https://smulweb.prefeitura.sp.gov.br'
 	],
 };
 

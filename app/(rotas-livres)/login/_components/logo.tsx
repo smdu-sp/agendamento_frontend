@@ -19,7 +19,7 @@ export default function Logo() {
         return <Image
             width={1200}
             height={1200}
-            src={"/asdasdasdas.png"}
+            src={"/logo-img.png"}
             alt="SMUL LOGO"
         />
     }
