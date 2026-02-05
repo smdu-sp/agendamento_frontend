@@ -3,9 +3,12 @@
 import NextAuth from "next-auth";
 import authConfig from "./auth.config";
 
+// O basePath deve corresponder ao basePath do Next.js + /api/auth
+const basePath = `${process.env.NEXT_PUBLIC_BASE_PATH || "/agendamento"}/api/auth`;
+
 export const { auth, handlers, signIn, signOut, unstable_update } = NextAuth({
-  // Não definir basePath aqui - o Next.js já aplica o basePath automaticamente às rotas
+  basePath,
   session: { strategy: "jwt" },
-  trustHost: true, // usa o host da requisição no redirect (ex.: IP 10.10.5.1) em vez de AUTH_URL
+  trustHost: true,
   ...authConfig,
 });
