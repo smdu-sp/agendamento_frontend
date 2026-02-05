@@ -52,7 +52,8 @@ export default {
 				//eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const userSession = token.user as any;
 				if (!userSession) {
-					return { user: undefined, expires: '' } as Session;
+					// Retorna sessão padrão vazia - o NextAuth cuida do resto
+					return session;
 				}
 				session = userSession;
 
@@ -60,45 +61,43 @@ export default {
 					try {
 						session.usuario = jwtDecode(session.access_token);
 					} catch {
-						return { user: undefined, expires: '' } as Session;
+						return session;
 					}
 				}
 
 				if (!session.usuario) {
-					return { user: undefined, expires: '' } as Session;
+					return session;
 				}
 
 				const now = new Date();
 				if (session.usuario.exp * 1000 < now.getTime()) {
-					const response = await fetch(
-						`${process.env.NEXT_PUBLIC_API_URL}refresh`,
-						{
-							method: 'POST',
-							headers: {
-								'Content-Type': 'application/json',
+					try {
+						const response = await fetch(
+							`${process.env.NEXT_PUBLIC_API_URL}refresh`,
+							{
+								method: 'POST',
+								headers: {
+									'Content-Type': 'application/json',
+								},
+								body: JSON.stringify({
+									refresh_token: session.refresh_token,
+								}),
 							},
-							body: JSON.stringify({
-								refresh_token: session.refresh_token,
-							}),
-						},
-					);
-					if (response.ok) {
-						const { access_token, refresh_token } = await response.json();
-						session.access_token = access_token;
-						session.refresh_token = refresh_token;
-						if (access_token) {
-							try {
+						);
+						if (response.ok) {
+							const { access_token, refresh_token } = await response.json();
+							session.access_token = access_token;
+							session.refresh_token = refresh_token;
+							if (access_token) {
 								session.usuario = jwtDecode(access_token);
-							} catch {
-								return { user: undefined, expires: '' } as Session;
 							}
 						}
-					} else {
-						return { user: undefined, expires: '' } as Session;
+					} catch {
+						// Ignora erro de refresh - mantém sessão atual
 					}
 				}
 				if (session.access_token) {
-					await fetch(
+					fetch(
 						`${process.env.NEXT_PUBLIC_API_URL}usuarios/valida-usuario`,
 						{
 							headers: {
@@ -109,7 +108,7 @@ export default {
 				}
 				return session;
 			} catch {
-				return { user: undefined, expires: '' } as Session;
+				return session;
 			}
 		},
 	},
