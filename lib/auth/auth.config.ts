@@ -1,7 +1,7 @@
 /** @format */
 
 import Credentials from 'next-auth/providers/credentials';
-import type { NextAuthConfig } from 'next-auth';
+import type { NextAuthConfig, Session } from 'next-auth';
 import { jwtDecode } from 'jwt-decode';
 
 export default {
@@ -49,7 +49,11 @@ export default {
 		},
 		async session({ session, token }) {
 			//eslint-disable-next-line @typescript-eslint/no-explicit-any
-			session = token.user as any;
+			const userSession = token.user as any;
+			if (!userSession) {
+				return { user: undefined, expires: '' } as Session;
+			}
+			session = userSession;
 
 			if (session.access_token && !session.usuario)
 				session.usuario = jwtDecode(session.access_token);
