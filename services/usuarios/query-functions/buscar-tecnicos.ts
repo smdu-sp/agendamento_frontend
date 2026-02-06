@@ -1,11 +1,12 @@
 /** @format */
 
+import { getApiUrl } from '@/lib/api-url';
 import { IRespostaUsuario, IUsuarioTecnico } from '@/types/usuario';
 
 export async function buscarTecnicos(
 	access_token: string,
 ): Promise<IRespostaUsuario> {
-	const baseURL = process.env.NEXT_PUBLIC_API_URL;
+	const baseURL = getApiUrl();
 	console.log(baseURL);
 	try {
 		const usuarioNovo = await fetch(`${baseURL}usuarios/buscar-tecnicos`, {

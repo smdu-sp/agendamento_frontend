@@ -2,13 +2,14 @@
 
 'use client';
 
+import { getApiUrl } from '@/lib/api-url';
 import { ICreateMotivo, IRespostaMotivo } from '@/types/motivo';
 
 export async function criar(
 	data: ICreateMotivo,
 	access_token: string,
 ): Promise<IRespostaMotivo> {
-	const baseURL = process.env.NEXT_PUBLIC_API_URL;
+	const baseURL = getApiUrl();
 	try {
 		const response: Response = await fetch(`${baseURL}motivos/criar`, {
 			method: 'POST',

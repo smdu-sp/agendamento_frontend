@@ -1,12 +1,13 @@
 /** @format */
 
+import { getApiUrl } from '@/lib/api-url';
 import { IAgendamento, IRespostaAgendamento } from '@/types/agendamento';
 
 export async function buscarPorId(
 	id: string,
 	access_token: string,
 ): Promise<IRespostaAgendamento> {
-	const baseURL = process.env.NEXT_PUBLIC_API_URL;
+	const baseURL = getApiUrl();
 	try {
 		const agendamento = await fetch(`${baseURL}agendamentos/buscar-por-id/${id}`, {
 			method: 'GET',

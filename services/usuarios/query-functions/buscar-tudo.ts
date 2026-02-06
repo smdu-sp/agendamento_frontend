@@ -1,5 +1,6 @@
 /** @format */
 
+import { getApiUrl } from '@/lib/api-url';
 import { IPaginadoUsuario, IRespostaUsuario } from '@/types/usuario';
 
 export async function buscarTudo(
@@ -10,7 +11,7 @@ export async function buscarTudo(
 	status: string = '',
 	permissao: string = '',
 ): Promise<IRespostaUsuario> {
-	const baseURL = process.env.NEXT_PUBLIC_API_URL;
+	const baseURL = getApiUrl();
 	try {
 		const usuarios = await fetch(
 			`${baseURL}usuarios/buscar-tudo?pagina=${pagina}&limite=${limite}&busca=${busca}&status=${status}&permissao=${permissao}`,

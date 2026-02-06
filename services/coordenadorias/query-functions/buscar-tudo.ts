@@ -1,5 +1,6 @@
 /** @format */
 
+import { getApiUrl } from '@/lib/api-url';
 import { IPaginadoCoordenadoria, IRespostaCoordenadoria } from '@/types/coordenadoria';
 
 export async function buscarTudo(
@@ -9,7 +10,7 @@ export async function buscarTudo(
 	busca: string = '',
 	status: string = '',
 ): Promise<IRespostaCoordenadoria> {
-	const baseURL = process.env.NEXT_PUBLIC_API_URL;
+	const baseURL = getApiUrl();
 	try {
 		const coordenadorias = await fetch(
 			`${baseURL}coordenadorias/buscar-tudo?pagina=${pagina}&limite=${limite}&busca=${busca}&status=${status}`,

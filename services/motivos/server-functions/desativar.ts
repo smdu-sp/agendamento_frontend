@@ -2,13 +2,14 @@
 
 'use client';
 
+import { getApiUrl } from '@/lib/api-url';
 import { IRespostaMotivo } from '@/types/motivo';
 
 export async function desativar(
 	id: string,
 	access_token: string,
 ): Promise<IRespostaMotivo> {
-	const baseURL = process.env.NEXT_PUBLIC_API_URL;
+	const baseURL = getApiUrl();
 	try {
 		const response: Response = await fetch(`${baseURL}motivos/desativar/${id}`, {
 			method: 'DELETE',

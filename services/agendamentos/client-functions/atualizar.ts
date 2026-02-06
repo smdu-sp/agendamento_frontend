@@ -2,6 +2,7 @@
 
 'use client';
 
+import { getApiUrl } from '@/lib/api-url';
 import { IUpdateAgendamento, IRespostaAgendamento } from '@/types/agendamento';
 
 export async function atualizar(
@@ -9,7 +10,7 @@ export async function atualizar(
 	data: IUpdateAgendamento,
 	access_token: string,
 ): Promise<IRespostaAgendamento> {
-	const baseURL = process.env.NEXT_PUBLIC_API_URL;
+	const baseURL = getApiUrl();
 	try {
 		const response: Response = await fetch(`${baseURL}agendamentos/atualizar/${id}`, {
 			method: 'PATCH',

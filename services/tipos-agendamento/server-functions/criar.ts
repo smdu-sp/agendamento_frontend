@@ -2,13 +2,14 @@
 
 'use client';
 
+import { getApiUrl } from '@/lib/api-url';
 import { ICreateTipoAgendamento, IRespostaTipoAgendamento } from '@/types/tipo-agendamento';
 
 export async function criar(
 	data: ICreateTipoAgendamento,
 	access_token: string,
 ): Promise<IRespostaTipoAgendamento> {
-	const baseURL = process.env.NEXT_PUBLIC_API_URL;
+	const baseURL = getApiUrl();
 	try {
 		const response: Response = await fetch(`${baseURL}tipos-agendamento/criar`, {
 			method: 'POST',

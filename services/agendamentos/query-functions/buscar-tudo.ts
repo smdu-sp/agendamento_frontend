@@ -1,5 +1,6 @@
 /** @format */
 
+import { getApiUrl } from '@/lib/api-url';
 import { IPaginadoAgendamento, IRespostaAgendamento } from '@/types/agendamento';
 
 export async function buscarTudo(
@@ -13,7 +14,7 @@ export async function buscarTudo(
 	coordenadoriaId: string = '',
 	tecnicoId: string = '',
 ): Promise<IRespostaAgendamento> {
-	const baseURL = process.env.NEXT_PUBLIC_API_URL;
+	const baseURL = getApiUrl();
 	try {
 		const params = new URLSearchParams({
 			pagina: pagina.toString(),

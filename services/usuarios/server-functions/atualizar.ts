@@ -3,6 +3,7 @@
 'use server';
 
 import { auth } from '@/lib/auth/auth';
+import { getApiUrl } from '@/lib/api-url';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { IRespostaUsuario, IUpdateUsuario, IUsuario } from '@/types/usuario';
@@ -12,7 +13,7 @@ export async function atualizar(
   data: IUpdateUsuario,
 ): Promise<IRespostaUsuario> {
   const session = await auth();
-  const baseURL = process.env.NEXT_PUBLIC_API_URL;
+  const baseURL = getApiUrl();
   if (!session) redirect('/login');
   try {
     const response: Response = await fetch(`${baseURL}usuarios/atualizar/${id}`, {

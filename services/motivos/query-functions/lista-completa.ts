@@ -1,11 +1,12 @@
 /** @format */
 
+import { getApiUrl } from '@/lib/api-url';
 import { IMotivo, IRespostaMotivo } from '@/types/motivo';
 
 export async function listaCompleta(
 	access_token?: string,
 ): Promise<IRespostaMotivo> {
-	const baseURL = process.env.NEXT_PUBLIC_API_URL;
+	const baseURL = getApiUrl();
 	try {
 		const headers: HeadersInit = {
 			'Content-Type': 'application/json',

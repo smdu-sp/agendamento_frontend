@@ -1,5 +1,6 @@
 /** @format */
 
+import { getApiUrl } from '@/lib/api-url';
 import { IRespostaUsuario, IUsuario } from "@/types/usuario";
 
 export async function buscarMeuUsuario( access_token: string): Promise<IRespostaUsuario> {
@@ -10,7 +11,7 @@ export async function buscarMeuUsuario( access_token: string): Promise<IResposta
 			data: null,
 			status: 400,
 		};
-  const baseURL = process.env.NEXT_PUBLIC_API_URL;
+  const baseURL = getApiUrl();
   try {
     const usuarios = await fetch(`${baseURL}eu`, {
       method: 'GET',

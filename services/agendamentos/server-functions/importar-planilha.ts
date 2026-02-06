@@ -5,13 +5,14 @@
 import { redirect } from 'next/navigation';
 import { IRespostaAgendamento } from '@/types/agendamento';
 import { auth } from '@/lib/auth/auth';
+import { getApiUrl } from '@/lib/api-url';
 import { revalidateTag } from 'next/cache';
 
 export async function importarPlanilha(
 	formData: FormData,
 ): Promise<IRespostaAgendamento> {
 	const session = await auth();
-	const baseURL = process.env.NEXT_PUBLIC_API_URL;
+	const baseURL = getApiUrl();
 	if (!session) redirect('/login');
 
 	try {

@@ -1,5 +1,6 @@
 /** @format */
 
+import { getApiUrl } from '@/lib/api-url';
 import { IRespostaUsuario } from '@/types/usuario';
 
 export interface ITecnico {
@@ -12,7 +13,7 @@ export async function buscarTecnicosPorCoordenadoria(
 	coordenadoriaId: string,
 	access_token: string,
 ): Promise<IRespostaUsuario> {
-	const baseURL = process.env.NEXT_PUBLIC_API_URL;
+	const baseURL = getApiUrl();
 	try {
 		const tecnicos = await fetch(`${baseURL}usuarios/buscar-tecnicos-por-coordenadoria/${coordenadoriaId}`, {
 			method: 'GET',

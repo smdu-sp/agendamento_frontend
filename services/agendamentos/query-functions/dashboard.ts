@@ -1,5 +1,6 @@
 "use client";
 
+import { getApiUrl } from '@/lib/api-url';
 import { IDashboard, IRespostaDashboard } from "@/types/dashboard";
 
 export async function getDashboard(
@@ -7,7 +8,7 @@ export async function getDashboard(
   ano?: number,
   coordenadoriaId?: string,
 ): Promise<IRespostaDashboard> {
-  const baseURL = process.env.NEXT_PUBLIC_API_URL;
+  const baseURL = getApiUrl();
   try {
     const params = new URLSearchParams();
     if (ano != null) params.set("ano", String(ano));

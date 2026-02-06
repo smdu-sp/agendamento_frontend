@@ -1,11 +1,12 @@
 /** @format */
 
+import { getApiUrl } from '@/lib/api-url';
 import { IAgendamento, IRespostaAgendamento } from '@/types/agendamento';
 
 export async function buscarDoDia(
 	access_token: string,
 ): Promise<IRespostaAgendamento> {
-	const baseURL = process.env.NEXT_PUBLIC_API_URL;
+	const baseURL = getApiUrl();
 	try {
 		const agendamentos = await fetch(`${baseURL}agendamentos/buscar-do-dia`, {
 			method: 'GET',

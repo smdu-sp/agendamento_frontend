@@ -1,5 +1,6 @@
 /** @format */
 
+import { getApiUrl } from '@/lib/api-url';
 import { IRespostaUsuario, IUsuario } from '@/types/usuario';
 
 export async function buscarPorId(
@@ -13,7 +14,7 @@ export async function buscarPorId(
 			data: null,
 			status: 400,
 		};
-	const baseURL = process.env.NEXT_PUBLIC_API_URL;
+	const baseURL = getApiUrl();
 	try {
 		const usuarios = await fetch(`${baseURL}usuarios/buscar-por-id/${id}`, {
 			method: 'GET',

@@ -1,9 +1,10 @@
 /** @format */
 
+import { getApiUrl } from '@/lib/api-url';
 import { IRespostaUsuario, IUsuario } from "@/types/usuario";
 
 export async function listaCompleta(access_token: string): Promise<IRespostaUsuario> {
-	const baseURL = process.env.NEXT_PUBLIC_API_URL;
+	const baseURL = getApiUrl();
 	try {
 		const alvaraTipos = await fetch(`${baseURL}usuarios/lista-completa`, {
 			method: 'GET',

@@ -5,11 +5,12 @@
 import { redirect } from 'next/navigation';
 import { ICreateCoordenadoria, ICoordenadoria, IRespostaCoordenadoria } from '@/types/coordenadoria';
 import { auth } from '@/lib/auth/auth';
+import { getApiUrl } from '@/lib/api-url';
 import { revalidateTag } from 'next/cache';
 
 export async function criar(data: ICreateCoordenadoria): Promise<IRespostaCoordenadoria> {
 	const session = await auth();
-	const baseURL = process.env.NEXT_PUBLIC_API_URL;
+	const baseURL = getApiUrl();
 	if (!session) redirect('/login');
 
 	const response: Response = await fetch(`${baseURL}coordenadorias/criar`, {
