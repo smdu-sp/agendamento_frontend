@@ -27,11 +27,8 @@ import { Loader2 } from "lucide-react";
 const formSchema = z.object({
   login: z
     .string()
-    .min(7, {
-      message: "Login tem de ter 7 caracteres.",
-    })
-    .max(7, {
-      message: "Login tem de ter 7 caracteres.",
+    .min(3, {
+      message: "Login tem de ter ao menos 3 caracteres.",
     }),
   senha: z.string().min(2, {
     message: "Campo senha não pode ser vazio.",
