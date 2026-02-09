@@ -157,8 +157,8 @@ export default function ListaAgendamentos() {
     const emailMunicipe = agend.email || "";
 
     // Heurística para e-mail do técnico: baseado no login, seguindo padrão institucional
-    const emailTecnico = agend.tecnico?.login
-      ? `${agend.tecnico.login}@smul.prefeitura.sp.gov.br`
+    const emailTecnico = agend.tecnico?.email
+      ? agend.tecnico.email
       : "";
 
     const attendees = [emailMunicipe, emailTecnico].filter(Boolean).join(",");

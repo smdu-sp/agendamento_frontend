@@ -30,7 +30,7 @@ export interface IAgendamento {
   tipoAgendamento?: { id: string; texto: string } | null;
   motivoNaoAtendimento?: { id: string; texto: string } | null;
   coordenadoria?: { id: string; sigla: string; nome?: string | null } | null;
-  tecnico?: { id: string; nome: string; login: string } | null;
+  tecnico?: { id: string; nome: string; login: string; email: string } | null;
 }
 
 export interface ICreateAgendamento {
