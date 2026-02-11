@@ -7,13 +7,10 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '/agendamento';
 function fixRequestUrl(request: NextRequest): NextRequest {
   const pathname = request.nextUrl.pathname;
   
-  console.log('[AUTH DEBUG] Original:', { url: request.url, pathname });
-  
   // Se o pathname não começa com o basePath, adiciona
   if (!pathname.startsWith(basePath)) {
     const newUrl = request.nextUrl.clone();
     newUrl.pathname = `${basePath}${pathname}`;
-    console.log('[AUTH DEBUG] Fixed pathname:', newUrl.pathname);
     return new NextRequest(newUrl, request);
   }
   

@@ -1,8 +1,9 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as agendamentos from "@/services/agendamentos";
+import type { TipoPeriodoDashboard } from "@/services/agendamentos";
 import * as coordenadorias from "@/services/coordenadorias";
 import { IDashboard, IDashboardPorMes } from "@/types/dashboard";
 import { ICoordenadoria } from "@/types/coordenadoria";
@@ -21,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   ChartConfig,
@@ -35,23 +37,26 @@ import {
   Percent,
   UserX,
   BarChart3,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const MESES = [
-  "Jan",
-  "Fev",
-  "Mar",
-  "Abr",
-  "Mai",
-  "Jun",
-  "Jul",
-  "Ago",
-  "Set",
-  "Out",
-  "Nov",
-  "Dez",
+  "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+  "Jul", "Ago", "Set", "Out", "Nov", "Dez",
 ];
+
+function getSegundaFeira(d: Date): Date {
+  const d2 = new Date(d);
+  const day = d2.getDay();
+  const diff = d2.getDate() - day + (day === 0 ? -6 : 1);
+  d2.setDate(diff);
+  d2.setHours(0, 0, 0, 0);
+  return d2;
+}
 
 function formatarPorMes(porMes: IDashboardPorMes[]) {
   return porMes.map((p) => ({
@@ -61,6 +66,13 @@ function formatarPorMes(porMes: IDashboardPorMes[]) {
   }));
 }
 
+function formatarIntervaloSemana(semanaInicio: string): string {
+  const seg = new Date(semanaInicio + "T12:00:00");
+  const dom = new Date(seg);
+  dom.setDate(dom.getDate() + 6);
+  return `${format(seg, "dd/MM", { locale: ptBR })} – ${format(dom, "dd/MM", { locale: ptBR })}`;
+}
+
 export default function DashboardContent() {
   const { data: session } = useSession();
   const [dashboard, setDashboard] = useState<IDashboard | null>(null);
@@ -68,8 +80,14 @@ export default function DashboardContent() {
     ICoordenadoria[]
   >([]);
   const [loading, setLoading] = useState(true);
+  const [tipoPeriodo, setTipoPeriodo] = useState<TipoPeriodoDashboard>("ano");
   const [ano, setAno] = useState(() => new Date().getFullYear());
+  const [mes, setMes] = useState(() => new Date().getMonth() + 1);
+  const [semanaInicio, setSemanaInicio] = useState(() =>
+    format(getSegundaFeira(new Date()), "yyyy-MM-dd"),
+  );
   const [coordenadoriaId, setCoordenadoriaId] = useState<string>("");
+  const requestIdRef = useRef(0);
 
   const permissao = String(session?.usuario?.permissao ?? "");
   const isAdmOuDev = permissao === "ADM" || permissao === "DEV";
@@ -93,16 +111,55 @@ export default function DashboardContent() {
       setLoading(false);
       return;
     }
+    setDashboard(null);
     setLoading(true);
+    const id = ++requestIdRef.current;
+
+    let dataInicio: string | undefined;
+    let dataFim: string | undefined;
+    if (tipoPeriodo === "semana" && semanaInicio) {
+      const seg = new Date(semanaInicio + "T00:00:00");
+      const dom = new Date(seg);
+      dom.setDate(dom.getDate() + 6);
+      dom.setHours(23, 59, 59, 999);
+      dataInicio = seg.toISOString();
+      dataFim = dom.toISOString();
+    } else if (tipoPeriodo === "mes" && mes >= 1 && mes <= 12) {
+      const inicio = new Date(ano, mes - 1, 1, 0, 0, 0, 0);
+      const ultimoDia = new Date(ano, mes, 0).getDate();
+      const fim = new Date(ano, mes - 1, ultimoDia, 23, 59, 59, 999);
+      dataInicio = inicio.toISOString();
+      dataFim = fim.toISOString();
+    } else if (tipoPeriodo === "ano") {
+      const inicio = new Date(ano, 0, 1, 0, 0, 0, 0);
+      const fim = new Date(ano, 11, 31, 23, 59, 59, 999);
+      dataInicio = inicio.toISOString();
+      dataFim = fim.toISOString();
+    }
+
+    const opts = {
+      tipoPeriodo,
+      ano,
+      ...(tipoPeriodo === "mes" && { mes }),
+      ...(tipoPeriodo === "semana" && { semanaInicio }),
+      ...(dataInicio && { dataInicio }),
+      ...(dataFim && { dataFim }),
+      ...(coordenadoriaId && { coordenadoriaId }),
+    };
     agendamentos
-      .getDashboard(session.access_token, ano, coordenadoriaId || undefined)
+      .getDashboard(session.access_token, opts)
       .then((r) => {
+        if (id !== requestIdRef.current) return;
         if (r.ok && r.data) setDashboard(r.data);
         else if (r.error)
           toast.error("Erro ao carregar dashboard", { description: r.error });
         setLoading(false);
+      })
+      .catch(() => {
+        if (id !== requestIdRef.current) return;
+        setLoading(false);
       });
-  }, [session?.access_token, ano, coordenadoriaId, podeVerDashboard]);
+  }, [session?.access_token, tipoPeriodo, ano, mes, semanaInicio, coordenadoriaId, podeVerDashboard]);
 
   if (!podeVerDashboard) {
     return (
@@ -131,10 +188,16 @@ export default function DashboardContent() {
     diasComAgendamentos: 0,
     porMes: [],
     porAno: [],
+    porDia: [],
+    porSemana: [],
     motivosNaoRealizacao: [],
   };
 
-  const total = dados.totalGeral;
+  // Total do período: usar totalGeral do backend (filtrado por dataInicio/dataFim)
+  // Se os arrays do gráfico estiverem populados, usar a soma como validação
+  const totalPeriodo = dados.totalGeral;
+
+  const total = totalPeriodo;
   const percentualRealizados =
     total > 0 ? ((dados.realizados / total) * 100).toFixed(1) : "0";
   const percentualNaoRealizados =
@@ -151,6 +214,16 @@ export default function DashboardContent() {
     total: { label: "Agendamentos" },
   };
 
+  const chartConfigDia: ChartConfig = {
+    label: { label: "Dia" },
+    total: { label: "Agendamentos" },
+  };
+
+  const chartConfigSemana: ChartConfig = {
+    label: { label: "Semana" },
+    total: { label: "Agendamentos" },
+  };
+
   const chartConfigAno: ChartConfig = {
     ano: { label: "Ano" },
     total: { label: "Agendamentos" },
@@ -162,6 +235,16 @@ export default function DashboardContent() {
   };
 
   const dadosPorMes = formatarPorMes(dados.porMes);
+  const dadosPorDia = (dados.porDia ?? []).map((p) => ({
+    label: p.label,
+    total: p.total,
+    fill: "hsl(var(--chart-1))",
+  }));
+  const dadosPorSemana = (dados.porSemana ?? []).map((p) => ({
+    label: p.label,
+    total: p.total,
+    fill: "hsl(var(--chart-2))",
+  }));
   const dadosPorAno = dados.porAno.map((p) => ({
     ano: String(p.ano),
     total: p.total,
@@ -176,31 +259,130 @@ export default function DashboardContent() {
     fill: "hsl(var(--chart-3))",
   }));
 
+  const labelSemana =
+    tipoPeriodo === "semana" && semanaInicio
+      ? formatarIntervaloSemana(semanaInicio)
+      : null;
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between flex-wrap">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end flex-wrap gap-y-2">
           <div className="space-y-2">
-            <Label htmlFor="ano">Ano</Label>
+            <Label htmlFor="tipoPeriodo">Visualizar por</Label>
             <Select
-              value={String(ano)}
-              onValueChange={(v) => setAno(Number(v))}
+              value={tipoPeriodo}
+              onValueChange={(v) => setTipoPeriodo(v as TipoPeriodoDashboard)}
             >
-              <SelectTrigger id="ano" className="w-[120px]">
+              <SelectTrigger id="tipoPeriodo" className="w-[140px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {[0, 1, 2, 3, 4].map((i) => {
-                  const y = new Date().getFullYear() - i;
-                  return (
-                    <SelectItem key={y} value={String(y)}>
-                      {y}
-                    </SelectItem>
-                  );
-                })}
+                <SelectItem value="semana">Semana</SelectItem>
+                <SelectItem value="mes">Mês</SelectItem>
+                <SelectItem value="ano">Ano</SelectItem>
               </SelectContent>
             </Select>
           </div>
+          {tipoPeriodo === "ano" && (
+            <div className="space-y-2">
+              <Label htmlFor="ano">Ano</Label>
+              <Select
+                value={String(ano)}
+                onValueChange={(v) => setAno(Number(v))}
+              >
+                <SelectTrigger id="ano" className="w-[100px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[0, 1, 2, 3, 4].map((i) => {
+                    const y = new Date().getFullYear() - i;
+                    return (
+                      <SelectItem key={y} value={String(y)}>
+                        {y}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {tipoPeriodo === "mes" && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="ano-mes">Ano</Label>
+                <Select
+                  value={String(ano)}
+                  onValueChange={(v) => setAno(Number(v))}
+                >
+                  <SelectTrigger id="ano-mes" className="w-[100px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[0, 1, 2, 3, 4].map((i) => {
+                      const y = new Date().getFullYear() - i;
+                      return (
+                        <SelectItem key={y} value={String(y)}>
+                          {y}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="mes">Mês</Label>
+                <Select
+                  value={String(mes)}
+                  onValueChange={(v) => setMes(Number(v))}
+                >
+                  <SelectTrigger id="mes" className="w-[120px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MESES.map((nome, i) => (
+                      <SelectItem key={i} value={String(i + 1)}>
+                        {nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
+          {tipoPeriodo === "semana" && (
+            <div className="flex items-end gap-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => {
+                  const d = new Date(semanaInicio + "T12:00:00");
+                  d.setDate(d.getDate() - 7);
+                  setSemanaInicio(format(getSegundaFeira(d), "yyyy-MM-dd"));
+                }}
+                aria-label="Semana anterior"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <div className="px-2 py-2 min-w-[160px] text-center text-sm border rounded-md bg-muted/50">
+                {labelSemana ?? "—"}
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => {
+                  const d = new Date(semanaInicio + "T12:00:00");
+                  d.setDate(d.getDate() + 7);
+                  setSemanaInicio(format(getSegundaFeira(d), "yyyy-MM-dd"));
+                }}
+                aria-label="Próxima semana"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
           {isAdmOuDev && (
             <div className="space-y-2">
               <Label htmlFor="coordenadoria">Coordenadoria</Label>
@@ -237,9 +419,11 @@ export default function DashboardContent() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dados.totalGeral}</div>
+            <div className="text-2xl font-bold">{total}</div>
             <p className="text-xs text-muted-foreground">
-              Período: {ano}
+              {tipoPeriodo === "semana" && labelSemana}
+              {tipoPeriodo === "mes" && `${MESES[mes - 1]}/${ano}`}
+              {tipoPeriodo === "ano" && `Ano ${ano}`}
               {coordenadoriaId ? " (por coordenadoria)" : ""}
             </p>
           </CardContent>
@@ -304,15 +488,50 @@ export default function DashboardContent() {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Agendamentos por mês</CardTitle>
-            <CardDescription>
-              Quantidade por mês no ano selecionado
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+      {/* Gráfico principal: muda conforme o período (7 dias / 4 semanas / 12 meses) */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {tipoPeriodo === "semana" && "Agendamentos por dia"}
+            {tipoPeriodo === "mes" && "Agendamentos por semana"}
+            {tipoPeriodo === "ano" && "Agendamentos por mês"}
+          </CardTitle>
+          <CardDescription>
+            {tipoPeriodo === "semana" && "7 dias da semana (seg–dom)"}
+            {tipoPeriodo === "mes" && "4 semanas do mês"}
+            {tipoPeriodo === "ano" && "12 meses do ano"}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {tipoPeriodo === "semana" && (
+            <ChartContainer
+              config={chartConfigDia}
+              className="h-[280px] w-full"
+            >
+              <BarChart data={dadosPorDia} margin={{ left: 12, right: 12 }}>
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="label" tickLine={false} axisLine={false} />
+                <YAxis tickLine={false} axisLine={false} />
+                <Bar dataKey="total" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ChartContainer>
+          )}
+          {tipoPeriodo === "mes" && (
+            <ChartContainer
+              config={chartConfigSemana}
+              className="h-[280px] w-full"
+            >
+              <BarChart data={dadosPorSemana} margin={{ left: 12, right: 12 }}>
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="label" tickLine={false} axisLine={false} />
+                <YAxis tickLine={false} axisLine={false} />
+                <Bar dataKey="total" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ChartContainer>
+          )}
+          {tipoPeriodo === "ano" && (
             <ChartContainer
               config={chartConfigMes}
               className="h-[280px] w-full"
@@ -325,10 +544,11 @@ export default function DashboardContent() {
                 <Bar dataKey="total" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ChartContainer>
-          </CardContent>
-        </Card>
+          )}
+        </CardContent>
+      </Card>
 
-        <Card>
+      <Card>
           <CardHeader>
             <CardTitle>Agendamentos por ano</CardTitle>
             <CardDescription>Últimos anos (visão geral)</CardDescription>
@@ -348,7 +568,6 @@ export default function DashboardContent() {
             </ChartContainer>
           </CardContent>
         </Card>
-      </div>
 
       <Card>
         <CardHeader>

@@ -9,6 +9,18 @@ export interface IDashboardPorAno {
   total: number;
 }
 
+export interface IDashboardPorDia {
+  dia: number;
+  label: string;
+  total: number;
+}
+
+export interface IDashboardPorSemana {
+  semana: number;
+  label: string;
+  total: number;
+}
+
 export interface IDashboardMotivoNaoRealizacao {
   motivoId: string | null;
   motivoTexto: string;
@@ -25,6 +37,10 @@ export interface IDashboard {
   diasComAgendamentos: number;
   porMes: IDashboardPorMes[];
   porAno: IDashboardPorAno[];
+  /** Preenchido quando período é semana ou mês */
+  porDia?: IDashboardPorDia[];
+  /** Preenchido quando período é ano ou mês (agrupamento por semana) */
+  porSemana?: IDashboardPorSemana[];
   motivosNaoRealizacao: IDashboardMotivoNaoRealizacao[];
 }
 
