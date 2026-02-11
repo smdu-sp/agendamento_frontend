@@ -82,9 +82,9 @@ export default function ListaAgendamentos() {
   const [loading, setLoading] = useState(true);
   const [agendamentoParaConfirmar, setAgendamentoParaConfirmar] =
     useState<IAgendamento | null>(null);
-  const [agendamentoParaConfirmarTeams, setAgendamentoParaConfirmarTeams] =
+  const [agendamentoParaConfirmarOutlook, setAgendamentoParaConfirmarOutlook] =
     useState<IAgendamento | null>(null);
-  const [confirmandoTeams, setConfirmandoTeams] = useState(false);
+  const [confirmandoOutlook, setConfirmandoOutlook] = useState(false);
 
   useEffect(() => {
     carregarAgendamentos();
@@ -152,17 +152,10 @@ export default function ListaAgendamentos() {
     setPagina(1); // Reset para primeira página ao mudar data
   };
 
-  const handleAgendarReuniaoTeams = (agend: IAgendamento) => {
-    // Apenas Ponto Focal deve usar esse botão, mas aqui fazemos só a montagem do link
+  const handleAgendarReuniaoOutlook = (agend: IAgendamento) => {
     const emailMunicipe = agend.email || "";
-
-    // Heurística para e-mail do técnico: baseado no login, seguindo padrão institucional
-    const emailTecnico = agend.tecnico?.email
-      ? agend.tecnico.email
-      : "";
-
+    const emailTecnico = agend.tecnico?.email ? agend.tecnico.email : "";
     const attendees = [emailMunicipe, emailTecnico].filter(Boolean).join(",");
-    if (!attendees) return;
 
     const coordenadoriaNome =
       agend.coordenadoria?.nome || agend.coordenadoria?.sigla || "";
@@ -171,8 +164,6 @@ export default function ListaAgendamentos() {
     const subject =
       `Agendamento Técnico - ${coordenadoriaNome} - Processo: ${processo}`.trim();
 
-    // Usa a mesma normalização de data/hora usada na listagem
-    // para evitar o envio com -3h no Teams
     const inicio = normalizarDataLocal(agend.dataHora);
     const fim = agend.dataFim
       ? normalizarDataLocal(agend.dataFim)
@@ -192,42 +183,45 @@ export default function ListaAgendamentos() {
       "",
       "Observações:",
     ];
+    const body = contentLines.join("\r\n");
 
-    // Usa CRLF para melhorar a interpretação de quebras de linha pelo Teams
-    const content = contentLines.join("\r\n");
+    const params = new URLSearchParams({
+      path: "/calendar/action/compose",
+      rru: "addevent",
+      startdt: startIso,
+      enddt: endIso,
+      subject,
+      body,
+      hideattn: "true", // Oculta a lista de participantes para os convidados (munícipe não vê e-mail do técnico).
+    });
+    if (attendees) params.set("to", attendees);
 
-    const url =
-      "https://teams.microsoft.com/l/meeting/new?" +
-      `subject=${encodeURIComponent(subject)}` +
-      `&content=${encodeURIComponent(content)}` +
-      `&startTime=${encodeURIComponent(startIso)}` +
-      `&endTime=${encodeURIComponent(endIso)}` +
-      `&attendees=${encodeURIComponent(attendees)}`;
+    const url = `https://outlook.office.com/calendar/0/deeplink/compose?${params.toString()}`;
 
     if (typeof window !== "undefined") {
       window.open(url, "_blank", "noopener,noreferrer");
-      setAgendamentoParaConfirmarTeams(agend);
+      setAgendamentoParaConfirmarOutlook(agend);
     }
   };
 
-  const handleConfirmarAgendadoTeams = async (confirmado: boolean) => {
-    if (!agendamentoParaConfirmarTeams || !session?.access_token) {
-      setAgendamentoParaConfirmarTeams(null);
+  const handleConfirmarAgendadoOutlook = async (confirmado: boolean) => {
+    if (!agendamentoParaConfirmarOutlook || !session?.access_token) {
+      setAgendamentoParaConfirmarOutlook(null);
       return;
     }
     if (confirmado) {
-      setConfirmandoTeams(true);
+      setConfirmandoOutlook(true);
       try {
         const res = await agendamento.atualizar(
-          agendamentoParaConfirmarTeams.id,
+          agendamentoParaConfirmarOutlook.id,
           { status: StatusAgendamento.AGENDADO },
         );
         if (res.ok) carregarAgendamentos();
       } finally {
-        setConfirmandoTeams(false);
+        setConfirmandoOutlook(false);
       }
     }
-    setAgendamentoParaConfirmarTeams(null);
+    setAgendamentoParaConfirmarOutlook(null);
   };
 
   return (
@@ -619,7 +613,7 @@ export default function ListaAgendamentos() {
                                 variant="outline"
                                 className="ml-2"
                                 disabled={!podeAgendarReuniao}
-                                onClick={() => handleAgendarReuniaoTeams(agend)}
+                                onClick={() => handleAgendarReuniaoOutlook(agend)}
                               >
                                 Agendar reunião
                               </Button>
@@ -686,30 +680,30 @@ export default function ListaAgendamentos() {
       )}
 
       <AlertDialog
-        open={!!agendamentoParaConfirmarTeams}
-        onOpenChange={(open) => !open && setAgendamentoParaConfirmarTeams(null)}
+        open={!!agendamentoParaConfirmarOutlook}
+        onOpenChange={(open) => !open && setAgendamentoParaConfirmarOutlook(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Foi agendado no Teams?</AlertDialogTitle>
+            <AlertDialogTitle>Foi agendado no Outlook?</AlertDialogTitle>
             <AlertDialogDescription>
-              O link do Teams foi aberto. Após criar a reunião no Teams,
-              confirme aqui para atualizar o status do agendamento para
-              &quot;Agendado&quot;.
+              O Outlook Web foi aberto com o usuário logado. Após criar a
+              reunião no Outlook, confirme aqui para atualizar o status do
+              agendamento para &quot;Agendado&quot;.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel
-              onClick={() => handleConfirmarAgendadoTeams(false)}
-              disabled={confirmandoTeams}
+              onClick={() => handleConfirmarAgendadoOutlook(false)}
+              disabled={confirmandoOutlook}
             >
               Não
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => handleConfirmarAgendadoTeams(true)}
-              disabled={confirmandoTeams}
+              onClick={() => handleConfirmarAgendadoOutlook(true)}
+              disabled={confirmandoOutlook}
             >
-              {confirmandoTeams ? "Atualizando…" : "Sim"}
+              {confirmandoOutlook ? "Atualizando…" : "Sim"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
