@@ -44,6 +44,7 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { IUsuario, IUsuarioSession } from "@/types/usuario";
 
 const MESES = [
   "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
@@ -119,14 +120,14 @@ export default function DashboardContent() {
     if (!isPontoFocal && !isCoordenador) return;
 
     // O ID do usuário vem do campo `sub` no token JWT decodificado
-    const userId = (session.usuario as any).sub as string | undefined;
+    const userId = (session.usuario as IUsuarioSession).sub as string | undefined;
     if (!userId) return;
 
     usuario
       .buscarPorId(userId, session.access_token)
       .then((resp) => {
         if (!resp.ok || !resp.data) return;
-        const u = resp.data as any;
+        const u = resp.data as IUsuario;
         if (u.coordenadoria) {
           setCoordenadoriaUsuario(u.coordenadoria as ICoordenadoria);
         }
