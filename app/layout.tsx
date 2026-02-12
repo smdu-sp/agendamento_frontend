@@ -2,6 +2,7 @@
 
 import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/providers/AuthProvider';
+import { ImpersonationProvider } from '@/providers/ImpersonationProvider';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import type { Metadata } from 'next';
@@ -30,16 +31,18 @@ export default function RootLayout({
 			className={`${myFont.className} antialised `}>
 			<body>
 				<AuthProvider>
-					<QueryProvider>
-						<ThemeProvider
+					<ImpersonationProvider>
+						<QueryProvider>
+							<ThemeProvider
 							attribute='class'
 							defaultTheme='system'
 							enableSystem
 							disableTransitionOnChange>
-							{children}
-							<Toaster richColors />
-						</ThemeProvider>
-					</QueryProvider>
+								{children}
+								<Toaster richColors />
+							</ThemeProvider>
+						</QueryProvider>
+					</ImpersonationProvider>
 				</AuthProvider>
 			</body>
 		</html>

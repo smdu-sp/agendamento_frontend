@@ -1,6 +1,7 @@
 "use client";
 
 import { getApiUrl } from '@/lib/api-url';
+import { getAuthHeaders } from '@/lib/api-headers';
 import { IDashboard, IRespostaDashboard } from "@/types/dashboard";
 
 export type TipoPeriodoDashboard = "semana" | "mes" | "ano";
@@ -33,7 +34,7 @@ export async function getDashboard(
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${access_token}`,
+        ...getAuthHeaders(access_token),
       },
       cache: "no-store",
     });

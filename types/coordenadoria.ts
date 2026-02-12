@@ -4,6 +4,7 @@ export interface ICoordenadoria {
 	id: string;
 	sigla: string;
 	nome?: string;
+	email?: string;
 	status: boolean;
 	criadoEm: Date;
 	atualizadoEm: Date;
@@ -12,12 +13,14 @@ export interface ICoordenadoria {
 export interface ICreateCoordenadoria {
 	sigla: string;
 	nome?: string;
+	email?: string;
 	status?: boolean;
 }
 
 export interface IUpdateCoordenadoria {
 	sigla?: string;
 	nome?: string;
+	email?: string;
 	status?: boolean;
 }
 

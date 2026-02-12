@@ -46,6 +46,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import { useEffectivePermissao } from "@/providers/ImpersonationProvider";
 
 // Normaliza a data para horário local quando ela foi salva como UTC representando hora local
 const normalizarDataLocal = (data: Date | string): Date => {
@@ -70,6 +72,7 @@ const formatarDataHora = (data: Date | string): string => {
 
 export default function ListaAgendamentos() {
   const { data: session } = useSession();
+  const effectivePermissao = useEffectivePermissao();
   const [agendamentos, setAgendamentos] = useState<IAgendamento[]>([]);
   const [pagina, setPagina] = useState(1);
   const [limite] = useState(10);
@@ -153,6 +156,15 @@ export default function ListaAgendamentos() {
   };
 
   const handleAgendarReuniaoOutlook = (agend: IAgendamento) => {
+    const emailCoordenadoria = agend.coordenadoria?.email?.trim();
+    if (!emailCoordenadoria) {
+      toast.error("E-mail da coordenadoria não cadastrado", {
+        description:
+          "Cadastre o e-mail da coordenadoria na página de Coordenadorias para que o convite seja enviado pela coordenadoria.",
+      });
+      return;
+    }
+
     const emailMunicipe = agend.email || "";
     const emailTecnico = agend.tecnico?.email ? agend.tecnico.email : "";
     const attendees = [emailMunicipe, emailTecnico].filter(Boolean).join(",");
@@ -195,7 +207,8 @@ export default function ListaAgendamentos() {
     });
     if (attendees) params.set("to", attendees);
 
-    const url = `https://outlook.office.com/calendar/0/deeplink/compose?${params.toString()}`;
+    const emailEncoded = encodeURIComponent(emailCoordenadoria);
+    const url = `https://outlook.office.com/calendar/${emailEncoded}/deeplink/compose?${params.toString()}`;
 
     if (typeof window !== "undefined") {
       window.open(url, "_blank", "noopener,noreferrer");
@@ -451,9 +464,8 @@ export default function ListaAgendamentos() {
                   </TableHeader>
                   <TableBody>
                     {agendamentos.map((agend) => {
-                      const permissao = session?.usuario?.permissao as
-                        | string
-                        | undefined;
+                      const permissao = (effectivePermissao ??
+                        session?.usuario?.permissao) as string | undefined;
                       const isPontoFocal = permissao === "PONTO_FOCAL";
                       const isCoordenador = permissao === "COORDENADOR";
                       const isTecnico = permissao === "TEC";
@@ -504,9 +516,9 @@ export default function ListaAgendamentos() {
                           isPontoFocal ||
                           isCoordenador);
 
-                      // Agendar reunião: ponto focal ou coordenador, com técnico atribuído e status SOLICITADO
+                      // Agendar reunião: ponto focal, coordenador ou ADM/DEV, com técnico atribuído e status SOLICITADO
                       const podeAgendarReuniao =
-                        (isPontoFocal || isCoordenador) &&
+                        (isPontoFocal || isCoordenador || isAdm || isDev) &&
                         !semTecnico &&
                         agend.status === StatusAgendamento.SOLICITADO;
 

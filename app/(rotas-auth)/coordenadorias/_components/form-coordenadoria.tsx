@@ -26,6 +26,7 @@ import { useRouter } from 'next/navigation';
 const formSchema = z.object({
 	sigla: z.string().min(2, 'Sigla deve ter ao menos 2 caracteres'),
 	nome: z.string().optional(),
+	email: z.union([z.string().email('E-mail inválido'), z.literal('')]).optional(),
 	status: z.boolean().optional(),
 });
 
@@ -47,6 +48,7 @@ export default function FormCoordenadoria({
 		defaultValues: {
 			sigla: coord?.sigla || '',
 			nome: coord?.nome || '',
+			email: coord?.email || '',
 			status: coord?.status ?? true,
 		},
 	});
@@ -57,6 +59,7 @@ export default function FormCoordenadoria({
 				const resp = await coordenadoria.atualizar(coord.id, {
 					sigla: values.sigla,
 					nome: values.nome,
+					email: values.email || undefined,
 					status: values.status,
 				});
 
@@ -72,6 +75,7 @@ export default function FormCoordenadoria({
 				const resp = await coordenadoria.criar({
 					sigla: values.sigla,
 					nome: values.nome,
+					email: values.email || undefined,
 					status: values.status ?? true,
 				});
 				if (resp.error) {
@@ -121,6 +125,27 @@ export default function FormCoordenadoria({
 								/>
 							</FormControl>
 							<FormMessage />
+						</FormItem>
+					)}
+				/>
+				<FormField
+					control={form.control}
+					name='email'
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>E-mail da coordenadoria (Opcional)</FormLabel>
+							<FormControl>
+								<Input
+									type='email'
+									placeholder='ex: smulsuporte@prefeitura.sp.gov.br'
+									{...field}
+									value={field.value || ''}
+								/>
+							</FormControl>
+							<FormMessage />
+							<p className='text-xs text-muted-foreground'>
+								Usado no Outlook para enviar o convite de reunião (quem envia é a coordenadoria).
+							</p>
 						</FormItem>
 					)}
 				/>

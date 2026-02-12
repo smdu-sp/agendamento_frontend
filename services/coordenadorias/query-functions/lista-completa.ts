@@ -1,6 +1,7 @@
 /** @format */
 
 import { getApiUrl } from '@/lib/api-url';
+import { getAuthHeaders } from '@/lib/api-headers';
 import { ICoordenadoria, IRespostaCoordenadoria } from '@/types/coordenadoria';
 
 export async function listaCompleta(
@@ -10,10 +11,8 @@ export async function listaCompleta(
 	try {
 		const headers: HeadersInit = {
 			'Content-Type': 'application/json',
+			...(access_token ? getAuthHeaders(access_token) : {}),
 		};
-		if (access_token) {
-			headers.Authorization = `Bearer ${access_token}`;
-		}
 
 		const coordenadorias = await fetch(`${baseURL}coordenadorias/lista-completa`, {
 			method: 'GET',

@@ -42,6 +42,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useEffectivePermissao } from "@/providers/ImpersonationProvider";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -77,6 +78,7 @@ function formatarIntervaloSemana(semanaInicio: string): string {
 
 export default function DashboardContent() {
   const { data: session } = useSession();
+  const effectivePermissao = useEffectivePermissao();
   const [dashboard, setDashboard] = useState<IDashboard | null>(null);
   const [coordenadoriasLista, setCoordenadoriasLista] = useState<
     ICoordenadoria[]
@@ -93,10 +95,10 @@ export default function DashboardContent() {
   const [coordenadoriaId, setCoordenadoriaId] = useState<string>("");
   const requestIdRef = useRef(0);
 
-  const permissao = String(session?.usuario?.permissao ?? "");
+  const permissao = String(effectivePermissao ?? session?.usuario?.permissao ?? "");
   const isAdmOuDev = permissao === "ADM" || permissao === "DEV";
-   const isPontoFocal = permissao === "PONTO_FOCAL";
-   const isCoordenador = permissao === "COORDENADOR";
+  const isPontoFocal = permissao === "PONTO_FOCAL";
+  const isCoordenador = permissao === "COORDENADOR";
   const podeVerDashboard =
     permissao === "ADM" ||
     permissao === "DEV" ||

@@ -1,6 +1,7 @@
 /** @format */
 
 import { getApiUrl } from '@/lib/api-url';
+import { getAuthHeaders } from '@/lib/api-headers';
 import { IPaginadoAgendamento, IRespostaAgendamento } from '@/types/agendamento';
 
 export async function buscarTudo(
@@ -31,7 +32,7 @@ export async function buscarTudo(
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
-				Authorization: `Bearer ${access_token}`,
+				...getAuthHeaders(access_token),
 			},
 			next: { tags: ['agendamentos'], revalidate: 60 },
 		});

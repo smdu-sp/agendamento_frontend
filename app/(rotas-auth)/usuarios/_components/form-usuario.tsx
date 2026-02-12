@@ -26,6 +26,7 @@ import { IPermissao, IUsuario, INovoUsuario } from "@/types/usuario";
 import { ICoordenadoria } from "@/types/coordenadoria";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, Loader2 } from "lucide-react";
+import { useEffectivePermissao } from "@/providers/ImpersonationProvider";
 import { useSession } from "next-auth/react";
 import { useTransition, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -86,7 +87,8 @@ export default function FormUsuario({
   });
 
   const { data: session } = useSession();
-  const permissaoAtual = (session?.usuario?.permissao ?? "") as string;
+  const effectivePermissao = useEffectivePermissao();
+  const permissaoAtual = (effectivePermissao ?? session?.usuario?.permissao ?? "") as string;
   const somentePermissoesCoord =
     permissaoAtual === "PONTO_FOCAL" || permissaoAtual === "COORDENADOR";
 

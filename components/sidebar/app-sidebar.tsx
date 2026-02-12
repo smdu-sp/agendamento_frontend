@@ -9,6 +9,7 @@ import {
 	SidebarRail,
 } from '@/components/ui/sidebar';
 import { ComponentProps } from 'react';
+import { ImpersonationSelector } from '@/components/impersonation-selector';
 import { NavMain } from './nav-main';
 import { NavUser } from './nav-user';
 
@@ -32,6 +33,7 @@ export function AppSidebar({
 			</SidebarHeader>
 			<NavMain />
 			<SidebarFooter>
+				<ImpersonationSelector />
 				<NavUser />
 			</SidebarFooter>
 			<SidebarRail />

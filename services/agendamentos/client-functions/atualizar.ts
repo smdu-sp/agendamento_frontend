@@ -3,6 +3,7 @@
 'use client';
 
 import { getApiUrl } from '@/lib/api-url';
+import { getAuthHeaders } from '@/lib/api-headers';
 import { IUpdateAgendamento, IRespostaAgendamento } from '@/types/agendamento';
 
 export async function atualizar(
@@ -16,7 +17,7 @@ export async function atualizar(
 			method: 'PATCH',
 			headers: {
 				'Content-Type': 'application/json',
-				Authorization: `Bearer ${access_token}`,
+				...getAuthHeaders(access_token),
 			},
 			body: JSON.stringify(data),
 		});

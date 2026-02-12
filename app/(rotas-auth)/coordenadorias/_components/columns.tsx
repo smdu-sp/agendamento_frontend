@@ -21,6 +21,13 @@ export const columns: ColumnDef<ICoordenadoria>[] = [
 		},
 	},
 	{
+		accessorKey: 'email',
+		header: 'E-mail',
+		cell: ({ row }) => {
+			return row.original.email || '-';
+		},
+	},
+	{
 		accessorKey: 'status',
 		header: () => <p className='text-center'>Status</p>,
 		cell: ({ row }) => {
