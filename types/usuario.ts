@@ -85,7 +85,7 @@ export interface IUsuarioSession {
   login: string;
   email: string;
   nomeSocial?: string;
-  permissao: IPermissao;
+  permissao: string;
   status: number;
   avatar?: string;
   iat: number;
