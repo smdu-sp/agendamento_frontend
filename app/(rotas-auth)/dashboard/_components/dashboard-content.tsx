@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import * as agendamentos from "@/services/agendamentos";
-import type { TipoPeriodoDashboard } from "@/services/agendamentos";
+import type { TipoPeriodoDashboard } from "@/services/agendamentos/query-functions/dashboard";
 import * as coordenadorias from "@/services/coordenadorias";
 import * as usuario from "@/services/usuarios";
 import { IDashboard, IDashboardPorMes } from "@/types/dashboard";
