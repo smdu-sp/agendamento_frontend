@@ -157,12 +157,11 @@ export default function ListaAgendamentos() {
     const emailTecnico = agend.tecnico?.email ? agend.tecnico.email : "";
     const attendees = [emailMunicipe, emailTecnico].filter(Boolean).join(",");
 
-    const coordenadoriaNome =
-      agend.coordenadoria?.nome || agend.coordenadoria?.sigla || "";
+    const coordenadoriaSigla = agend.coordenadoria?.sigla || "";
     const processo = agend.processo || "";
 
     const subject =
-      `Agendamento Técnico - ${coordenadoriaNome} - Processo: ${processo}`.trim();
+      `Agendamento Técnico - ${coordenadoriaSigla} - Processo: ${processo}`.trim();
 
     const inicio = normalizarDataLocal(agend.dataHora);
     const fim = agend.dataFim
@@ -177,7 +176,7 @@ export default function ListaAgendamentos() {
       "",
       `Munícipe: ${agend.municipe || "-"}`,
       `Processo: ${processo || "-"}`,
-      `Coordenadoria: ${coordenadoriaNome || "-"}`,
+      `Coordenadoria: ${coordenadoriaSigla || "-"}`,
       `Técnico: ${agend.tecnico?.nome || "-"}`,
       `Tipo: ${agend.tipoAgendamento?.texto || "-"}`,
       "",

@@ -29,7 +29,6 @@ export const columns: ColumnDef<IUsuario>[] = [
       return (
         <span className="text-sm">
           {coord?.sigla ?? "-"}
-          {coord?.nome ? ` - ${coord.nome}` : ""}
         </span>
       );
     },

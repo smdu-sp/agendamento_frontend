@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import * as agendamentos from "@/services/agendamentos";
 import type { TipoPeriodoDashboard } from "@/services/agendamentos";
 import * as coordenadorias from "@/services/coordenadorias";
+import * as usuario from "@/services/usuarios";
 import { IDashboard, IDashboardPorMes } from "@/types/dashboard";
 import { ICoordenadoria } from "@/types/coordenadoria";
 import {
@@ -70,7 +71,8 @@ function formatarIntervaloSemana(semanaInicio: string): string {
   const seg = new Date(semanaInicio + "T12:00:00");
   const dom = new Date(seg);
   dom.setDate(dom.getDate() + 6);
-  return `${format(seg, "dd/MM", { locale: ptBR })} – ${format(dom, "dd/MM", { locale: ptBR })}`;
+  // Exibir sempre com ano completo (DD/MM/AAAA)
+  return `${format(seg, "dd/MM/yyyy", { locale: ptBR })} – ${format(dom, "dd/MM/yyyy", { locale: ptBR })}`;
 }
 
 export default function DashboardContent() {
@@ -79,6 +81,8 @@ export default function DashboardContent() {
   const [coordenadoriasLista, setCoordenadoriasLista] = useState<
     ICoordenadoria[]
   >([]);
+  const [coordenadoriaUsuario, setCoordenadoriaUsuario] =
+    useState<ICoordenadoria | null>(null);
   const [loading, setLoading] = useState(true);
   const [tipoPeriodo, setTipoPeriodo] = useState<TipoPeriodoDashboard>("ano");
   const [ano, setAno] = useState(() => new Date().getFullYear());
@@ -91,6 +95,8 @@ export default function DashboardContent() {
 
   const permissao = String(session?.usuario?.permissao ?? "");
   const isAdmOuDev = permissao === "ADM" || permissao === "DEV";
+   const isPontoFocal = permissao === "PONTO_FOCAL";
+   const isCoordenador = permissao === "COORDENADOR";
   const podeVerDashboard =
     permissao === "ADM" ||
     permissao === "DEV" ||
@@ -105,6 +111,30 @@ export default function DashboardContent() {
       });
     }
   }, [isAdmOuDev, podeVerDashboard, session?.access_token]);
+
+  // Carrega a coordenadoria vinculada ao usuário Ponto Focal / Coordenador
+  useEffect(() => {
+    if (!podeVerDashboard) return;
+    if (!session?.access_token || !session?.usuario) return;
+    if (!isPontoFocal && !isCoordenador) return;
+
+    // O ID do usuário vem do campo `sub` no token JWT decodificado
+    const userId = (session.usuario as any).sub as string | undefined;
+    if (!userId) return;
+
+    usuario
+      .buscarPorId(userId, session.access_token)
+      .then((resp) => {
+        if (!resp.ok || !resp.data) return;
+        const u = resp.data as any;
+        if (u.coordenadoria) {
+          setCoordenadoriaUsuario(u.coordenadoria as ICoordenadoria);
+        }
+      })
+      .catch(() => {
+        // Em caso de erro, apenas não exibe a coordenadoria
+      });
+  }, [session?.access_token, session?.usuario, isPontoFocal, isCoordenador, podeVerDashboard]);
 
   useEffect(() => {
     if (!session?.access_token || !podeVerDashboard) {
@@ -424,7 +454,11 @@ export default function DashboardContent() {
               {tipoPeriodo === "semana" && labelSemana}
               {tipoPeriodo === "mes" && `${MESES[mes - 1]}/${ano}`}
               {tipoPeriodo === "ano" && `Ano ${ano}`}
-              {coordenadoriaId ? " (por coordenadoria)" : ""}
+              {coordenadoriaId
+                ? " (por coordenadoria)"
+                : (isPontoFocal || isCoordenador) && coordenadoriaUsuario
+                  ? ` (${coordenadoriaUsuario.sigla})`
+                  : ""}
             </p>
           </CardContent>
         </Card>

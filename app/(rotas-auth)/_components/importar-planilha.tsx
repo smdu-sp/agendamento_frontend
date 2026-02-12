@@ -219,7 +219,7 @@ export default function ImportarPlanilha() {
 											<SelectItem value=''>Nenhuma</SelectItem>
 											{coordenadorias.map((coord) => (
 												<SelectItem key={coord.id} value={coord.id}>
-													{coord.sigla} {coord.nome && `- ${coord.nome}`}
+													{coord.sigla}
 												</SelectItem>
 											))}
 										</SelectContent>
