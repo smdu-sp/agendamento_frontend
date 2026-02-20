@@ -8,7 +8,8 @@ import ModalUpdateCreate from './modal-update-create';
 import ModalDelete from './modal-delete';
 import { Badge } from '@/components/ui/badge';
 
-export const columns: ColumnDef<ICoordenadoria>[] = [
+export function getColumns(podeExcluir: boolean): ColumnDef<ICoordenadoria>[] {
+  return [
 	{
 		accessorKey: 'sigla',
 		header: 'Sigla',
@@ -53,12 +54,15 @@ export const columns: ColumnDef<ICoordenadoria>[] = [
 						coordenadoria={row.original}
 						isUpdating={true}
 					/>
-					<ModalDelete
-						status={!row.original.status}
-						id={row.original.id}
-					/>
+					{podeExcluir && (
+						<ModalDelete
+							status={!row.original.status}
+							id={row.original.id}
+						/>
+					)}
 				</div>
 			);
 		},
 	},
-];
+  ];
+}

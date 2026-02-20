@@ -7,7 +7,7 @@ import { auth } from '@/lib/auth/auth';
 import * as coordenadoria from '@/services/coordenadorias';
 import { IPaginadoCoordenadoria, ICoordenadoria } from '@/types/coordenadoria';
 import { Suspense } from 'react';
-import { columns } from './_components/columns';
+import CoordenadoriasTable from './_components/coordenadorias-table';
 import ModalUpdateAndCreate from './_components/modal-update-create';
 
 export default async function CoordenadoriasSuspense({
@@ -54,6 +54,11 @@ async function Coordenadorias({
 		}
 	}
 
+		const podeCriar =
+		session?.usuario?.permissao &&
+		['ADM', 'DEV'].includes(String(session.usuario.permissao));
+	const podeExcluir = podeCriar;
+
 	const statusSelect = [
 		{
 			label: 'Ativo',
@@ -86,9 +91,9 @@ async function Coordenadorias({
 						},
 					]}
 				/>
-				<DataTable
-					columns={columns}
-					data={dados || []}
+				<CoordenadoriasTable
+					dados={dados || []}
+					podeExcluir={podeExcluir}
 				/>
 
 				{dados && dados.length > 0 && (
@@ -99,9 +104,11 @@ async function Coordenadorias({
 					/>
 				)}
 			</div>
-			<div className='absolute bottom-10 md:bottom-5 right-2 md:right-8 hover:scale-110'>
-				<ModalUpdateAndCreate isUpdating={false} />
-			</div>
+			{podeCriar && (
+				<div className='absolute bottom-10 md:bottom-5 right-2 md:right-8 hover:scale-110'>
+					<ModalUpdateAndCreate isUpdating={false} />
+				</div>
+			)}
 		</div>
 	);
 }

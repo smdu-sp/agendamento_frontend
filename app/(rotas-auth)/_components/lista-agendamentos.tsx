@@ -183,18 +183,25 @@ export default function ListaAgendamentos() {
     const startIso = inicio.toISOString();
     const endIso = fim.toISOString();
 
-    const contentLines = [
-      "Agendamento técnico",
-      "",
-      `Munícipe: ${agend.municipe || "-"}`,
-      `Processo: ${processo || "-"}`,
-      `Coordenadoria: ${coordenadoriaSigla || "-"}`,
-      `Técnico: ${agend.tecnico?.nome || "-"}`,
-      `Tipo: ${agend.tipoAgendamento?.texto || "-"}`,
-      "",
-      "Observações:",
-    ];
-    const body = contentLines.join("\r\n");
+    const textoCondicoes =
+      "[n]CONDIÇÕES DO ATENDIMENTO - LEIA COM ATENÇÃO![/n]\r\n\r\n" +      
+      "A realização do atendimento é condicionada à aceitação das condições aqui descritas.\r\n\r\n" +
+      "Este atendimento será realizado exclusivamente por meio do Microsoft Teams (para informações sobre o aplicativo, [l=https://statics.teams.cdn.office.net/evergreen-assets/safelinks/2/atp-safelinks.html]acesse aqui[/l]), de maneira remota e com gravação de seu conteúdo, asseguradas as disposições da [l=https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709compilado.htm]Lei Geral de Proteção de Dados Pessoais (LGPD).[/l]\r\n\r\n" +
+      "O atendimento técnico tem caráter meramente orientativo. Sua realização não configura pré-condição e não isenta a parte interessada de responder integralmente ao comunicado ou, conforme o caso, interpor recurso contra indeferimento, dentro dos respectivos prazos legais, sob pena de indeferimento.\r\n\r\n" +
+      "As informações trocadas entre técnico e a parte interessada durante o atendimento técnico [n]não vinculam[/n], sob qualquer hipótese, a análise e a decisão do pedido.\r\n\r\n" +
+      "O ingresso e permanência na reunião remota na data e horário programados será considerado como aceitação tácita destas condições.";
+
+    // Converte para HTML para o Outlook Web exibir negrito e links
+    const bodyHtml = textoCondicoes
+      .replace(/\[n\]([\s\S]*?)\[\/n\]/g, "<strong>$1</strong>")
+      .replace(
+        /\[l=([\s\S]*?)\]([\s\S]*?)\[\/l\]/g,
+        (_, url, text) =>
+          `<a href="${url.trim().replace(/&/g, "&amp;")}">${text}</a>`
+      )
+      .replace(/\r\n\r\n/g, "</p><p>")
+      .replace(/\r\n/g, "<br/>");
+    const body = `<p>${bodyHtml}</p>`;
 
     const params = new URLSearchParams({
       path: "/calendar/action/compose",
