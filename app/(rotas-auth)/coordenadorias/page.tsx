@@ -1,6 +1,6 @@
 /** @format */
 
-import DataTable, { TableSkeleton } from '@/components/data-table';
+import { TableSkeleton } from '@/components/data-table';
 import { Filtros } from '@/components/filtros';
 import Pagination from '@/components/pagination';
 import { auth } from '@/lib/auth/auth';
