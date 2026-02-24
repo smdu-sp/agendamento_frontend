@@ -216,6 +216,7 @@ export default function ListaAgendamentos({
       subject,
       body,
       hideattn: "true", // Oculta a lista de participantes para os convidados (munícipe não vê e-mail do técnico).
+      online: "true", // Marca a opção "Reunião do Teams" no formulário do Outlook.
     });
     if (attendees) params.set("to", attendees);
 
