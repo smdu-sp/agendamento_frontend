@@ -1,18 +1,43 @@
 /** @format */
 
+import { TableSkeleton } from "@/components/data-table";
 import { auth } from "@/lib/auth/auth";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { IPermissao } from "@/types/usuario";
+import * as agendamento from "@/services/agendamentos";
+import { IAgendamento } from "@/types/agendamento";
 import ImportarPlanilha from "./_components/importar-planilha";
 import ListaAgendamentos from "./_components/lista-agendamentos";
 
-export default async function Home() {
+function hojeStr(): string {
+  const d = new Date();
+  const s = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${s(d.getMonth() + 1)}-${s(d.getDate())}`;
+}
+
+export default async function HomeSuspense({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  return (
+    <Suspense fallback={<TableSkeleton />}>
+      <Home searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const session = await auth();
   if (!session) {
     redirect("/login");
   }
 
-  // Usuário (USR) não tem permissão para ver nada
   const permissao = session.usuario?.permissao;
   const isUsr = permissao as unknown as IPermissao === IPermissao.USR || permissao === "USR";
   if (isUsr) {
@@ -23,6 +48,34 @@ export default async function Home() {
         </p>
       </div>
     );
+  }
+
+  const sp = await searchParams;
+  const hasAnyParam = Object.keys(sp).length > 0;
+  const pagina = Number(sp.pagina) || 1;
+  const limite = Number(sp.limite) || 10;
+  const busca = (sp.busca as string) ?? "";
+  const status = (sp.status as string) ?? "";
+  const dataInicio = (sp.dataInicio as string) ?? (hasAnyParam ? "" : hojeStr());
+  const dataFim = (sp.dataFim as string) ?? (hasAnyParam ? "" : hojeStr());
+
+  let dados: IAgendamento[] = [];
+  let total = 0;
+
+  if (session.access_token) {
+    const response = await agendamento.buscarTudo(
+      session.access_token,
+      pagina,
+      limite,
+      busca,
+      status,
+      dataInicio,
+      dataFim,
+    );
+    if (response.ok && response.data && "data" in response.data) {
+      dados = response.data.data ?? [];
+      total = response.data.total ?? 0;
+    }
   }
 
   let titulo = "Agendamentos";
@@ -44,7 +97,16 @@ export default async function Home() {
           <ImportarPlanilha />
         )}
       </div>
-      <ListaAgendamentos />
+      <ListaAgendamentos
+        dados={dados}
+        total={total}
+        pagina={pagina}
+        limite={limite}
+        busca={busca}
+        status={status}
+        dataInicio={dataInicio}
+        dataFim={dataFim}
+      />
     </div>
   );
 }

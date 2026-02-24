@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import * as agendamento from "@/services/agendamentos";
-import { IAgendamento, IPaginadoAgendamento } from "@/types/agendamento";
+import { IAgendamento } from "@/types/agendamento";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
@@ -32,6 +33,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import Pagination from "@/components/pagination";
 import AtribuirTecnico from "./atribuir-tecnico";
 import ConfirmarAtendimento from "./confirmar-atendimento";
 import { Pencil, CheckCircle2 } from "lucide-react";
@@ -70,103 +72,93 @@ const formatarDataHora = (data: Date | string): string => {
   return format(dataLocal, "dd/MM/yyyy 'às' HH:mm");
 };
 
-export default function ListaAgendamentos() {
+interface ListaAgendamentosProps {
+  dados: IAgendamento[];
+  total: number;
+  pagina: number;
+  limite: number;
+  busca: string;
+  status: string;
+  dataInicio: string;
+  dataFim: string;
+}
+
+export default function ListaAgendamentos({
+  dados: agendamentos,
+  total,
+  pagina,
+  limite,
+  busca,
+  status,
+  dataInicio,
+  dataFim,
+}: ListaAgendamentosProps) {
   const { data: session } = useSession();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const effectivePermissao = useEffectivePermissao();
-  const [agendamentos, setAgendamentos] = useState<IAgendamento[]>([]);
-  const [pagina, setPagina] = useState(1);
-  const [limite] = useState(10);
-  const [total, setTotal] = useState(0);
-  const [busca, setBusca] = useState("");
-  const [status, setStatus] = useState("");
-  const [dataSelecionada, setDataSelecionada] = useState<Date | undefined>(
-    () => new Date(),
-  );
-  const [loading, setLoading] = useState(true);
   const [agendamentoParaConfirmar, setAgendamentoParaConfirmar] =
     useState<IAgendamento | null>(null);
   const [agendamentoParaConfirmarOutlook, setAgendamentoParaConfirmarOutlook] =
     useState<IAgendamento | null>(null);
   const [confirmandoOutlook, setConfirmandoOutlook] = useState(false);
+  const [buscaInput, setBuscaInput] = useState(busca);
 
-  useEffect(() => {
-    carregarAgendamentos();
-  }, [pagina, busca, status, dataSelecionada, session]);
-
-  const carregarAgendamentos = async () => {
-    if (!session?.access_token) {
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // Se há data selecionada, filtra apenas esse dia
-      let dataInicio = "";
-      let dataFim = "";
-
-      if (dataSelecionada) {
-        // Formata a data manualmente para evitar problemas de timezone
-        // Usa os componentes locais da data, não UTC
-        const ano = dataSelecionada.getFullYear();
-        const mes = String(dataSelecionada.getMonth() + 1).padStart(2, "0");
-        const dia = String(dataSelecionada.getDate()).padStart(2, "0");
-
-        // Início do dia selecionado (00:00:00)
-        dataInicio = `${ano}-${mes}-${dia}`;
-
-        // Fim do dia selecionado (mesmo dia, mas o backend vai usar até 23:59:59)
-        dataFim = `${ano}-${mes}-${dia}`;
+  const atualizarUrl = useCallback(
+    (updates: { pagina?: number; busca?: string; status?: string; dataInicio?: string; dataFim?: string }) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (updates.pagina !== undefined) params.set("pagina", String(updates.pagina));
+      if (updates.busca !== undefined) {
+        if (updates.busca) params.set("busca", updates.busca);
+        else params.delete("busca");
       }
-
-      const response = await agendamento.buscarTudo(
-        session.access_token,
-        pagina,
-        limite,
-        busca,
-        status,
-        dataInicio,
-        dataFim,
-      );
-
-      if (response.ok && response.data) {
-        const dados = response.data as IPaginadoAgendamento;
-        setAgendamentos(dados.data);
-        setTotal(dados.total);
-      } else {
-        toast.error("Erro ao carregar agendamentos", {
-          description: response.error ?? `Status ${response.status}`,
-        });
-        setAgendamentos([]);
-        setTotal(0);
+      if (updates.status !== undefined) {
+        if (updates.status) params.set("status", updates.status);
+        else params.delete("status");
       }
-    } catch (error) {
-      console.error("Erro ao carregar agendamentos:", error);
-      toast.error("Erro ao carregar agendamentos", {
-        description: error instanceof Error ? error.message : String(error),
-      });
-      setAgendamentos([]);
-      setTotal(0);
-    } finally {
-      setLoading(false);
-    }
-  };
+      if (updates.dataInicio !== undefined) {
+        if (updates.dataInicio) params.set("dataInicio", updates.dataInicio);
+        else params.delete("dataInicio");
+      }
+      if (updates.dataFim !== undefined) {
+        if (updates.dataFim) params.set("dataFim", updates.dataFim);
+        else params.delete("dataFim");
+      }
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
 
-  const totalPaginas = Math.ceil(total / limite);
+  const recarregar = useCallback(() => router.refresh(), [router]);
+
+  const dataSelecionada = dataInicio ? new Date(dataInicio + "T12:00:00") : undefined;
 
   const handleBusca = (valor: string) => {
-    setBusca(valor);
-    setPagina(1); // Reset para primeira página ao buscar
+    atualizarUrl({ busca: valor, pagina: 1 });
   };
 
   const handleStatusChange = (valor: string) => {
-    setStatus(valor);
-    setPagina(1); // Reset para primeira página ao filtrar
+    atualizarUrl({ status: valor, pagina: 1 });
   };
 
+  useEffect(() => {
+    setBuscaInput(busca);
+  }, [busca]);
+
   const handleDataChange = (data: Date | undefined) => {
-    setDataSelecionada(data);
-    setPagina(1); // Reset para primeira página ao mudar data
+    if (!data) {
+      atualizarUrl({ dataInicio: "", dataFim: "", pagina: 1 });
+      return;
+    }
+    const s = (n: number) => String(n).padStart(2, "0");
+    const str = `${data.getFullYear()}-${s(data.getMonth() + 1)}-${s(data.getDate())}`;
+    atualizarUrl({ dataInicio: str, dataFim: str, pagina: 1 });
+  };
+
+  const handleLimparFiltros = () => {
+    setBuscaInput("");
+    atualizarUrl({ busca: "", status: "", dataInicio: "", dataFim: "", pagina: 1 });
   };
 
   const handleAgendarReuniaoOutlook = (agend: IAgendamento) => {
@@ -249,7 +241,7 @@ export default function ListaAgendamentos() {
           agendamentoParaConfirmarOutlook.id,
           { status: StatusAgendamento.AGENDADO },
         );
-        if (res.ok) carregarAgendamentos();
+        if (res.ok) recarregar();
       } finally {
         setConfirmandoOutlook(false);
       }
@@ -310,18 +302,18 @@ export default function ListaAgendamentos() {
 
             <Input
               placeholder="Buscar por munícipe, processo, CPF..."
-              value={busca}
-              onChange={(e) => handleBusca(e.target.value)}
+              value={buscaInput}
+              onChange={(e) => setBuscaInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleBusca(buscaInput);
+              }}
               className="flex-1"
             />
-            {(status || dataSelecionada) && (
+            {(status || dataSelecionada || busca) && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  handleStatusChange("");
-                  setDataSelecionada(undefined);
-                }}
+                onClick={handleLimparFiltros}
                 className="w-full md:w-auto"
               >
                 Limpar filtros
@@ -459,11 +451,7 @@ export default function ListaAgendamentos() {
             </Badge>
           </div>
 
-          {loading ? (
-            <p className="text-center text-muted-foreground py-8">
-              Carregando agendamentos...
-            </p>
-          ) : agendamentos.length === 0 ? (
+          {agendamentos.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">
               Nenhum agendamento encontrado.
             </p>
@@ -574,7 +562,7 @@ export default function ListaAgendamentos() {
                                 agendamentoId={agend.id}
                                 coordenadoriaId={agend.coordenadoriaId!}
                                 tecnicoAtual={agend.tecnico}
-                                onSuccess={carregarAgendamentos}
+                                onSuccess={recarregar}
                               />
                             ) : (
                               agend.tecnico?.nome || (
@@ -667,32 +655,9 @@ export default function ListaAgendamentos() {
                 </Table>
               </div>
 
-              {/* Paginação */}
-              {totalPaginas > 1 && (
-                <div className="flex items-center justify-between mt-4">
-                  <div className="text-sm text-muted-foreground">
-                    Página {pagina} de {totalPaginas}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPagina((p) => Math.max(1, p - 1))}
-                      disabled={pagina === 1 || loading}
-                    >
-                      Anterior
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setPagina((p) => Math.min(totalPaginas, p + 1))
-                      }
-                      disabled={pagina === totalPaginas || loading}
-                    >
-                      Próxima
-                    </Button>
-                  </div>
+              {total > 0 && (
+                <div className="mt-4">
+                  <Pagination total={total} pagina={pagina} limite={limite} />
                 </div>
               )}
             </>
@@ -706,7 +671,7 @@ export default function ListaAgendamentos() {
           onClose={() => setAgendamentoParaConfirmar(null)}
           onSuccess={() => {
             setAgendamentoParaConfirmar(null);
-            carregarAgendamentos();
+            recarregar();
           }}
         />
       )}
