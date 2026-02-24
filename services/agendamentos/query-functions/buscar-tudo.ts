@@ -16,6 +16,14 @@ export async function buscarTudo(
 	tecnicoId: string = '',
 ): Promise<IRespostaAgendamento> {
 	const baseURL = getApiUrl();
+	if (!baseURL) {
+		return {
+			ok: false,
+			error: 'URL da API não configurada (NEXT_PUBLIC_API_URL).',
+			data: null,
+			status: 400,
+		};
+	}
 	try {
 		const params = new URLSearchParams({
 			pagina: pagina.toString(),
@@ -28,32 +36,43 @@ export async function buscarTudo(
 			...(tecnicoId && { tecnicoId }),
 		});
 
-		const agendamentos = await fetch(`${baseURL}agendamentos/buscar-tudo?${params}`, {
+		const url = `${baseURL}agendamentos/buscar-tudo?${params}`;
+		const agendamentos = await fetch(url, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
 				...getAuthHeaders(access_token),
 			},
-			next: { tags: ['agendamentos'], revalidate: 60 },
 		});
-		const data = await agendamentos.json();
-		if (agendamentos.status === 200)
+		let data: { message?: string; statusCode?: number };
+		try {
+			data = await agendamentos.json();
+		} catch {
+			return {
+				ok: false,
+				error: `Resposta inválida da API (status ${agendamentos.status}).`,
+				data: null,
+				status: agendamentos.status || 400,
+			};
+		}
+		if (agendamentos.status === 200) {
 			return {
 				ok: true,
 				error: null,
-				data: data as IPaginadoAgendamento,
+				data: data as unknown as IPaginadoAgendamento,
 				status: 200,
 			};
+		}
 		return {
 			ok: false,
-			error: data.message,
+			error: data?.message ?? `Erro ${agendamentos.status}`,
 			data: null,
-			status: data.statusCode,
+			status: data?.statusCode ?? agendamentos.status ?? 400,
 		};
 	} catch (error) {
 		return {
 			ok: false,
-			error: 'Não foi possível buscar a lista de agendamentos:' + error,
+			error: 'Não foi possível buscar a lista de agendamentos: ' + (error instanceof Error ? error.message : String(error)),
 			data: null,
 			status: 400,
 		};

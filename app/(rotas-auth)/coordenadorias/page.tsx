@@ -93,10 +93,10 @@ async function Coordenadorias({
 				/>
 				<CoordenadoriasTable
 					dados={dados || []}
-					podeExcluir={podeExcluir}
+					podeExcluir={!!podeExcluir}
 				/>
 
-				{dados && dados.length > 0 && (
+				{Array.isArray(dados) && dados.length > 0 && (
 					<Pagination
 						total={+total}
 						pagina={+pagina}

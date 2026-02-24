@@ -4,14 +4,16 @@
  * Retorna a URL da API correta baseado no ambiente:
  * - Server-side (Docker): usa INTERNAL_API_URL para evitar timeout
  * - Client-side: usa NEXT_PUBLIC_API_URL
+ * Sempre termina com / para concatenar rotas corretamente (ex: baseURL + 'agendamentos/buscar-tudo').
  */
 export function getApiUrl(): string {
-  // Em server-side, prefere INTERNAL_API_URL
+  let url: string;
   if (typeof window === 'undefined') {
-    return process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || '';
+    url = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || '';
+  } else {
+    url = process.env.NEXT_PUBLIC_API_URL || '';
   }
-  // Em client-side, usa a URL pública
-  return process.env.NEXT_PUBLIC_API_URL || '';
+  return url && !url.endsWith('/') ? `${url}/` : url;
 }
 
 // Para compatibilidade com código existente

@@ -94,7 +94,10 @@ export default function ListaAgendamentos() {
   }, [pagina, busca, status, dataSelecionada, session]);
 
   const carregarAgendamentos = async () => {
-    if (!session?.access_token) return;
+    if (!session?.access_token) {
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     try {
@@ -130,9 +133,20 @@ export default function ListaAgendamentos() {
         const dados = response.data as IPaginadoAgendamento;
         setAgendamentos(dados.data);
         setTotal(dados.total);
+      } else {
+        toast.error("Erro ao carregar agendamentos", {
+          description: response.error ?? `Status ${response.status}`,
+        });
+        setAgendamentos([]);
+        setTotal(0);
       }
     } catch (error) {
       console.error("Erro ao carregar agendamentos:", error);
+      toast.error("Erro ao carregar agendamentos", {
+        description: error instanceof Error ? error.message : String(error),
+      });
+      setAgendamentos([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
