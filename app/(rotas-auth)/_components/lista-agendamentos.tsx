@@ -91,7 +91,6 @@ export default function ListaAgendamentos({
   busca,
   status,
   dataInicio,
-  dataFim,
 }: ListaAgendamentosProps) {
   const { data: session } = useSession();
   const router = useRouter();
