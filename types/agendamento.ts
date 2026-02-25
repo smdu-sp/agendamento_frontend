@@ -17,6 +17,8 @@ export interface IAgendamento {
   dataHora: Date;
   dataFim?: Date;
   importado: boolean;
+  importadoOutlook?: boolean;
+  tecnicoResponsavelPlanilha?: string | null;
   resumo?: string;
   tipoAgendamentoId?: string;
   motivoNaoAtendimentoId?: string;

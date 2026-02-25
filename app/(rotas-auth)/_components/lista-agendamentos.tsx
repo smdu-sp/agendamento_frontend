@@ -542,15 +542,21 @@ export default function ListaAgendamentos({
                         !semTecnico &&
                         agend.status === StatusAgendamento.SOLICITADO;
 
-                      // Aplica cor de fundo para linhas sem técnico ou com status AGENDADO
+                      // Aplica cor de fundo: vermelho para importação Outlook; amarelo para sem técnico/AGENDADO
+                      const importadoOutlook = !!agend.importadoOutlook;
                       const deveDestacar =
                         semTecnico ||
                         agend.status === StatusAgendamento.AGENDADO;
+                      const rowClassName = importadoOutlook
+                        ? "bg-red-100 hover:bg-red-200 text-black"
+                        : deveDestacar
+                          ? "bg-yellow-100 hover:bg-yellow-200 text-black"
+                          : "";
 
                       return (
                         <TableRow
                           key={agend.id}
-                          className={deveDestacar ? "bg-yellow-100 hover:bg-yellow-200 text-black" : ""}
+                          className={rowClassName}
                         >
                           <TableCell>
                             <span className="text-sm text-muted-foreground">
@@ -569,18 +575,33 @@ export default function ListaAgendamentos({
                           </TableCell>
                           <TableCell>
                             {podeAtribuir ? (
-                              <AtribuirTecnico
-                                agendamentoId={agend.id}
-                                coordenadoriaId={agend.coordenadoriaId!}
-                                tecnicoAtual={agend.tecnico}
-                                onSuccess={recarregar}
-                              />
+                              <div className="flex flex-col gap-0.5">
+                                <AtribuirTecnico
+                                  agendamentoId={agend.id}
+                                  coordenadoriaId={agend.coordenadoriaId!}
+                                  tecnicoAtual={agend.tecnico}
+                                  onSuccess={recarregar}
+                                />
+                                {agend.importadoOutlook && agend.tecnicoResponsavelPlanilha && !agend.tecnico && (
+                                  <span className="text-xs text-muted-foreground">
+                                    Planilha: {agend.tecnicoResponsavelPlanilha}
+                                  </span>
+                                )}
+                              </div>
                             ) : (
-                              agend.tecnico?.nome || (
-                                <span className="text-muted-foreground italic">
-                                  Sem técnico
-                                </span>
-                              )
+                              <>
+                                {agend.tecnico?.nome || (
+                                  agend.tecnicoResponsavelPlanilha ? (
+                                    <span className="text-muted-foreground">
+                                      Planilha: {agend.tecnicoResponsavelPlanilha}
+                                    </span>
+                                  ) : (
+                                    <span className="text-muted-foreground italic">
+                                      Sem técnico
+                                    </span>
+                                  )
+                                )}
+                              </>
                             )}
                           </TableCell>
                           <TableCell>

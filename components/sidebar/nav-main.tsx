@@ -85,8 +85,13 @@ export async function NavMain() {
     },
     {
       icone: Upload,
-      titulo: "Importar Planilha",
+      titulo: "Importar Agendamentos",
       url: "/importar-planilha",
+    },
+    {
+      icone: Upload,
+      titulo: "Importar Outlook",
+      url: "/importar-agendamentos-outlook",
     },
   ];
 
