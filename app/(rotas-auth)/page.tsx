@@ -62,6 +62,7 @@ async function Home({
   let dados: IAgendamento[] = [];
   let total = 0;
 
+  let ultimaImportacao: { dataHora: string; total: number } | null = null;
   if (session.access_token) {
     const response = await agendamento.buscarTudo(
       session.access_token,
@@ -76,6 +77,10 @@ async function Home({
       dados = response.data.data ?? [];
       total = response.data.total ?? 0;
     }
+    const resUltima = await agendamento.getUltimaImportacaoPlanilha(
+      session.access_token,
+    );
+    if (resUltima.ok && resUltima.data) ultimaImportacao = resUltima.data;
   }
 
   let titulo = "Agendamentos";
@@ -106,6 +111,7 @@ async function Home({
         status={status}
         dataInicio={dataInicio}
         dataFim={dataFim}
+        ultimaImportacao={ultimaImportacao}
       />
     </div>
   );

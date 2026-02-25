@@ -5,6 +5,9 @@ import { redirect } from 'next/navigation';
 import { IPermissao } from '@/types/usuario';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import ImportarPlanilhaForm from './_components/importar-planilha-form';
+import * as agendamento from '@/services/agendamentos';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export default async function ImportarPlanilhaPage() {
 	const session = await auth();
@@ -12,18 +15,40 @@ export default async function ImportarPlanilhaPage() {
 		redirect('/login');
 	}
 
-	// Verifica se o usuário tem permissão (ADM ou DEV)
-	// A permissão pode vir como string do JWT ou como número do enum
 	const permissao = session.usuario?.permissao;
 	const isAdm = permissao as unknown as IPermissao === IPermissao.ADM || permissao === 'ADM';
 	const isDev = permissao as unknown as IPermissao === IPermissao.DEV || permissao === 'DEV';
-		if (!isAdm && !isDev) {
+	if (!isAdm && !isDev) {
 		redirect('/');
 	}
+
+	let ultimaImportacao: { dataHora: string; total: number; usuarioNome?: string | null } | null = null;
+	if (session.access_token) {
+		const res = await agendamento.getUltimaImportacaoPlanilha(session.access_token);
+		if (res.ok && res.data) ultimaImportacao = res.data;
+	}
+
+	const dataUltima = ultimaImportacao?.dataHora
+		? new Date(ultimaImportacao.dataHora)
+		: null;
 
 	return (
 		<div className=' w-full relative px-0 md:px-8 pb-10 md:pb-0'>
 			<h1 className='text-xl md:text-4xl font-bold mb-5'>Importar Planilha de Agendamentos</h1>
+			{ultimaImportacao && dataUltima && (
+				<div className='mb-5 p-4 rounded-lg border bg-muted/40 text-sm text-muted-foreground space-y-0.5'>
+					<p>
+						Data — {format(dataUltima, "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+					</p>
+					<p>{ultimaImportacao.total} agendamento(s) encontrado(s)</p>
+					<p>
+						Última importação: {format(dataUltima, "dd/MM/yyyy 'às' HH:mm")}
+						{ultimaImportacao.usuarioNome
+							? ` por ${ultimaImportacao.usuarioNome}`
+							: ""}
+					</p>
+				</div>
+			)}
 			<div className='flex flex-col gap-5 my-5 w-full max-w-2xl'>
 				<Card>
 					<CardHeader>

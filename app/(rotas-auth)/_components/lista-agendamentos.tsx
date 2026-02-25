@@ -81,6 +81,7 @@ interface ListaAgendamentosProps {
   status: string;
   dataInicio: string;
   dataFim: string;
+  ultimaImportacao?: { dataHora: string; total: number; usuarioNome?: string | null } | null;
 }
 
 export default function ListaAgendamentos({
@@ -91,6 +92,7 @@ export default function ListaAgendamentos({
   busca,
   status,
   dataInicio,
+  ultimaImportacao,
 }: ListaAgendamentosProps) {
   const { data: session } = useSession();
   const router = useRouter();
@@ -264,8 +266,17 @@ export default function ListaAgendamentos({
               </span>
             )}
           </CardTitle>
-          <CardDescription>
-            {total} agendamento(s) encontrado(s)
+          <CardDescription className="flex flex-col gap-0.5">
+            <span>{total} agendamento(s) encontrado(s)</span>
+            {ultimaImportacao?.dataHora && (
+              <span className="text-muted-foreground text-xs mt-0.5">
+                Última importação:{" "}
+                {format(new Date(ultimaImportacao.dataHora), "dd/MM/yyyy 'às' HH:mm")}
+                {ultimaImportacao.usuarioNome
+                  ? ` por ${ultimaImportacao.usuarioNome}`
+                  : ""}
+              </span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
