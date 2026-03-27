@@ -181,27 +181,19 @@ export async function NavMain() {
                     </Link>
                   </SidebarMenuItem>
                 )}
-                {["PONTO_FOCAL", "COORDENADOR"].includes(
-                  usuario.permissao.toString(),
-                ) && (
-                  <>
-                    <SidebarMenuItem className="z-50">
-                      <Link href="/coordenadorias">
-                        <Building2 />
-                        <span>Coordenadorias</span>
-                      </Link>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem className="z-50">
-                      <Link href="/divisoes">
-                        <Layers />
-                        <span>Divisões</span>
-                      </Link>
-                    </SidebarMenuItem>
-                  </>
-                )}
                 {["DEV", "ADM"].includes(usuario.permissao.toString()) &&
                   menuAdmin
-                    .filter((item) => item.titulo !== "Usuários")
+                    .filter((item) => {
+                      if (item.titulo === "Usuários") return false;
+                      if (
+                        usuario?.permissao?.toString() !== "ADM" &&
+                        (item.titulo === "Coordenadorias" ||
+                          item.titulo === "Divisões")
+                      ) {
+                        return false;
+                      }
+                      return true;
+                    })
                     .map((item) =>
                       item.subItens ? (
                         <Collapsible

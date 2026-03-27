@@ -14,6 +14,7 @@ export async function buscarTudo(
 	dataFim: string = '',
 	coordenadoriaId: string = '',
 	tecnicoId: string = '',
+	tipoProcesso: string = '',
 ): Promise<IRespostaAgendamento> {
 	const baseURL = getApiUrl();
 	if (!baseURL) {
@@ -34,6 +35,7 @@ export async function buscarTudo(
 			...(dataFim && { dataFim }),
 			...(coordenadoriaId && { coordenadoriaId }),
 			...(tecnicoId && { tecnicoId }),
+			...(tipoProcesso && { tipoProcesso }),
 		});
 
 		const url = `${baseURL}agendamentos/buscar-tudo?${params}`;

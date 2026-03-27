@@ -72,6 +72,16 @@ const formatarDataHora = (data: Date | string): string => {
   return format(dataLocal, "dd/MM/yyyy 'às' HH:mm");
 };
 
+const PROCESSO_DIGITAL_REGEX = /^\d{4}\.\d{4}\/\d{7}-\d$/;
+
+const isProcessoDigital = (processo?: string): boolean => {
+  const valor = (processo || "").trim();
+  return PROCESSO_DIGITAL_REGEX.test(valor);
+};
+
+const getTipoProcesso = (processo?: string): "Digital" | "Físico" =>
+  isProcessoDigital(processo) ? "Digital" : "Físico";
+
 interface ListaAgendamentosProps {
   dados: IAgendamento[];
   total: number;
@@ -107,7 +117,14 @@ export default function ListaAgendamentos({
   const [buscaInput, setBuscaInput] = useState(busca);
 
   const atualizarUrl = useCallback(
-    (updates: { pagina?: number; busca?: string; status?: string; dataInicio?: string; dataFim?: string }) => {
+    (updates: {
+      pagina?: number;
+      busca?: string;
+      status?: string;
+      tipoProcesso?: string;
+      dataInicio?: string;
+      dataFim?: string;
+    }) => {
       const params = new URLSearchParams(searchParams.toString());
       if (updates.pagina !== undefined) params.set("pagina", String(updates.pagina));
       if (updates.busca !== undefined) {
@@ -117,6 +134,10 @@ export default function ListaAgendamentos({
       if (updates.status !== undefined) {
         if (updates.status) params.set("status", updates.status);
         else params.delete("status");
+      }
+      if (updates.tipoProcesso !== undefined) {
+        if (updates.tipoProcesso) params.set("tipoProcesso", updates.tipoProcesso);
+        else params.delete("tipoProcesso");
       }
       if (updates.dataInicio !== undefined) {
         if (updates.dataInicio) params.set("dataInicio", updates.dataInicio);
@@ -143,6 +164,12 @@ export default function ListaAgendamentos({
     atualizarUrl({ status: valor, pagina: 1 });
   };
 
+  const tipoProcesso = searchParams.get("tipoProcesso") || "";
+
+  const handleTipoProcessoChange = (valor: string) => {
+    atualizarUrl({ tipoProcesso: valor, pagina: 1 });
+  };
+
   useEffect(() => {
     setBuscaInput(busca);
   }, [busca]);
@@ -159,7 +186,14 @@ export default function ListaAgendamentos({
 
   const handleLimparFiltros = () => {
     setBuscaInput("");
-    atualizarUrl({ busca: "", status: "", dataInicio: "", dataFim: "", pagina: 1 });
+    atualizarUrl({
+      busca: "",
+      status: "",
+      tipoProcesso: "",
+      dataInicio: "",
+      dataFim: "",
+      pagina: 1,
+    });
   };
 
   const handleAgendarReuniaoOutlook = (agend: IAgendamento) => {
@@ -267,7 +301,9 @@ export default function ListaAgendamentos({
             )}
           </CardTitle>
           <CardDescription className="flex flex-col gap-0.5">
-            <span>{total} agendamento(s) encontrado(s)</span>
+            <span>
+              {total} agendamento(s) encontrado(s)
+            </span>
             {ultimaImportacao?.dataHora && (
               <span className="text-muted-foreground text-xs mt-0.5">
                 Última importação:{" "}
@@ -320,7 +356,7 @@ export default function ListaAgendamentos({
               }}
               className="flex-1"
             />
-            {(status || dataSelecionada || busca) && (
+            {(status || tipoProcesso || dataSelecionada || busca) && (
               <Button
                 variant="outline"
                 size="sm"
@@ -462,6 +498,64 @@ export default function ListaAgendamentos({
             </Badge>
           </div>
 
+          {/* Filtro de tipo de processo */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            <Badge
+              variant={tipoProcesso === "" ? "default" : "outline"}
+              className={cn(
+                "cursor-pointer transition-colors select-none",
+                tipoProcesso === "" && "bg-primary text-primary-foreground",
+              )}
+              onClick={() => handleTipoProcessoChange("")}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleTipoProcessoChange("");
+                }
+              }}
+            >
+              Todos os processos
+            </Badge>
+            <Badge
+              variant={tipoProcesso === "DIGITAL" ? "default" : "outline"}
+              className={cn(
+                "cursor-pointer transition-colors select-none",
+                tipoProcesso === "DIGITAL" && "bg-primary text-primary-foreground",
+              )}
+              onClick={() => handleTipoProcessoChange("DIGITAL")}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleTipoProcessoChange("DIGITAL");
+                }
+              }}
+            >
+              Digitais
+            </Badge>
+            <Badge
+              variant={tipoProcesso === "FISICO" ? "default" : "outline"}
+              className={cn(
+                "cursor-pointer transition-colors select-none",
+                tipoProcesso === "FISICO" && "bg-primary text-primary-foreground",
+              )}
+              onClick={() => handleTipoProcessoChange("FISICO")}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleTipoProcessoChange("FISICO");
+                }
+              }}
+            >
+              Físicos
+            </Badge>
+          </div>
+
           {agendamentos.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">
               Nenhum agendamento encontrado.
@@ -476,6 +570,7 @@ export default function ListaAgendamentos({
                       <TableHead>Munícipe</TableHead>
                       <TableHead>CPF</TableHead>
                       <TableHead>Processo</TableHead>
+                      <TableHead>Tipo</TableHead>
                       <TableHead>Divisão</TableHead>
                       <TableHead>Técnico</TableHead>
                       <TableHead>Status</TableHead>
@@ -570,6 +665,7 @@ export default function ListaAgendamentos({
                             </span>
                           </TableCell>
                           <TableCell>{agend.processo || "-"}</TableCell>
+                          <TableCell>{getTipoProcesso(agend.processo)}</TableCell>
                           <TableCell>{agend.tecnico?.divisao?.sigla || "-"}</TableCell>
                           <TableCell>
                             {podeAtribuir ? (

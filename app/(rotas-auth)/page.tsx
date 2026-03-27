@@ -51,13 +51,23 @@ async function Home({
   }
 
   const sp = await searchParams;
-  const hasAnyParam = Object.keys(sp).length > 0;
+  /** Só paginação/“total” na URL não devem zerar o filtro de data padrão (hoje). */
+  const chavesQueNaoResetamData = new Set(["pagina", "limite", "total"]);
+  const temParametroRelevante = Object.keys(sp).some(
+    (k) => !chavesQueNaoResetamData.has(k),
+  );
   const pagina = Number(sp.pagina) || 1;
   const limite = Number(sp.limite) || 10;
   const busca = (sp.busca as string) ?? "";
   const status = (sp.status as string) ?? "";
-  const dataInicio = (sp.dataInicio as string) ?? (hasAnyParam ? "" : hojeStr());
-  const dataFim = (sp.dataFim as string) ?? (hasAnyParam ? "" : hojeStr());
+  const rawTipo = sp.tipoProcesso;
+  const tipoProcesso = Array.isArray(rawTipo)
+    ? (rawTipo[0] ?? "")
+    : (rawTipo as string) ?? "";
+  const dataInicio =
+    (sp.dataInicio as string) ?? (temParametroRelevante ? "" : hojeStr());
+  const dataFim =
+    (sp.dataFim as string) ?? (temParametroRelevante ? "" : hojeStr());
 
   let dados: IAgendamento[] = [];
   let total = 0;
@@ -72,6 +82,9 @@ async function Home({
       status,
       dataInicio,
       dataFim,
+      "",
+      "",
+      tipoProcesso,
     );
     if (response.ok && response.data && "data" in response.data) {
       dados = response.data.data ?? [];

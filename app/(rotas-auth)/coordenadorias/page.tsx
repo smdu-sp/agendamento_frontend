@@ -56,7 +56,7 @@ async function Coordenadorias({
 
 		const podeCriar =
 		session?.usuario?.permissao &&
-		['ADM', 'DEV'].includes(String(session.usuario.permissao));
+		['ADM'].includes(String(session.usuario.permissao));
 	const podeExcluir = podeCriar;
 
 	const statusSelect = [

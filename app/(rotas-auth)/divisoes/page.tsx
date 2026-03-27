@@ -56,7 +56,7 @@ async function Divisoes({
 
 	const podeCriar =
 		session?.usuario?.permissao &&
-		['ADM', 'DEV'].includes(String(session.usuario.permissao));
+		['ADM'].includes(String(session.usuario.permissao));
 	const podeExcluir = podeCriar;
 
 	// Coordenadorias para filtro
