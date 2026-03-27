@@ -21,14 +21,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import * as usuario from "@/services/usuarios";
-import * as coordenadoria from "@/services/coordenadorias";
+import * as divisaoService from "@/services/divisoes";
+import * as coordenadoriaService from "@/services/coordenadorias";
 import { IPermissao, IUsuario, INovoUsuario } from "@/types/usuario";
+import { IDivisao } from "@/types/divisao";
 import { ICoordenadoria } from "@/types/coordenadoria";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { useEffectivePermissao } from "@/providers/ImpersonationProvider";
 import { useSession } from "next-auth/react";
-import { useTransition, useEffect, useState } from "react";
+import { useTransition, useEffect, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -45,8 +47,9 @@ const formSchemaUsuario = z.object({
     "PONTO_FOCAL",
     "COORDENADOR",
     "PORTARIA",
+    "DIRETOR",
   ]),
-  coordenadoriaId: z.string().optional(),
+  divisaoId: z.string().optional(),
 });
 
 const formSchema = z.object({
@@ -66,7 +69,18 @@ export default function FormUsuario({
 }: FormUsuarioProps) {
   const [isPending, startTransition] = useTransition();
   const [isSearching, setIsSearching] = useState(false);
+  const [todasDivisoes, setTodasDivisoes] = useState<IDivisao[]>([]);
   const [coordenadorias, setCoordenadorias] = useState<ICoordenadoria[]>([]);
+  const [coordenadoriaId, setCoordenadoriaId] = useState<string>(
+    user?.divisao?.coordenadoriaId || ""
+  );
+
+  const { data: session } = useSession();
+  const effectivePermissao = useEffectivePermissao();
+  const permissaoAtual = (effectivePermissao ?? session?.usuario?.permissao ?? "") as string;
+  const somentePermissoesCoord =
+    permissaoAtual === "PONTO_FOCAL" || permissaoAtual === "COORDENADOR";
+
   const formUsuario = useForm<z.infer<typeof formSchemaUsuario>>({
     resolver: zodResolver(formSchemaUsuario),
     defaultValues: {
@@ -81,27 +95,58 @@ export default function FormUsuario({
           | "USR"
           | "PONTO_FOCAL"
           | "COORDENADOR"
-          | "PORTARIA") ?? "USR",
-      coordenadoriaId: user?.coordenadoriaId || "",
+          | "PORTARIA"
+          | "DIRETOR") ?? "USR",
+      divisaoId: user?.divisaoId || "",
     },
   });
 
-  const { data: session } = useSession();
-  const effectivePermissao = useEffectivePermissao();
-  const permissaoAtual = (effectivePermissao ?? session?.usuario?.permissao ?? "") as string;
-  const somentePermissoesCoord =
-    permissaoAtual === "PONTO_FOCAL" || permissaoAtual === "COORDENADOR";
+  // Divisões filtradas pela coordenadoria selecionada
+  const coordenadoriasDisponiveis = useMemo(() => {
+    if (coordenadorias.length > 0) return coordenadorias;
 
-  useEffect(() => {
-    async function carregarCoordenadorias() {
-      if (session?.access_token) {
-        const resp = await coordenadoria.listaCompleta(session.access_token);
-        if (resp.ok && resp.data) {
-          setCoordenadorias(resp.data as ICoordenadoria[]);
-        }
+    const map = new Map<string, ICoordenadoria>();
+    for (const divisao of todasDivisoes) {
+      const coord = divisao.coordenadoria;
+      if (coord?.id && !map.has(coord.id)) {
+        map.set(coord.id, {
+          id: coord.id,
+          sigla: coord.sigla,
+          nome: coord.nome ?? undefined,
+          email: "",
+          status: true,
+          criadoEm: new Date(),
+          atualizadoEm: new Date(),
+        });
       }
     }
-    carregarCoordenadorias();
+    return Array.from(map.values());
+  }, [coordenadorias, todasDivisoes]);
+
+  const divisoesFiltradas = useMemo(
+    () =>
+      coordenadoriaId
+        ? todasDivisoes.filter((d) => d.coordenadoriaId === coordenadoriaId)
+        : todasDivisoes,
+    [todasDivisoes, coordenadoriaId]
+  );
+
+  useEffect(() => {
+    async function carregar() {
+      if (!session?.access_token) return;
+      const [respDiv, respCoord] = await Promise.all([
+        divisaoService.listaCompleta(session.access_token),
+        coordenadoriaService.listaCompleta(session.access_token),
+      ]);
+      if (respDiv.ok && respDiv.data) setTodasDivisoes(respDiv.data as IDivisao[]);
+      if (respCoord.ok && respCoord.data) setCoordenadorias(respCoord.data as ICoordenadoria[]);
+      if (!respCoord.ok) {
+        toast.error("Falha ao carregar coordenadorias", {
+          description: respCoord.error || "Não foi possível carregar a lista.",
+        });
+      }
+    }
+    carregar();
   }, [session]);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -178,7 +223,7 @@ export default function FormUsuario({
       if (isUpdating && user?.id) {
         const resp = await usuario.atualizar(user?.id, {
           permissao: values.permissao as unknown as IPermissao,
-          coordenadoriaId: values.coordenadoriaId || undefined,
+          divisaoId: values.divisaoId || undefined,
         });
 
         if (resp.error) {
@@ -192,13 +237,13 @@ export default function FormUsuario({
           onClose?.();
         }
       } else {
-        const { email, login, nome, permissao, coordenadoriaId } = values;
+        const { email, login, nome, permissao, divisaoId } = values;
         const resp = await usuario.criar({
           email,
           login,
           nome,
           permissao: permissao as unknown as IPermissao,
-          coordenadoriaId: coordenadoriaId || undefined,
+          divisaoId: divisaoId || undefined,
         });
         if (resp.error) {
           toast.error("Algo deu errado", { description: resp.error });
@@ -328,6 +373,7 @@ export default function FormUsuario({
                     )}
                     <SelectItem value="USR">Usuário</SelectItem>
                     <SelectItem value="PONTO_FOCAL">Ponto Focal</SelectItem>
+                    <SelectItem value="DIRETOR">Diretor</SelectItem>
                     <SelectItem value="TEC">Técnico</SelectItem>
                   </SelectContent>
                 </Select>
@@ -337,36 +383,72 @@ export default function FormUsuario({
           />
           {(formUsuario.watch("permissao") === "PONTO_FOCAL" ||
             formUsuario.watch("permissao") === "TEC" ||
-            formUsuario.watch("permissao") === "COORDENADOR") && (
-            <FormField
-              control={formUsuario.control}
-              name="coordenadoriaId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Coordenadoria</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={"Selecione a coordenadoria"}
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {coordenadorias.map((coord) => (
-                        <SelectItem key={coord.id} value={coord.id}>
-                          {coord.sigla}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            formUsuario.watch("permissao") === "COORDENADOR" ||
+            formUsuario.watch("permissao") === "DIRETOR") && (
+            <>
+              {/* Seletor de coordenadoria — filtra as divisões abaixo */}
+              <FormItem>
+                <FormLabel>Coordenadoria</FormLabel>
+                <Select
+                  value={coordenadoriaId}
+                  onValueChange={(val) => {
+                    setCoordenadoriaId(val);
+                    formUsuario.setValue("divisaoId", "");
+                  }}
+                  disabled={somentePermissoesCoord}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a coordenadoria" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {coordenadoriasDisponiveis.map((coord) => (
+                      <SelectItem key={coord.id} value={coord.id}>
+                        {coord.sigla}{coord.nome ? ` — ${coord.nome}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+
+              <FormField
+                control={formUsuario.control}
+                name="divisaoId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Divisão</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={!coordenadoriaId}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={
+                              coordenadoriaId
+                                ? divisoesFiltradas.length === 0
+                                  ? "Nenhuma divisão nesta coordenadoria"
+                                  : "Selecione a divisão"
+                                : "Selecione a coordenadoria primeiro"
+                            }
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {divisoesFiltradas.map((div) => (
+                          <SelectItem key={div.id} value={div.id}>
+                            {div.sigla}{div.nome ? ` — ${div.nome}` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
           )}
           <div className="flex gap-2 items-center justify-end">
             <DialogClose asChild>

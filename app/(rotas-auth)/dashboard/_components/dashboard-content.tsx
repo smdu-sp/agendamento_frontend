@@ -5,9 +5,11 @@ import { useEffect, useRef, useState } from "react";
 import * as agendamentos from "@/services/agendamentos";
 import type { TipoPeriodoDashboard } from "@/services/agendamentos/query-functions/dashboard";
 import * as coordenadorias from "@/services/coordenadorias";
+import * as divisoes from "@/services/divisoes";
 import * as usuario from "@/services/usuarios";
 import { IDashboard, IDashboardPorMes } from "@/types/dashboard";
 import { ICoordenadoria } from "@/types/coordenadoria";
+import { IDivisao } from "@/types/divisao";
 import {
   Card,
   CardContent,
@@ -86,6 +88,7 @@ export default function DashboardContent() {
   >([]);
   const [coordenadoriaUsuario, setCoordenadoriaUsuario] =
     useState<ICoordenadoria | null>(null);
+  const [divisoesLista, setDivisoesLista] = useState<IDivisao[]>([]);
   const [loading, setLoading] = useState(true);
   const [tipoPeriodo, setTipoPeriodo] = useState<TipoPeriodoDashboard>("ano");
   const [ano, setAno] = useState(() => new Date().getFullYear());
@@ -94,23 +97,34 @@ export default function DashboardContent() {
     format(getSegundaFeira(new Date()), "yyyy-MM-dd"),
   );
   const [coordenadoriaId, setCoordenadoriaId] = useState<string>("");
+  const [divisaoId, setDivisaoId] = useState<string>("");
   const requestIdRef = useRef(0);
 
   const permissao = String(effectivePermissao ?? session?.usuario?.permissao ?? "");
   const isAdmOuDev = permissao === "ADM" || permissao === "DEV";
   const isPontoFocal = permissao === "PONTO_FOCAL";
   const isCoordenador = permissao === "COORDENADOR";
+  const isDiretor = permissao === "DIRETOR";
   const podeVerDashboard =
     permissao === "ADM" ||
     permissao === "DEV" ||
     permissao === "PONTO_FOCAL" ||
-    permissao === "COORDENADOR";
+    permissao === "COORDENADOR" ||
+    permissao === "DIRETOR";
 
   useEffect(() => {
     if (!podeVerDashboard) return;
     if (isAdmOuDev) {
-      coordenadorias.listaCompleta(session?.access_token).then((r) => {
-        if (r.ok && r.data && Array.isArray(r.data)) setCoordenadoriasLista(r.data);
+      Promise.all([
+        coordenadorias.listaCompleta(session?.access_token),
+        divisoes.listaCompleta(session?.access_token),
+      ]).then(([respCoord, respDiv]) => {
+        if (respCoord.ok && respCoord.data && Array.isArray(respCoord.data)) {
+          setCoordenadoriasLista(respCoord.data);
+        }
+        if (respDiv.ok && respDiv.data && Array.isArray(respDiv.data)) {
+          setDivisoesLista(respDiv.data);
+        }
       });
     }
   }, [isAdmOuDev, podeVerDashboard, session?.access_token]);
@@ -119,7 +133,7 @@ export default function DashboardContent() {
   useEffect(() => {
     if (!podeVerDashboard) return;
     if (!session?.access_token || !session?.usuario) return;
-    if (!isPontoFocal && !isCoordenador) return;
+    if (!isPontoFocal && !isCoordenador && !isDiretor) return;
 
     // O ID do usuário vem do campo `sub` no token JWT decodificado
     const userId = (session.usuario as IUsuarioSession).sub as string | undefined;
@@ -130,14 +144,26 @@ export default function DashboardContent() {
       .then((resp) => {
         if (!resp.ok || !resp.data) return;
         const u = resp.data as IUsuario;
-        if (u.coordenadoria) {
-          setCoordenadoriaUsuario(u.coordenadoria as ICoordenadoria);
+        if (u.divisao?.coordenadoria) {
+          const coord = u.divisao.coordenadoria as ICoordenadoria;
+          setCoordenadoriaUsuario(coord);
+          setCoordenadoriaId(coord.id);
+          divisoes
+            .listaCompleta(session.access_token, coord.id)
+            .then((respDiv) => {
+              if (respDiv.ok && respDiv.data && Array.isArray(respDiv.data)) {
+                setDivisoesLista(respDiv.data);
+              }
+            });
+        }
+        if (u.divisaoId && isDiretor) {
+          setDivisaoId(u.divisaoId);
         }
       })
       .catch(() => {
         // Em caso de erro, apenas não exibe a coordenadoria
       });
-  }, [session?.access_token, session?.usuario, isPontoFocal, isCoordenador, podeVerDashboard]);
+  }, [session?.access_token, session?.usuario, isPontoFocal, isCoordenador, isDiretor, podeVerDashboard]);
 
   useEffect(() => {
     if (!session?.access_token || !podeVerDashboard) {
@@ -178,6 +204,7 @@ export default function DashboardContent() {
       ...(dataInicio && { dataInicio }),
       ...(dataFim && { dataFim }),
       ...(coordenadoriaId && { coordenadoriaId }),
+      ...(divisaoId && { divisaoId }),
     };
     agendamentos
       .getDashboard(session.access_token, opts)
@@ -192,7 +219,7 @@ export default function DashboardContent() {
         if (id !== requestIdRef.current) return;
         setLoading(false);
       });
-  }, [session?.access_token, tipoPeriodo, ano, mes, semanaInicio, coordenadoriaId, podeVerDashboard]);
+  }, [session?.access_token, tipoPeriodo, ano, mes, semanaInicio, coordenadoriaId, divisaoId, podeVerDashboard]);
 
   if (!podeVerDashboard) {
     return (
@@ -416,28 +443,65 @@ export default function DashboardContent() {
               </Button>
             </div>
           )}
-          {isAdmOuDev && (
-            <div className="space-y-2">
-              <Label htmlFor="coordenadoria">Coordenadoria</Label>
-              <Select
-                value={coordenadoriaId || "todos"}
-                onValueChange={(v) =>
-                  setCoordenadoriaId(v === "todos" ? "" : v)
-                }
-              >
-                <SelectTrigger id="coordenadoria" className="w-[200px]">
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos</SelectItem>
-                  {coordenadoriasLista.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.sigla}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {(isAdmOuDev || isPontoFocal || isCoordenador) && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="coordenadoria">Coordenadoria</Label>
+                <Select
+                  value={coordenadoriaId || "todos"}
+                  onValueChange={(v) => {
+                    const novoCoord = v === "todos" ? "" : v;
+                    setCoordenadoriaId(novoCoord);
+                    setDivisaoId("");
+                    if (novoCoord) {
+                      divisoes.listaCompleta(session?.access_token, novoCoord).then((resp) => {
+                        if (resp.ok && resp.data && Array.isArray(resp.data)) {
+                          setDivisoesLista(resp.data);
+                        }
+                      });
+                    } else if (isAdmOuDev) {
+                      divisoes.listaCompleta(session?.access_token).then((resp) => {
+                        if (resp.ok && resp.data && Array.isArray(resp.data)) {
+                          setDivisoesLista(resp.data);
+                        }
+                      });
+                    }
+                  }}
+                  disabled={!isAdmOuDev}
+                >
+                  <SelectTrigger id="coordenadoria" className="w-[220px]">
+                    <SelectValue placeholder="Todos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {isAdmOuDev && <SelectItem value="todos">Todos</SelectItem>}
+                    {(isAdmOuDev ? coordenadoriasLista : coordenadoriaUsuario ? [coordenadoriaUsuario] : []).map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.sigla}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="divisao">Divisão</Label>
+                <Select
+                  value={divisaoId || "todas"}
+                  onValueChange={(v) => setDivisaoId(v === "todas" ? "" : v)}
+                >
+                  <SelectTrigger id="divisao" className="w-[220px]">
+                    <SelectValue placeholder="Todas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todas">Todas</SelectItem>
+                    {divisoesLista.map((d) => (
+                      <SelectItem key={d.id} value={d.id}>
+                        {d.sigla}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -457,7 +521,9 @@ export default function DashboardContent() {
               {tipoPeriodo === "semana" && labelSemana}
               {tipoPeriodo === "mes" && `${MESES[mes - 1]}/${ano}`}
               {tipoPeriodo === "ano" && `Ano ${ano}`}
-              {coordenadoriaId
+              {divisaoId
+                ? " (por divisão)"
+                : coordenadoriaId
                 ? " (por coordenadoria)"
                 : (isPontoFocal || isCoordenador) && coordenadoriaUsuario
                   ? ` (${coordenadoriaUsuario.sigla})`

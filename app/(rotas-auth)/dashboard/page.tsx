@@ -19,7 +19,8 @@ export default async function DashboardPage() {
     permissao === "ADM" ||
     permissao === "DEV" ||
     permissao === "PONTO_FOCAL" ||
-    permissao === "COORDENADOR";
+    permissao === "COORDENADOR" ||
+    permissao === "DIRETOR";
 
   if (!podeVerDashboard) {
     return (

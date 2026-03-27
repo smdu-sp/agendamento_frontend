@@ -4,7 +4,8 @@ export {
     buscarNovo,
     listaCompleta,
     validaUsuario,
-    buscarTecnicosPorCoordenadoria
+    buscarTecnicosPorCoordenadoria,
+    buscarTecnicosPorDivisao
 } from './query-functions';
 export type { ITecnico } from './query-functions';
 

@@ -7,6 +7,7 @@ import {
   Users,
   Upload,
   Building2,
+  Layers,
   Tags,
   ListX,
   LayoutDashboard,
@@ -72,6 +73,11 @@ export async function NavMain() {
       icone: Building2,
       titulo: "Coordenadorias",
       url: "/coordenadorias",
+    },
+    {
+      icone: Layers,
+      titulo: "Divisões",
+      url: "/divisoes",
     },
     {
       icone: Tags,
@@ -149,14 +155,16 @@ export async function NavMain() {
         )}
         {usuario &&
           usuario.permissao &&
-          ["DEV", "ADM", "PONTO_FOCAL", "COORDENADOR"].includes(
+          ["DEV", "ADM", "PONTO_FOCAL", "COORDENADOR", "DIRETOR"].includes(
             usuario.permissao.toString(),
           ) && (
             <>
               <SidebarGroupLabel>
                 {["DEV", "ADM"].includes(usuario.permissao.toString())
                   ? "Administração"
-                  : "Coordenadoria"}
+                  : usuario.permissao.toString() === "DIRETOR"
+                    ? "Divisão"
+                    : "Coordenadoria"}
               </SidebarGroupLabel>
               <SidebarMenu>
                 <SidebarMenuItem className="z-50">
@@ -165,21 +173,31 @@ export async function NavMain() {
                     <span>Dashboard</span>
                   </Link>
                 </SidebarMenuItem>
-                <SidebarMenuItem className="z-50">
-                  <Link href="/usuarios">
-                    <Users />
-                    <span>Usuários</span>
-                  </Link>
-                </SidebarMenuItem>
+                {!["DIRETOR"].includes(usuario.permissao.toString()) && (
+                  <SidebarMenuItem className="z-50">
+                    <Link href="/usuarios">
+                      <Users />
+                      <span>Usuários</span>
+                    </Link>
+                  </SidebarMenuItem>
+                )}
                 {["PONTO_FOCAL", "COORDENADOR"].includes(
                   usuario.permissao.toString(),
                 ) && (
-                  <SidebarMenuItem className="z-50">
-                    <Link href="/coordenadorias">
-                      <Building2 />
-                      <span>Coordenadorias</span>
-                    </Link>
-                  </SidebarMenuItem>
+                  <>
+                    <SidebarMenuItem className="z-50">
+                      <Link href="/coordenadorias">
+                        <Building2 />
+                        <span>Coordenadorias</span>
+                      </Link>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem className="z-50">
+                      <Link href="/divisoes">
+                        <Layers />
+                        <span>Divisões</span>
+                      </Link>
+                    </SidebarMenuItem>
+                  </>
                 )}
                 {["DEV", "ADM"].includes(usuario.permissao.toString()) &&
                   menuAdmin

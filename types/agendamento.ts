@@ -32,7 +32,13 @@ export interface IAgendamento {
   tipoAgendamento?: { id: string; texto: string } | null;
   motivoNaoAtendimento?: { id: string; texto: string } | null;
   coordenadoria?: { id: string; sigla: string; nome?: string | null; email?: string | null } | null;
-  tecnico?: { id: string; nome: string; login: string; email: string } | null;
+  tecnico?: {
+    id: string;
+    nome: string;
+    login: string;
+    email: string;
+    divisao?: { sigla: string } | null;
+  } | null;
 }
 
 export interface ICreateAgendamento {

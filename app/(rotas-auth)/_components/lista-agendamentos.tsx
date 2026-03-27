@@ -476,7 +476,7 @@ export default function ListaAgendamentos({
                       <TableHead>Munícipe</TableHead>
                       <TableHead>CPF</TableHead>
                       <TableHead>Processo</TableHead>
-                      <TableHead>Coordenadoria</TableHead>
+                      <TableHead>Divisão</TableHead>
                       <TableHead>Técnico</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Ações</TableHead>
@@ -570,9 +570,7 @@ export default function ListaAgendamentos({
                             </span>
                           </TableCell>
                           <TableCell>{agend.processo || "-"}</TableCell>
-                          <TableCell>
-                            {agend.coordenadoria?.sigla || "-"}
-                          </TableCell>
+                          <TableCell>{agend.tecnico?.divisao?.sigla || "-"}</TableCell>
                           <TableCell>
                             {podeAtribuir ? (
                               <div className="flex flex-col gap-0.5">

@@ -12,8 +12,14 @@ export interface IUsuario {
   criadoEm: Date;
   atualizadoEm: Date;
   nomeSocial?: string;
-  coordenadoriaId?: string;
-  coordenadoria?: { id: string; sigla: string; nome?: string | null } | null;
+  divisaoId?: string;
+  divisao?: {
+    id: string;
+    sigla: string;
+    nome?: string | null;
+    coordenadoriaId?: string | null;
+    coordenadoria?: { id: string; sigla: string; nome?: string | null } | null;
+  } | null;
 }
 
 export enum IPermissao {
@@ -24,6 +30,7 @@ export enum IPermissao {
   PONTO_FOCAL,
   COORDENADOR,
   PORTARIA,
+  DIRETOR,
 }
 
 export interface ICreateUsuario {
@@ -34,7 +41,7 @@ export interface ICreateUsuario {
   permissao?: IPermissao;
   status?: boolean;
   nomeSocial?: string;
-  coordenadoriaId?: string;
+  divisaoId?: string;
 }
 
 export interface IUpdateUsuario {
@@ -43,7 +50,7 @@ export interface IUpdateUsuario {
   nomeSocial?: string;
   avatar?: string;
   permissao?: IPermissao;
-  coordenadoriaId?: string;
+  divisaoId?: string;
 }
 
 export interface IPaginadoUsuario {

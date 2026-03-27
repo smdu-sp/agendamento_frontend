@@ -16,6 +16,7 @@ export async function getDashboard(
     dataInicio?: string;
     dataFim?: string;
     coordenadoriaId?: string;
+    divisaoId?: string;
   },
 ): Promise<IRespostaDashboard> {
   const baseURL = getApiUrl();
@@ -28,6 +29,7 @@ export async function getDashboard(
     if (opts?.dataInicio) params.set("dataInicio", opts.dataInicio);
     if (opts?.dataFim) params.set("dataFim", opts.dataFim);
     if (opts?.coordenadoriaId) params.set("coordenadoriaId", opts.coordenadoriaId);
+    if (opts?.divisaoId) params.set("divisaoId", opts.divisaoId);
 
     const url = `${baseURL}agendamentos/dashboard${params.toString() ? `?${params}` : ""}`;
     const response = await fetch(url, {
