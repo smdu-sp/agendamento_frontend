@@ -5,8 +5,9 @@ import type { NextAuthConfig } from 'next-auth';
 import { jwtDecode } from 'jwt-decode';
 
 // URL interna para chamadas server-side (dentro do Docker)
-// Fallback para NEXT_PUBLIC_API_URL em dev local
-const API_URL = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL;
+// Fallback para NEXT_PUBLIC_API_URL em dev local.
+const RAW_API_URL = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL = RAW_API_URL && !RAW_API_URL.endsWith('/') ? `${RAW_API_URL}/` : RAW_API_URL;
 
 export default {
 	providers: [
@@ -18,18 +19,18 @@ export default {
 			},
 			type: 'credentials',
 			async authorize(credentials) {
-				if (credentials?.login && credentials?.senha) {
-					const { login, senha } = credentials;
-					const response = await fetch(
-						`${API_URL}login`,
-						{
-							method: 'POST',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({ login, senha }),
-						},
-					);
+				if (!credentials?.login || !credentials?.senha || !API_URL) return null;
+				const { login, senha } = credentials;
+				try {
+					const response = await fetch(`${API_URL}login`, {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ login, senha }),
+					});
 					const usuario = await response.json();
 					if (usuario && response.ok) return usuario;
+				} catch {
+					return null;
 				}
 				return null;
 			},
@@ -74,7 +75,7 @@ export default {
 				}
 
 				const now = new Date();
-				if (session.usuario.exp * 1000 < now.getTime()) {
+				if (session.usuario.exp * 1000 < now.getTime() && API_URL) {
 					try {
 						const response = await fetch(
 							`${API_URL}refresh`,
@@ -100,7 +101,7 @@ export default {
 						// Ignora erro de refresh - mantém sessão atual
 					}
 				}
-				if (session.access_token) {
+				if (session.access_token && API_URL) {
 					fetch(
 						`${API_URL}usuarios/valida-usuario`,
 						{

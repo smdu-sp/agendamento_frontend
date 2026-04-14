@@ -11,6 +11,11 @@ import {
   Tags,
   ListX,
   LayoutDashboard,
+  Monitor,
+  FileText,
+  Lightbulb,
+  Search,
+  HelpCircle,
 } from "lucide-react";
 
 import {
@@ -98,6 +103,34 @@ export async function NavMain() {
       icone: Upload,
       titulo: "Importar Outlook",
       url: "/importar-agendamentos-outlook",
+    },
+  ];
+
+  const menuPaginasExternas: IMenu[] = [
+    {
+      icone: Monitor,
+      titulo: "Portal Arthur Saboya",
+      url: "/sala-arthur-saboya",
+    },
+    {
+      icone: FileText,
+      titulo: "Processos",
+      url: "/processos",
+    },
+    {
+      icone: Lightbulb,
+      titulo: "Pré-Projetos",
+      url: "/pre-projetos",
+    },
+    {
+      icone: Search,
+      titulo: "Consulta",
+      url: "/consulta",
+    },
+    {
+      icone: HelpCircle,
+      titulo: "Perguntas Frequentes",
+      url: "/perguntas-frequentes",
     },
   ];
 
@@ -239,6 +272,21 @@ export async function NavMain() {
               </SidebarMenu>
             </>
           )}
+        {usuario?.permissao?.toString() === "DEV" && (
+          <>
+            <SidebarGroupLabel>Páginas Externas</SidebarGroupLabel>
+            <SidebarMenu>
+              {menuPaginasExternas.map((item) => (
+                <SidebarMenuItem key={item.titulo} className="z-50">
+                  <Link href={item.url || "#"}>
+                    {item.icone && <item.icone />}
+                    <span>{item.titulo}</span>
+                  </Link>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </>
+        )}
       </SidebarGroup>
     </SidebarContent>
   );
