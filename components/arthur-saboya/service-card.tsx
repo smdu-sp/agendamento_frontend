@@ -1,6 +1,5 @@
-import { ArrowRight, LucideIcon } from "lucide-react"
+import { LucideIcon } from "lucide-react"
 import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface ServiceCardProps {
   title: string
@@ -8,37 +7,72 @@ interface ServiceCardProps {
   icon: LucideIcon
   href: string
   features: string[]
-  variant?: "primary" | "secondary"
+  variant?: "orange" | "teal"
 }
 
-export function ArthurSaboyaServiceCard({ title, description, icon: Icon, href, features, variant = "primary" }: ServiceCardProps) {
-  const isPrimary = variant === "primary"
+const variantStyles = {
+  orange: {
+    iconBg: "#E56E14",
+    dot: "bg-[#0F3D8F]",
+  },
+  teal: {
+    iconBg: "#E56E14",
+    dot: "bg-[#0F3D8F]",
+  },
+}
+
+export function ArthurSaboyaServiceCard({
+  title,
+  description,
+  icon: Icon,
+  href,
+  features,
+  variant = "orange",
+}: ServiceCardProps) {
+  const styles = variantStyles[variant]
+
   return (
-    <Link href={href} className="group block">
-      <Card className={`h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${isPrimary ? "border-primary/20 hover:border-primary/40" : "border-secondary/20 hover:border-secondary/40"}`}>
-        <CardHeader className="pb-4">
-          <div className={`mb-4 flex h-14 w-14 items-center justify-center rounded-xl ${isPrimary ? "bg-primary" : "bg-secondary"}`}>
-            <Icon
-              className={`h-7 w-7 ${isPrimary ? "text-primary-foreground" : "text-secondary-foreground"}`}
-            />
+    <Link href={href} className="group block w-full md:w-[496px]">
+      <div
+        className="box-border h-[277px] w-full rounded-2xl border border-[rgba(0,91,144,0.2)] bg-white p-8 shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)] transition-all duration-200 md:w-[496px]"
+      >
+        <div className="flex items-start gap-6">
+          <div
+            className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-2xl"
+            style={{ backgroundColor: styles.iconBg }}
+          >
+            <Icon className="h-8 w-8 text-white" />
           </div>
-          <CardTitle className="flex items-center gap-2 text-xl text-foreground">
-            {title}
-            <ArrowRight className="h-5 w-5 -translate-x-2 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
-          </CardTitle>
-          <CardDescription className="text-base">{description}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2">
-            {features.map((feature, index) => (
-              <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                <div className={`h-1.5 w-1.5 rounded-full ${isPrimary ? "bg-primary" : "bg-secondary"}`} />
-                {feature}
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
+
+          <div className="min-w-0 flex-1">
+            <h3
+              className="mb-2 text-[24px]/[1.2] font-bold text-[#0E171E]"
+              style={{ fontFamily: '"Open Sans", sans-serif' }}
+            >
+              {title}
+            </h3>
+            <p
+              className="mb-5 text-[16px]/[1.35] text-[#4C575F]"
+              style={{ fontFamily: '"Open Sans", sans-serif' }}
+            >
+              {description}
+            </p>
+
+            <ul className="flex flex-col items-start gap-2 bg-white p-0 md:h-[104px] md:w-[293px]">
+              {features.map((feature, index) => (
+                <li
+                  key={index}
+                  className="flex items-start gap-3 text-[14px] leading-[1.35] text-[#4C575F]"
+                  style={{ fontFamily: '"Open Sans", sans-serif' }}
+                >
+                  <div className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${styles.dot}`} />
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
     </Link>
   )
 }

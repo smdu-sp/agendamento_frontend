@@ -5,6 +5,7 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
 	basePath: "/agendamento",
 	output: "standalone",
+	outputFileTracingRoot: __dirname,
 	env: {
 		NEXT_PUBLIC_BASE_PATH: '/agendamento'
 	},
@@ -18,9 +19,6 @@ const nextConfig: NextConfig = {
 		'10.20.4.6',
 		'127.0.0.1',
 	],
-	turbopack: {
-		root: __dirname,
-	},
 };
 
 export default nextConfig;

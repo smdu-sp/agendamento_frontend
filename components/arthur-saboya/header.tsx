@@ -1,53 +1,79 @@
 "use client"
 
-import { Building2, Menu, X } from "lucide-react"
+import pmspLogo from "@/public/Logo_pmsp_h.png"
+import { Menu, X } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
 import { MunicipeNavAuth } from "@/components/arthur-saboya/municipe-nav-auth"
 import { Button } from "@/components/ui/button"
 
-/** Entrada pública principal (rotas na raiz da app; basePath do Next é aplicado automaticamente). */
 const PUBLIC_HOME = "/portal"
+
+const navLinks = [
+  { href: PUBLIC_HOME, label: "Início" },
+  { href: "/processos", label: "Processos em Trâmite" },
+  { href: "/pre-projetos", label: "Pré-Projetos" },
+  { href: "/consulta", label: "Consultar Agendamento" },
+]
 
 export function ArthurSaboyaHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-backdrop-filter:bg-card/80">
+    <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white shadow-sm">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link href={PUBLIC_HOME} className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-            <Building2 className="h-6 w-6 text-primary-foreground" />
-          </div>
-          <div className="hidden sm:block">
-            <p className="text-sm font-semibold text-foreground">Prefeitura Municipal</p>
-            <p className="text-xs text-muted-foreground">Portal de Agendamentos</p>
-          </div>
-        </Link>
-
+        {/* Nav links — esquerda */}
         <nav className="hidden items-center gap-6 md:flex">
-          <Link href={PUBLIC_HOME} className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Início</Link>
-          <Link href="/processos" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Processos em Trâmite</Link>
-          <Link href="/pre-projetos" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Pré-Projetos</Link>
-          <Link href="/consulta" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Consultar Agendamento</Link>
-          <Link href="/perguntas-frequentes" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Perguntas e respostas</Link>
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="text-sm font-medium text-gray-600 transition-colors hover:text-[#0A328D]"
+            >
+              {link.label}
+            </Link>
+          ))}
           <MunicipeNavAuth />
         </nav>
 
-        <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+        {/* Logo — direita */}
+        <Link href={PUBLIC_HOME} className="ml-auto md:ml-0">
+          <Image
+            src={pmspLogo.src}
+            alt="Prefeitura de São Paulo"
+            width={pmspLogo.width}
+            height={pmspLogo.height}
+            className="h-11 w-auto object-contain"
+            priority
+          />
+        </Link>
+
+        {/* Botão mobile */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="ml-2 md:hidden"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
           {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>
       </div>
 
       {isMenuOpen && (
-        <div className="border-t border-border bg-card md:hidden">
-          <nav className="container mx-auto flex flex-col gap-2 p-4">
-            <Link href={PUBLIC_HOME} className="rounded-lg px-4 py-2 text-sm font-medium text-foreground hover:bg-muted" onClick={() => setIsMenuOpen(false)}>Início</Link>
-            <Link href="/processos" className="rounded-lg px-4 py-2 text-sm font-medium text-foreground hover:bg-muted" onClick={() => setIsMenuOpen(false)}>Processos em Trâmite</Link>
-            <Link href="/pre-projetos" className="rounded-lg px-4 py-2 text-sm font-medium text-foreground hover:bg-muted" onClick={() => setIsMenuOpen(false)}>Pré-Projetos</Link>
-            <Link href="/consulta" className="rounded-lg px-4 py-2 text-sm font-medium text-foreground hover:bg-muted" onClick={() => setIsMenuOpen(false)}>Consultar Agendamento</Link>
-            <Link href="/perguntas-frequentes" className="rounded-lg px-4 py-2 text-sm font-medium text-foreground hover:bg-muted" onClick={() => setIsMenuOpen(false)}>Perguntas e respostas</Link>
-            <div className="rounded-lg px-4 py-2" onClick={() => setIsMenuOpen(false)}>
+        <div className="border-t border-gray-200 bg-white md:hidden">
+          <nav className="container mx-auto flex flex-col gap-1 p-4">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ))}
+            <div className="px-4 py-2" onClick={() => setIsMenuOpen(false)}>
               <MunicipeNavAuth />
             </div>
           </nav>
