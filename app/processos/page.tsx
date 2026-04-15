@@ -1,1 +1,1 @@
-export { default } from "../sala-arthur-saboya/processos/page"
+export { default } from "../_portal/processos/page"

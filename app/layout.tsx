@@ -28,8 +28,8 @@ export default function RootLayout({
 		<html
 			lang='pt-BR'
 			suppressHydrationWarning
-			className={`${myFont.className} antialised `}>
-			<body>
+			className={`${myFont.className} antialiased `}>
+			<body suppressHydrationWarning>
 				<AuthProvider>
 					<ImpersonationProvider>
 						<QueryProvider>

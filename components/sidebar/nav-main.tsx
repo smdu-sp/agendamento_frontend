@@ -16,6 +16,7 @@ import {
   Lightbulb,
   Search,
   HelpCircle,
+  ClipboardList,
 } from "lucide-react";
 
 import {
@@ -35,6 +36,7 @@ import {
 } from "@/components/ui/sidebar";
 import { validaUsuario } from "@/services/usuarios";
 import { IUsuario } from "@/types/usuario";
+import { usuarioPodeAcessarPedidosPreProjetosArthurSaboya } from "@/lib/pedidos-pre-projetos-arthur-saboya-acesso";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 import Link from "../link";
 
@@ -110,7 +112,7 @@ export async function NavMain() {
     {
       icone: Monitor,
       titulo: "Portal Arthur Saboya",
-      url: "/sala-arthur-saboya",
+      url: "/portal",
     },
     {
       icone: FileText,
@@ -206,6 +208,14 @@ export async function NavMain() {
                     <span>Dashboard</span>
                   </Link>
                 </SidebarMenuItem>
+                {usuarioPodeAcessarPedidosPreProjetosArthurSaboya(usuario) && (
+                  <SidebarMenuItem className="z-50">
+                    <Link href="/pedidos-pre-projetos-arthur-saboya">
+                      <ClipboardList />
+                      <span>Pedidos Arthur Saboya</span>
+                    </Link>
+                  </SidebarMenuItem>
+                )}
                 {!["DIRETOR"].includes(usuario.permissao.toString()) && (
                   <SidebarMenuItem className="z-50">
                     <Link href="/usuarios">
@@ -218,8 +228,11 @@ export async function NavMain() {
                   menuAdmin
                     .filter((item) => {
                       if (item.titulo === "Usuários") return false;
+                      const podeEstrutura = ["ADM", "DEV"].includes(
+                        usuario?.permissao?.toString() ?? "",
+                      );
                       if (
-                        usuario?.permissao?.toString() !== "ADM" &&
+                        !podeEstrutura &&
                         (item.titulo === "Coordenadorias" ||
                           item.titulo === "Divisões")
                       ) {

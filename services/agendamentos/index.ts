@@ -1,5 +1,9 @@
 export {
   buscarTudo,
+  buscarSolicitacoesPortalArthurSaboya,
+  confirmarRespostaEnviadaPortalArthurSaboya,
+  marcarAguardandoDataPortalArthurSaboya,
+  criarAgendamentoDaSolicitacaoPortalArthurSaboya,
   buscarDoDia,
   buscarPorId,
   getUltimaImportacaoPlanilha,

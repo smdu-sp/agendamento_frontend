@@ -1,1 +1,1 @@
-export { default } from "../sala-arthur-saboya/consulta/page"
+export { default } from "../_portal/consulta/page"

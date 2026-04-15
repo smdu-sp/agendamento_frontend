@@ -18,7 +18,9 @@ export function ArthurSaboyaServiceCard({ title, description, icon: Icon, href, 
       <Card className={`h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${isPrimary ? "border-primary/20 hover:border-primary/40" : "border-secondary/20 hover:border-secondary/40"}`}>
         <CardHeader className="pb-4">
           <div className={`mb-4 flex h-14 w-14 items-center justify-center rounded-xl ${isPrimary ? "bg-primary" : "bg-secondary"}`}>
-            <Icon className="h-7 w-7 text-primary-foreground" />
+            <Icon
+              className={`h-7 w-7 ${isPrimary ? "text-primary-foreground" : "text-secondary-foreground"}`}
+            />
           </div>
           <CardTitle className="flex items-center gap-2 text-xl text-foreground">
             {title}

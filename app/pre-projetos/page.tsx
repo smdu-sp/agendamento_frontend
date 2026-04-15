@@ -1,1 +1,1 @@
-export { default } from "../sala-arthur-saboya/pre-projetos/page"
+export { default } from "../_portal/pre-projetos/page"

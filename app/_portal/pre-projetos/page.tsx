@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Lightbulb, ArrowLeft, User, Mail, CheckCircle2, Send } from "lucide-react"
 import Link from "next/link"
 import { ArthurSaboyaHeader } from "@/components/arthur-saboya/header"
@@ -11,8 +11,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import {
+  EVENTO_SESSAO_MUNICIPE,
+  municipeEstaLogado,
+  obterEmailMunicipe,
+  obterNomeMunicipe,
+} from "@/lib/municipe-sessao"
 
-const BASE = "/processos"
+const BASE = "/portal"
 
 const FORMACOES = [
   { value: "engenheiro-civil", label: "Engenheiro Civil" },
@@ -40,11 +46,32 @@ function protocoloExibicao(id: string): string {
 }
 
 export default function PreProjetosPage() {
+  const [autenticado, setAutenticado] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [formData, setFormData] = useState(initialForm)
-  const [protocoloId, setProtocoloId] = useState<string | null>(null)
+  /** Protocolo retornado pela API (fallback: derivado do id, compatível com respostas antigas). */
+  const [protocoloExibido, setProtocoloExibido] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const sync = () => setAutenticado(municipeEstaLogado())
+    sync()
+    window.addEventListener(EVENTO_SESSAO_MUNICIPE, sync)
+    return () => window.removeEventListener(EVENTO_SESSAO_MUNICIPE, sync)
+  }, [])
+
+  useEffect(() => {
+    if (!autenticado || submitted) return
+    const nomeConta = obterNomeMunicipe() ?? ""
+    const emailConta = obterEmailMunicipe() ?? ""
+    if (!nomeConta && !emailConta) return
+    setFormData((prev) => ({
+      ...prev,
+      nome: prev.nome.trim() ? prev.nome : nomeConta,
+      email: prev.email.trim() ? prev.email : emailConta,
+    }))
+  }, [autenticado, submitted])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -52,9 +79,15 @@ export default function PreProjetosPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const base = process.env.NEXT_PUBLIC_AGENDAMENTOS_API_URL?.replace(/\/$/, "")
+    const base = (
+      process.env.NEXT_PUBLIC_AGENDAMENTOS_API_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      ""
+    ).replace(/\/$/, "")
     if (!base) {
-      setSubmitError("Defina NEXT_PUBLIC_AGENDAMENTOS_API_URL (ex.: http://localhost:3000) no .env.local.")
+      setSubmitError(
+        "Defina NEXT_PUBLIC_API_URL ou NEXT_PUBLIC_AGENDAMENTOS_API_URL (ex.: http://localhost:3000) no .env.",
+      )
       return
     }
     setSubmitting(true)
@@ -73,7 +106,12 @@ export default function PreProjetosPage() {
           descricao: formData.descricao.trim(),
         }),
       })
-      const data = (await res.json().catch(() => null)) as { id?: string; message?: string | string[]; error?: string } | null
+      const data = (await res.json().catch(() => null)) as {
+        id?: string
+        protocolo?: string
+        message?: string | string[]
+        error?: string
+      } | null
       if (!res.ok) {
         const msg = data?.message ?? data?.error
         const text = Array.isArray(msg) ? msg.join(" ") : msg || `Erro ${res.status}`
@@ -81,7 +119,9 @@ export default function PreProjetosPage() {
       }
       const id = data?.id ? String(data.id) : null
       if (!id) throw new Error("Resposta da API sem identificador.")
-      setProtocoloId(id)
+      setProtocoloExibido(
+        data?.protocolo?.trim() || protocoloExibicao(id),
+      )
       setSubmitted(true)
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Falha ao enviar. Tente novamente.")
@@ -101,7 +141,7 @@ export default function PreProjetosPage() {
     <div className="flex min-h-screen flex-col">
       <ArthurSaboyaHeader />
       <main className="flex-1">
-        <section className="border-b border-border bg-gradient-to-br from-secondary/5 via-background to-secondary/10 py-12">
+        <section className="border-b border-border bg-linear-to-br from-secondary/5 via-background to-secondary/10 py-12">
           <div className="container mx-auto px-4">
             <Link href={BASE} className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"><ArrowLeft className="h-4 w-4" />Voltar ao Início</Link>
             <div className="flex items-center gap-4">
@@ -112,7 +152,24 @@ export default function PreProjetosPage() {
         </section>
         <section className="py-12">
           <div className="container mx-auto px-4">
-            {!submitted ? (
+            {!autenticado ? (
+              <div className="mx-auto max-w-2xl">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Faça login para continuar</CardTitle>
+                    <CardDescription>Para solicitar orientação técnica, acesse sua conta de munícipe.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                    <Button asChild className="w-full sm:w-auto">
+                      <Link href="/portal/acesso?proxima=%2Fpre-projetos">Entrar</Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full sm:w-auto">
+                      <Link href="/portal/cadastro?proxima=%2Fpre-projetos">Criar conta</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : !submitted ? (
               <div className="mx-auto max-w-2xl">
                 <Card>
                   <CardHeader><CardTitle className="flex items-center gap-2"><Send className="h-5 w-5 text-secondary" />Solicitar Orientação Técnica</CardTitle><CardDescription>Preencha o formulário abaixo para enviar sua dúvida. Nossa equipe entrará em contato em até 5 dias úteis.</CardDescription></CardHeader>
@@ -137,7 +194,7 @@ export default function PreProjetosPage() {
                       </div>
                       <div className="space-y-2"><Label htmlFor="descricao">Descreva brevemente sua dúvida ou indique o amparo legal que precisa compreender melhor.</Label><Textarea id="descricao" name="descricao" value={formData.descricao} onChange={handleInputChange} rows={6} required /></div>
                       <div className="rounded-lg border border-border bg-muted/50 p-4"><p className="text-sm text-muted-foreground">Ao enviar este formulário, você concorda com o tratamento dos seus dados pessoais conforme a Lei Geral de Proteção de Dados (LGPD).</p></div>
-                      <div className="flex justify-end pt-2"><Button type="submit" className="bg-secondary hover:bg-secondary/90" disabled={!isFormValid || submitting}><Send className="mr-2 h-4 w-4" />{submitting ? "Enviando..." : "Enviar Solicitação"}</Button></div>
+                      <div className="flex justify-end pt-2"><Button type="submit" variant="secondary" disabled={!isFormValid || submitting}><Send className="mr-2 h-4 w-4" />{submitting ? "Enviando..." : "Enviar Solicitação"}</Button></div>
                     </form>
                   </CardContent>
                 </Card>
@@ -148,14 +205,14 @@ export default function PreProjetosPage() {
                   <CardHeader className="text-center"><div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100"><CheckCircle2 className="h-8 w-8 text-green-600" /></div><CardTitle className="text-2xl text-green-800">Solicitação Enviada!</CardTitle><CardDescription className="text-green-700">Sua consulta foi recebida e será analisada pela equipe técnica.</CardDescription></CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-4 rounded-lg bg-card p-6">
-                      <div className="flex items-center justify-between border-b border-border pb-3"><span className="text-sm text-muted-foreground">Protocolo de Solicitação</span><span className="font-mono font-bold text-foreground">{protocoloId ? protocoloExibicao(protocoloId) : "-"}</span></div>
+                      <div className="flex items-center justify-between border-b border-border pb-3"><span className="text-sm text-muted-foreground">Protocolo de Solicitação</span><span className="font-mono font-bold text-foreground">{protocoloExibido ?? "-"}</span></div>
                       <div className="grid gap-4 sm:grid-cols-2"><div><p className="text-sm text-muted-foreground">Nome completo</p><p className="font-medium text-foreground">{formData.nome}</p></div><div><p className="text-sm text-muted-foreground">E-mail</p><p className="font-medium text-foreground">{formData.email}</p></div><div className="sm:col-span-2"><p className="text-sm text-muted-foreground">Formação</p><p className="font-medium text-foreground">{getFormacaoLabel()}</p></div><div className="sm:col-span-2"><p className="text-sm text-muted-foreground">Natureza da dúvida</p><p className="font-medium text-foreground">{getNaturezaLabel()}</p></div></div>
                       <div className="border-t border-border pt-4"><p className="mb-2 text-sm text-muted-foreground">Descrição</p><p className="rounded-lg bg-muted/50 p-3 text-sm text-foreground">{formData.descricao}</p></div>
                     </div>
                     <div className="rounded-lg border border-amber-200 bg-amber-50 p-4"><p className="text-sm text-amber-800"><strong>Prazo de Resposta:</strong> Nossa equipe técnica entrará em contato em até 5 dias úteis através do e-mail informado. Guarde o número do protocolo para futuras consultas.</p></div>
                     <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
                       <Link href={BASE}><Button variant="outline" className="w-full sm:w-auto">Voltar ao Início</Button></Link>
-                      <Button onClick={() => { setSubmitted(false); setProtocoloId(null); setFormData(initialForm); setSubmitError(null) }} className="w-full bg-secondary hover:bg-secondary/90 sm:w-auto">Nova Solicitação</Button>
+                      <Button variant="secondary" className="w-full sm:w-auto" onClick={() => { setSubmitted(false); setProtocoloExibido(null); setFormData(initialForm); setSubmitError(null) }}>Nova Solicitação</Button>
                     </div>
                   </CardContent>
                 </Card>

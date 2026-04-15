@@ -23,6 +23,7 @@ export interface IAgendamento {
   tipoAgendamentoId?: string;
   motivoNaoAtendimentoId?: string;
   coordenadoriaId?: string;
+  divisaoId?: string | null;
   tecnicoId?: string;
   tecnicoRF?: string;
   email?: string;

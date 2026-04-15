@@ -7,7 +7,7 @@ import { ArthurSaboyaHeader } from "@/components/arthur-saboya/header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
-const BASE = "/processos"
+const BASE = "/portal"
 const SMUL_AGENDAMENTO_URL = "https://smulagendamento.prefeitura.sp.gov.br/PaginasPublicas/frmPaginaInicial.aspx"
 
 export default function ProcessosPage() {

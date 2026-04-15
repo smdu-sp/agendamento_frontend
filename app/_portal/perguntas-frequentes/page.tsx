@@ -5,7 +5,7 @@ import { ArthurSaboyaFooter } from "@/components/arthur-saboya/footer"
 import { ArthurSaboyaHeader } from "@/components/arthur-saboya/header"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
-const BASE = "/processos"
+const BASE = "/portal"
 const SMUL_AGENDAMENTO_URL = "https://smulagendamento.prefeitura.sp.gov.br/PaginasPublicas/frmPaginaInicial.aspx"
 const FAZENDA_IPTU_URL = "https://prefeitura.sp.gov.br/web/fazenda/servicos/iptu/"
 const SIMPROC_URL = "https://simprocservicos.prefeitura.sp.gov.br/Forms/consultarProcessos.aspx"

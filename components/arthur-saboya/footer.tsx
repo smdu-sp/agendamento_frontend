@@ -1,7 +1,8 @@
 import { Building2, Mail, MapPin, Phone } from "lucide-react"
 import Link from "next/link"
+import { MunicipeNavAuth } from "@/components/arthur-saboya/municipe-nav-auth"
 
-const PUBLIC_HOME = "/processos"
+const PUBLIC_HOME = "/portal"
 
 export function ArthurSaboyaFooter() {
   return (
@@ -28,6 +29,7 @@ export function ArthurSaboyaFooter() {
               <Link href="/pre-projetos" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pré-Projetos</Link>
               <Link href="/consulta" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Consultar Agendamento</Link>
               <Link href="/perguntas-frequentes" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Perguntas e respostas</Link>
+              <MunicipeNavAuth variant="footer" />
             </nav>
           </div>
           <div className="space-y-4">

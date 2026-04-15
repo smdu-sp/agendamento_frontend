@@ -1,1 +1,1 @@
-export { default } from "../sala-arthur-saboya/perguntas-frequentes/page"
+export { default } from "../_portal/perguntas-frequentes/page"

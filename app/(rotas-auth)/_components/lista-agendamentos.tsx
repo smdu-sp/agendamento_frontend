@@ -74,13 +74,24 @@ const formatarDataHora = (data: Date | string): string => {
 
 const PROCESSO_DIGITAL_REGEX = /^\d{4}\.\d{4}\/\d{7}-\d$/;
 
+/** Mesmo texto cadastrado no backend (`PRE_PROJETO_TIPO_AGENDAMENTO_TEXTO`). */
+const TIPO_TEXTO_PRE_PROJETOS_ARTHUR_SABOYA =
+  "Pré-projetos (Arthur Saboya)";
+
 const isProcessoDigital = (processo?: string): boolean => {
   const valor = (processo || "").trim();
   return PROCESSO_DIGITAL_REGEX.test(valor);
 };
 
-const getTipoProcesso = (processo?: string): "Digital" | "Físico" =>
-  isProcessoDigital(processo) ? "Digital" : "Físico";
+const getTipoProcesso = (
+  processo?: string,
+  tipoAgendamentoTexto?: string | null,
+): "Digital" | "Físico" | "" => {
+  if ((tipoAgendamentoTexto || "").trim() === TIPO_TEXTO_PRE_PROJETOS_ARTHUR_SABOYA) {
+    return "";
+  }
+  return isProcessoDigital(processo) ? "Digital" : "Físico";
+};
 
 interface ListaAgendamentosProps {
   dados: IAgendamento[];
@@ -665,7 +676,12 @@ export default function ListaAgendamentos({
                             </span>
                           </TableCell>
                           <TableCell>{agend.processo || "-"}</TableCell>
-                          <TableCell>{getTipoProcesso(agend.processo)}</TableCell>
+                          <TableCell>
+                            {getTipoProcesso(
+                              agend.processo,
+                              agend.tipoAgendamento?.texto,
+                            )}
+                          </TableCell>
                           <TableCell>{agend.tecnico?.divisao?.sigla || "-"}</TableCell>
                           <TableCell>
                             {podeAtribuir ? (

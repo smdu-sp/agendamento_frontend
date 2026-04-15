@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { AlertCircle, ArrowLeft, Calendar, CheckCircle2, Clock, FileText, Search, User, XCircle } from "lucide-react"
 import Link from "next/link"
 import { ArthurSaboyaFooter } from "@/components/arthur-saboya/footer"
@@ -10,8 +10,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { EVENTO_SESSAO_MUNICIPE, municipeEstaLogado } from "@/lib/municipe-sessao"
 
-const BASE = "/processos"
+const BASE = "/portal"
 type AgendamentoStatus = "confirmado" | "cancelado" | "realizado" | null
 interface Agendamento { protocolo: string; tipo: "processo" | "pre-projeto"; data: string; horario: string; nome: string; numeroProcesso?: string; tipoConsulta?: string; status: AgendamentoStatus }
 const mockAgendamentos: Record<string, Agendamento> = {
@@ -20,11 +21,19 @@ const mockAgendamentos: Record<string, Agendamento> = {
 }
 
 export default function ConsultaPage() {
+  const [autenticado, setAutenticado] = useState(false)
   const [protocolo, setProtocolo] = useState("")
   const [cpf, setCpf] = useState("")
   const [agendamento, setAgendamento] = useState<Agendamento | null>(null)
   const [notFound, setNotFound] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+
+  useEffect(() => {
+    const sync = () => setAutenticado(municipeEstaLogado())
+    sync()
+    window.addEventListener(EVENTO_SESSAO_MUNICIPE, sync)
+    return () => window.removeEventListener(EVENTO_SESSAO_MUNICIPE, sync)
+  }, [])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -48,7 +57,7 @@ export default function ConsultaPage() {
     <div className="flex min-h-screen flex-col">
       <ArthurSaboyaHeader />
       <main className="flex-1">
-        <section className="border-b border-border bg-gradient-to-br from-primary/5 via-background to-secondary/5 py-12">
+        <section className="border-b border-border bg-linear-to-br from-primary/5 via-background to-secondary/5 py-12">
           <div className="container mx-auto px-4">
             <Link href={BASE} className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"><ArrowLeft className="h-4 w-4" />Voltar ao Início</Link>
             <div className="flex items-center gap-4"><div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary"><Search className="h-7 w-7 text-primary-foreground" /></div><div><h1 className="text-3xl font-bold text-foreground">Consultar Agendamento</h1><p className="text-muted-foreground">Verifique o status ou cancele seu agendamento</p></div></div>
@@ -57,6 +66,23 @@ export default function ConsultaPage() {
         <section className="py-12">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-2xl">
+              {!autenticado ? (
+                <Card className="mb-8">
+                  <CardHeader>
+                    <CardTitle>Faça login para consultar</CardTitle>
+                    <CardDescription>O acesso à consulta de agendamentos exige autenticação com e-mail e senha.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                    <Button asChild className="w-full sm:w-auto">
+                      <Link href="/portal/acesso?proxima=%2Fconsulta">Entrar</Link>
+                    </Button>
+                    <Button asChild variant="outline" className="w-full sm:w-auto">
+                      <Link href="/portal/cadastro?proxima=%2Fconsulta">Criar conta</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : null}
+              {autenticado ? (
               <Card className="mb-8">
                 <CardHeader><CardTitle>Buscar Agendamento</CardTitle><CardDescription>Informe o número do protocolo e CPF para consultar seu agendamento</CardDescription></CardHeader>
                 <CardContent>
@@ -69,8 +95,9 @@ export default function ConsultaPage() {
                   </form>
                 </CardContent>
               </Card>
-              {notFound && <Alert variant="destructive" className="mb-8"><AlertCircle className="h-4 w-4" /><AlertTitle>Agendamento não encontrado</AlertTitle><AlertDescription>Não foi possível localizar um agendamento com os dados informados. Verifique o número do protocolo e tente novamente.</AlertDescription></Alert>}
-              {agendamento && (
+              ) : null}
+              {autenticado && notFound && <Alert variant="destructive" className="mb-8"><AlertCircle className="h-4 w-4" /><AlertTitle>Agendamento não encontrado</AlertTitle><AlertDescription>Não foi possível localizar um agendamento com os dados informados. Verifique o número do protocolo e tente novamente.</AlertDescription></Alert>}
+              {autenticado && agendamento && (
                 <Card>
                   <CardHeader><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><CardTitle className="flex items-center gap-2">{agendamento.tipo === "processo" ? <FileText className="h-5 w-5 text-primary" /> : <FileText className="h-5 w-5 text-secondary" />}{agendamento.tipo === "processo" ? "Processo em Trâmite" : "Pré-Projeto"}</CardTitle><CardDescription>Protocolo: {agendamento.protocolo}</CardDescription></div>{getStatusBadge(agendamento.status)}</div></CardHeader>
                   <CardContent className="space-y-6">

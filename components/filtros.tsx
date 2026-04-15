@@ -124,6 +124,15 @@ export function Filtros({ camposFiltraveis }: FiltrosProps) {
 	}
 
 	function RenderSelect(campo: CampoFiltravel) {
+		// Radix Select exige que `value` coincida com um SelectItem; string vazia quebra a abertura do menu.
+		const bruto = filtros[campo.tag];
+		const opcoes = (campo.valores as CampoSelect[]) || [];
+		let valorSelect =
+			bruto !== undefined && bruto !== null && String(bruto).trim() !== '' ? String(bruto) : 'all';
+		if (valorSelect !== 'all' && !opcoes.some((o) => String(o.value) === valorSelect)) {
+			valorSelect = 'all';
+		}
+
 		return (
 			<div
 				className='flex flex-col w-full md:w-60'
@@ -131,20 +140,23 @@ export function Filtros({ camposFiltraveis }: FiltrosProps) {
 				<p>{campo.nome}</p>
 				<Select
 					onValueChange={(value) =>
-						setFiltros((prev) => ({ ...prev, [campo.tag]: value }))
+						setFiltros((prev) => ({
+							...prev,
+							[campo.tag]: value === 'all' ? '' : value,
+						}))
 					}
-					value={filtros[campo.tag]}>
+					value={valorSelect}>
 					<SelectTrigger className='w-full md:w-60 text-nowrap bg-background'>
 						<SelectValue placeholder={campo.placeholder} />
 					</SelectTrigger>
-					<SelectContent>
+					<SelectContent position='popper' className='z-50'>
 						<SelectItem
 							value='all'
 							className='text-nowrap'>
 							Tudo
 						</SelectItem>
-						{campo.valores &&
-							(campo.valores as CampoSelect[]).map((item) => {
+						{opcoes.length > 0 &&
+							opcoes.map((item) => {
 								return (
 									<SelectItem
 										key={item.value}
