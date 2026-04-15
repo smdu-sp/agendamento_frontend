@@ -1,5 +1,6 @@
 import { LucideIcon } from "lucide-react"
 import Link from "next/link"
+import { openSans } from "@/lib/fonts"
 
 interface ServiceCardProps {
   title: string
@@ -46,14 +47,12 @@ export function ArthurSaboyaServiceCard({
 
           <div className="min-w-0 flex-1">
             <h3
-              className="mb-2 text-[24px]/[1.2] font-bold text-[#0E171E]"
-              style={{ fontFamily: '"Open Sans", sans-serif' }}
+              className={`${openSans.className} mb-2 text-[24px]/[1.2] font-bold text-[#0E171E]`}
             >
               {title}
             </h3>
             <p
-              className="mb-5 text-[16px]/[1.35] text-[#4C575F]"
-              style={{ fontFamily: '"Open Sans", sans-serif' }}
+              className={`${openSans.className} mb-5 text-[16px]/[1.35] text-[#4C575F]`}
             >
               {description}
             </p>
@@ -62,8 +61,7 @@ export function ArthurSaboyaServiceCard({
               {features.map((feature, index) => (
                 <li
                   key={index}
-                  className="flex items-start gap-3 text-[14px] leading-[1.35] text-[#4C575F]"
-                  style={{ fontFamily: '"Open Sans", sans-serif' }}
+                  className={`${openSans.className} flex items-start gap-3 text-[14px] leading-[1.35] text-[#4C575F]`}
                 >
                   <div className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${styles.dot}`} />
                   <span>{feature}</span>

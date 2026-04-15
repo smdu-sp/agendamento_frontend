@@ -5,6 +5,7 @@ import iconDocumentos from "@/public/icons/Group 8657.png"
 import iconDespertador from "@/public/icons/despertador.png"
 import iconFaq from "@/public/icons/FAQ.png"
 import iconCancelamento from "@/public/icons/cancelamento.png"
+import { openSans } from "@/lib/fonts"
 import { ArthurSaboyaFooter } from "@/components/arthur-saboya/footer"
 import { ArthurSaboyaHeader } from "@/components/arthur-saboya/header"
 import { ArthurSaboyaHeroSection } from "@/components/arthur-saboya/hero-section"
@@ -42,7 +43,7 @@ const infoCards = [
 
 export default function PortalHomePage() {
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div className={`${openSans.className} flex min-h-screen flex-col bg-white`}>
       <ArthurSaboyaHeader />
 
       <main className="flex-1">
@@ -89,35 +90,33 @@ export default function PortalHomePage() {
         </section>
 
         {/* ── Consultar Agendamento ── */}
-        <section style={{ backgroundColor: "#D1EBE8" }} className="py-16">
-          <div className="container mx-auto px-4">
-            <div className="mx-auto max-w-2xl rounded-xl bg-white p-8 shadow-md text-center">
-              <div
-                className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full"
-                style={{ backgroundColor: "#D1EBE8" }}
-              >
-                <Search className="h-6 w-6" style={{ color: "#5CC9BD" }} />
+        <section className="border-y border-[#CBDAE2] bg-[rgba(209,235,232,0.25)]">
+          <div className="mx-auto w-full max-w-[1900px] px-4 py-[65px]">
+            <div className="mx-auto flex min-h-[250px] w-full max-w-[667px] flex-col gap-6 rounded-2xl border border-[#CBDAE2] bg-white py-6 shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]">
+              <div className="flex flex-1 flex-col items-center px-6 text-center">
+                <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-[#D1EBE8]">
+                  <Search className="h-6 w-6 text-[#5CC9BD]" style={{ strokeWidth: 1.3333 }} />
+                </div>
+                <h2
+                  className={`${openSans.className} w-full max-w-[622px] text-[24px] font-extrabold leading-8 text-[#0E171E]`}
+                >
+                  Consultar Agendamento
+                </h2>
+                <p
+                  className={`${openSans.className} mt-2 w-full max-w-[487px] text-[16px] font-normal leading-6 text-[#4C575F]`}
+                >
+                  Já possui um agendamento? Consulte o status ou faça alterações.
+                </p>
               </div>
-              <h2
-                className="mb-2 text-[24px] font-extrabold text-[#0E171E]"
-                style={{ fontFamily: '"Open Sans", sans-serif' }}
-              >
-                Consultar Agendamento
-              </h2>
-              <p
-                className="mb-6 text-[16px] font-normal text-[#4C575F]"
-                style={{ fontFamily: '"Open Sans", sans-serif' }}
-              >
-                Já possui um agendamento? Consulte o status ou faça alterações.
-              </p>
-              <Link
-                href="/consulta"
-                className="inline-flex h-10 w-[249px] items-center justify-center gap-2 rounded-[10px] bg-[#F5F9FB] px-4 text-[14px] font-normal text-[#0E171E] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors hover:bg-[#EAF4F7]"
-                style={{ fontFamily: '"Open Sans", sans-serif' }}
-              >
-                <Search className="h-4 w-4" />
-                Consultar Meu Agendamento
-              </Link>
+              <div className="flex h-10 items-start justify-center">
+                <Link
+                  href="/consulta"
+                  className={`${openSans.className} inline-flex h-10 w-[249px] items-center justify-center gap-2 rounded-[10px] bg-[#F5F9FB] px-4 text-[14px] font-normal text-[#0E171E] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors hover:bg-[#EAF4F7]`}
+                >
+                  <Search className="h-4 w-4" style={{ strokeWidth: 1.3333 }} />
+                  Consultar Meu Agendamento
+                </Link>
+              </div>
             </div>
           </div>
         </section>
@@ -148,15 +147,13 @@ export default function PortalHomePage() {
                       />
                     </div>
                     <h3
-                      className="text-[18px] font-extrabold leading-tight text-[#0E171E]"
-                      style={{ fontFamily: '"Open Sans", sans-serif' }}
+                      className={`${openSans.className} text-[18px] font-extrabold leading-tight text-[#0E171E]`}
                     >
                       {card.title}
                     </h3>
                   </div>
                   <p
-                    className="text-[14px] font-normal leading-5 text-[#4C575F]"
-                    style={{ fontFamily: '"Open Sans", sans-serif' }}
+                    className={`${openSans.className} text-[14px] font-normal leading-5 text-[#4C575F]`}
                   >
                     {card.description}
                   </p>
