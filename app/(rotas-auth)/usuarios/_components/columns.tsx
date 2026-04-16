@@ -25,12 +25,19 @@ export const columns: ColumnDef<IUsuario>[] = [
     accessorKey: "coordenadoria",
     header: "Coordenadoria",
     cell: ({ row }) => {
-      const coord = row.original.coordenadoria;
-      return (
-        <span className="text-sm">
-          {coord?.sigla ?? "-"}
-        </span>
-      );
+      const coord = row.original.divisao?.coordenadoria;
+      const texto =
+        coord?.sigla?.trim() || coord?.nome?.trim() || null;
+      return <span className="text-sm">{texto ?? "-"}</span>;
+    },
+  },
+  {
+    accessorKey: "divisao",
+    header: "Divisão",
+    cell: ({ row }) => {
+      const div = row.original.divisao;
+      const texto = div?.sigla?.trim() || div?.nome?.trim() || null;
+      return <span className="text-sm">{texto ?? "-"}</span>;
     },
   },
   {

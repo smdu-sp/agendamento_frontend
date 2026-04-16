@@ -16,8 +16,13 @@ export function getImpersonatePermissao(): string | null {
 export function setImpersonatePermissaoStorage(value: string | null): void {
   if (typeof window === "undefined") return;
   try {
-    if (value) localStorage.setItem(STORAGE_KEY, value);
-    else localStorage.removeItem(STORAGE_KEY);
+    if (value) {
+      localStorage.setItem(STORAGE_KEY, value);
+      document.cookie = `${STORAGE_KEY}=${encodeURIComponent(value)}; path=/; max-age=31536000; samesite=lax`;
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+      document.cookie = `${STORAGE_KEY}=; path=/; max-age=0; samesite=lax`;
+    }
   } catch {
     // ignore
   }

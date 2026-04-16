@@ -51,25 +51,12 @@ import {
 import { toast } from "sonner";
 import { useEffectivePermissao } from "@/providers/ImpersonationProvider";
 
-// Normaliza a data para horário local quando ela foi salva como UTC representando hora local
-const normalizarDataLocal = (data: Date | string): Date => {
-  const dataObj = typeof data === "string" ? new Date(data) : data;
-  // Extrai os componentes UTC e cria uma data local
-  const ano = dataObj.getUTCFullYear();
-  const mes = dataObj.getUTCMonth();
-  const dia = dataObj.getUTCDate();
-  const hora = dataObj.getUTCHours();
-  const minuto = dataObj.getUTCMinutes();
+/** Converte valor da API (ISO em UTC) para `Date` do instante correto; formata no fuso do navegador. */
+const paraDateAgendamento = (data: Date | string): Date =>
+  typeof data === "string" ? new Date(data) : data;
 
-  // Cria uma nova data local com esses valores
-  return new Date(ano, mes, dia, hora, minuto);
-};
-
-// Função auxiliar para formatar data/hora corretamente
-// Considera que a data foi salva como UTC mas representa hora local
 const formatarDataHora = (data: Date | string): string => {
-  const dataLocal = normalizarDataLocal(data);
-  return format(dataLocal, "dd/MM/yyyy 'às' HH:mm");
+  return format(paraDateAgendamento(data), "dd/MM/yyyy 'às' HH:mm");
 };
 
 const PROCESSO_DIGITAL_REGEX = /^\d{4}\.\d{4}\/\d{7}-\d$/;
@@ -135,6 +122,8 @@ export default function ListaAgendamentos({
       tipoProcesso?: string;
       dataInicio?: string;
       dataFim?: string;
+      /** true = listar todas as datas; false = remove o marcador da URL */
+      todasDatas?: boolean;
     }) => {
       const params = new URLSearchParams(searchParams.toString());
       if (updates.pagina !== undefined) params.set("pagina", String(updates.pagina));
@@ -157,6 +146,10 @@ export default function ListaAgendamentos({
       if (updates.dataFim !== undefined) {
         if (updates.dataFim) params.set("dataFim", updates.dataFim);
         else params.delete("dataFim");
+      }
+      if (updates.todasDatas !== undefined) {
+        if (updates.todasDatas) params.set("todasDatas", "1");
+        else params.delete("todasDatas");
       }
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
     },
@@ -187,12 +180,22 @@ export default function ListaAgendamentos({
 
   const handleDataChange = (data: Date | undefined) => {
     if (!data) {
-      atualizarUrl({ dataInicio: "", dataFim: "", pagina: 1 });
+      atualizarUrl({
+        dataInicio: "",
+        dataFim: "",
+        pagina: 1,
+        todasDatas: true,
+      });
       return;
     }
     const s = (n: number) => String(n).padStart(2, "0");
     const str = `${data.getFullYear()}-${s(data.getMonth() + 1)}-${s(data.getDate())}`;
-    atualizarUrl({ dataInicio: str, dataFim: str, pagina: 1 });
+    atualizarUrl({
+      dataInicio: str,
+      dataFim: str,
+      pagina: 1,
+      todasDatas: false,
+    });
   };
 
   const handleLimparFiltros = () => {
@@ -204,6 +207,7 @@ export default function ListaAgendamentos({
       dataInicio: "",
       dataFim: "",
       pagina: 1,
+      todasDatas: true,
     });
   };
 
@@ -227,9 +231,9 @@ export default function ListaAgendamentos({
     const subject =
       `Agendamento Técnico - ${coordenadoriaSigla} - Processo: ${processo}`.trim();
 
-    const inicio = normalizarDataLocal(agend.dataHora);
+    const inicio = paraDateAgendamento(agend.dataHora);
     const fim = agend.dataFim
-      ? normalizarDataLocal(agend.dataFim)
+      ? paraDateAgendamento(agend.dataFim)
       : new Date(inicio.getTime() + 60 * 60 * 1000);
 
     const startIso = inicio.toISOString();

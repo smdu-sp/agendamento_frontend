@@ -3,6 +3,7 @@
 import { TableSkeleton } from "@/components/data-table";
 import { auth } from "@/lib/auth/auth";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { Suspense } from "react";
 import { IPermissao } from "@/types/usuario";
 import * as agendamento from "@/services/agendamentos";
@@ -56,6 +57,13 @@ async function Home({
   const temParametroRelevante = Object.keys(sp).some(
     (k) => !chavesQueNaoResetamData.has(k),
   );
+  const rawTodasDatas = sp.todasDatas;
+  const todasDatas =
+    rawTodasDatas === "1" ||
+    rawTodasDatas === "true" ||
+    (Array.isArray(rawTodasDatas) &&
+      (rawTodasDatas[0] === "1" || rawTodasDatas[0] === "true"));
+
   const pagina = Number(sp.pagina) || 1;
   const limite = Number(sp.limite) || 10;
   const busca = (sp.busca as string) ?? "";
@@ -64,16 +72,33 @@ async function Home({
   const tipoProcesso = Array.isArray(rawTipo)
     ? (rawTipo[0] ?? "")
     : (rawTipo as string) ?? "";
-  const dataInicio =
-    (sp.dataInicio as string) ?? (temParametroRelevante ? "" : hojeStr());
-  const dataFim =
-    (sp.dataFim as string) ?? (temParametroRelevante ? "" : hojeStr());
+
+  const rawInicio = (sp.dataInicio as string) || "";
+  const rawFim = (sp.dataFim as string) || "";
+  let dataInicio: string;
+  let dataFim: string;
+  if (rawInicio && rawFim) {
+    dataInicio = rawInicio;
+    dataFim = rawFim;
+  } else if (todasDatas) {
+    dataInicio = "";
+    dataFim = "";
+  } else if (temParametroRelevante) {
+    dataInicio = rawInicio;
+    dataFim = rawFim;
+  } else {
+    dataInicio = hojeStr();
+    dataFim = hojeStr();
+  }
 
   let dados: IAgendamento[] = [];
   let total = 0;
 
   let ultimaImportacao: { dataHora: string; total: number } | null = null;
   if (session.access_token) {
+    const cookieStore = await cookies();
+    const impersonatePermissao =
+      cookieStore.get("impersonate_permissao")?.value?.trim() || undefined;
     const response = await agendamento.buscarTudo(
       session.access_token,
       pagina,
@@ -85,6 +110,7 @@ async function Home({
       "",
       "",
       tipoProcesso,
+      impersonatePermissao,
     );
     if (response.ok && response.data && "data" in response.data) {
       dados = response.data.data ?? [];

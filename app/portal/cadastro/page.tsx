@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArthurSaboyaFooter } from "@/components/arthur-saboya/footer";
 import { ArthurSaboyaHeader } from "@/components/arthur-saboya/header";
+import { ArthurSaboyaPageBackgroundBanner } from "@/components/arthur-saboya/page-background-banner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -135,6 +136,10 @@ export default function CadastroMunicipePage() {
   return (
     <div className="flex min-h-screen flex-col">
       <ArthurSaboyaHeader />
+      <ArthurSaboyaPageBackgroundBanner
+        title="Criar Conta"
+        subtitle="Cadastre-se para acompanhar e gerenciar seus pedidos no portal."
+      />
       <main className="flex flex-1 flex-col items-center justify-center py-10">
         <div className="container mx-auto px-4">
           <Suspense

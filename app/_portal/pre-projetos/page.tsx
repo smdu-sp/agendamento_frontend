@@ -5,6 +5,7 @@ import { Lightbulb, ArrowLeft, User, Mail, CheckCircle2, Send } from "lucide-rea
 import Link from "next/link"
 import { ArthurSaboyaHeader } from "@/components/arthur-saboya/header"
 import { ArthurSaboyaFooter } from "@/components/arthur-saboya/footer"
+import { ArthurSaboyaPageBackgroundBanner } from "@/components/arthur-saboya/page-background-banner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -140,17 +141,22 @@ export default function PreProjetosPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <ArthurSaboyaHeader />
-      <main className="flex-1">
-        <section className="border-b border-border bg-linear-to-br from-secondary/5 via-background to-secondary/10 py-12">
-          <div className="container mx-auto px-4">
-            <Link href={BASE} className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"><ArrowLeft className="h-4 w-4" />Voltar ao Início</Link>
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-secondary"><Lightbulb className="h-7 w-7 text-secondary-foreground" /></div>
-              <div><h1 className="text-3xl font-bold text-foreground">Pré-Projetos</h1><p className="text-muted-foreground">Consultas prévias e orientações técnicas</p></div>
-            </div>
+      <ArthurSaboyaPageBackgroundBanner>
+        <Link href={BASE} className="mb-4 inline-flex items-center gap-2 text-sm text-white/90 transition-colors hover:text-white">
+          <ArrowLeft className="h-4 w-4" />Voltar ao Início
+        </Link>
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#E56E14]">
+            <Lightbulb className="h-7 w-7 text-white" />
           </div>
-        </section>
-        <section className="py-12">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Pré-Projetos</h1>
+            <p className="text-white/90">Consultas prévias e orientações técnicas</p>
+          </div>
+        </div>
+      </ArthurSaboyaPageBackgroundBanner>
+      <main className="flex-1">
+        <section className="bg-[#D1EBE8]/20 py-12">
           <div className="container mx-auto px-4">
             {!autenticado ? (
               <div className="mx-auto max-w-2xl">
@@ -172,7 +178,7 @@ export default function PreProjetosPage() {
             ) : !submitted ? (
               <div className="mx-auto max-w-2xl">
                 <Card>
-                  <CardHeader><CardTitle className="flex items-center gap-2"><Send className="h-5 w-5 text-secondary" />Solicitar Orientação Técnica</CardTitle><CardDescription>Preencha o formulário abaixo para enviar sua dúvida. Nossa equipe entrará em contato em até 5 dias úteis.</CardDescription></CardHeader>
+                  <CardHeader><CardTitle className="flex items-center gap-2"><Send className="h-5 w-5 text-[#E56E14]" />Solicitar Orientação Técnica</CardTitle><CardDescription>Preencha o formulário abaixo para enviar sua dúvida. Nossa equipe entrará em contato em até 5 dias úteis.</CardDescription></CardHeader>
                   <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-6">
                       {submitError ? <div role="alert" className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">{submitError}</div> : null}
@@ -194,7 +200,7 @@ export default function PreProjetosPage() {
                       </div>
                       <div className="space-y-2"><Label htmlFor="descricao">Descreva brevemente sua dúvida ou indique o amparo legal que precisa compreender melhor.</Label><Textarea id="descricao" name="descricao" value={formData.descricao} onChange={handleInputChange} rows={6} required /></div>
                       <div className="rounded-lg border border-border bg-muted/50 p-4"><p className="text-sm text-muted-foreground">Ao enviar este formulário, você concorda com o tratamento dos seus dados pessoais conforme a Lei Geral de Proteção de Dados (LGPD).</p></div>
-                      <div className="flex justify-end pt-2"><Button type="submit" variant="secondary" disabled={!isFormValid || submitting}><Send className="mr-2 h-4 w-4" />{submitting ? "Enviando..." : "Enviar Solicitação"}</Button></div>
+                      <div className="flex justify-end pt-2"><Button type="submit" className="bg-[#E56E14] text-white hover:bg-[#CC5F10]" disabled={!isFormValid || submitting}><Send className="mr-2 h-4 w-4" />{submitting ? "Enviando..." : "Enviar Solicitação"}</Button></div>
                     </form>
                   </CardContent>
                 </Card>
@@ -212,7 +218,7 @@ export default function PreProjetosPage() {
                     <div className="rounded-lg border border-amber-200 bg-amber-50 p-4"><p className="text-sm text-amber-800"><strong>Prazo de Resposta:</strong> Nossa equipe técnica entrará em contato em até 5 dias úteis através do e-mail informado. Guarde o número do protocolo para futuras consultas.</p></div>
                     <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
                       <Link href={BASE}><Button variant="outline" className="w-full sm:w-auto">Voltar ao Início</Button></Link>
-                      <Button variant="secondary" className="w-full sm:w-auto" onClick={() => { setSubmitted(false); setProtocoloExibido(null); setFormData(initialForm); setSubmitError(null) }}>Nova Solicitação</Button>
+                      <Button className="w-full bg-[#E56E14] text-white hover:bg-[#CC5F10] sm:w-auto" onClick={() => { setSubmitted(false); setProtocoloExibido(null); setFormData(initialForm); setSubmitError(null) }}>Nova Solicitação</Button>
                     </div>
                   </CardContent>
                 </Card>

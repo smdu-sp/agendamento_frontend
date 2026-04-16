@@ -15,6 +15,7 @@ export async function buscarTudo(
 	coordenadoriaId: string = '',
 	tecnicoId: string = '',
 	tipoProcesso: string = '',
+	impersonatePermissao?: string,
 ): Promise<IRespostaAgendamento> {
 	const baseURL = getApiUrl();
 	if (!baseURL) {
@@ -44,6 +45,9 @@ export async function buscarTudo(
 			headers: {
 				'Content-Type': 'application/json',
 				...getAuthHeaders(access_token),
+				...(impersonatePermissao
+					? { 'X-Impersonate-Permissao': impersonatePermissao }
+					: {}),
 			},
 		});
 		let data: { message?: string; statusCode?: number };

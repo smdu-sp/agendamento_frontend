@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArthurSaboyaFooter } from "@/components/arthur-saboya/footer";
 import { ArthurSaboyaHeader } from "@/components/arthur-saboya/header";
+import { ArthurSaboyaPageBackgroundBanner } from "@/components/arthur-saboya/page-background-banner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -202,6 +203,10 @@ export default function AcessoMunicipePage() {
   return (
     <div className="flex min-h-screen flex-col">
       <ArthurSaboyaHeader />
+      <ArthurSaboyaPageBackgroundBanner
+        title="Acesso ao Portal"
+        subtitle="Entre para consultar seus agendamentos e gerenciar suas solicitações."
+      />
       <main className="flex-1 space-y-8 py-10">
         <div className="container mx-auto px-4">
           <Suspense

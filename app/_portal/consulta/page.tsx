@@ -5,6 +5,7 @@ import { AlertCircle, ArrowLeft, Calendar, CheckCircle2, Clock, FileText, Search
 import Link from "next/link"
 import { ArthurSaboyaFooter } from "@/components/arthur-saboya/footer"
 import { ArthurSaboyaHeader } from "@/components/arthur-saboya/header"
+import { ArthurSaboyaPageBackgroundBanner } from "@/components/arthur-saboya/page-background-banner"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -56,14 +57,22 @@ export default function ConsultaPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <ArthurSaboyaHeader />
-      <main className="flex-1">
-        <section className="border-b border-border bg-linear-to-br from-primary/5 via-background to-secondary/5 py-12">
-          <div className="container mx-auto px-4">
-            <Link href={BASE} className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"><ArrowLeft className="h-4 w-4" />Voltar ao Início</Link>
-            <div className="flex items-center gap-4"><div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary"><Search className="h-7 w-7 text-primary-foreground" /></div><div><h1 className="text-3xl font-bold text-foreground">Consultar Agendamento</h1><p className="text-muted-foreground">Verifique o status ou cancele seu agendamento</p></div></div>
+      <ArthurSaboyaPageBackgroundBanner>
+        <Link href={BASE} className="mb-4 inline-flex items-center gap-2 text-sm text-white/90 transition-colors hover:text-white">
+          <ArrowLeft className="h-4 w-4" />Voltar ao Início
+        </Link>
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#E56E14]">
+            <Search className="h-7 w-7 text-white" />
           </div>
-        </section>
-        <section className="py-12">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Consultar Agendamento</h1>
+            <p className="text-white/90">Verifique o status ou cancele seu agendamento</p>
+          </div>
+        </div>
+      </ArthurSaboyaPageBackgroundBanner>
+      <main className="flex-1">
+        <section className="bg-[#D1EBE8]/20 py-12">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-2xl">
               {!autenticado ? (
@@ -84,14 +93,14 @@ export default function ConsultaPage() {
               ) : null}
               {autenticado ? (
               <Card className="mb-8">
-                <CardHeader><CardTitle>Buscar Agendamento</CardTitle><CardDescription>Informe o número do protocolo e CPF para consultar seu agendamento</CardDescription></CardHeader>
+                <CardHeader><CardTitle className="flex items-center gap-2"><Search className="h-5 w-5 text-[#E56E14]" />Buscar Agendamento</CardTitle><CardDescription>Informe o número do protocolo e CPF para consultar seu agendamento</CardDescription></CardHeader>
                 <CardContent>
                   <form onSubmit={handleSearch} className="space-y-4">
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2"><Label htmlFor="protocolo">Número do Protocolo</Label><Input id="protocolo" value={protocolo} onChange={(e) => setProtocolo(e.target.value)} placeholder="Ex: AG-12345678" required /></div>
                       <div className="space-y-2"><Label htmlFor="cpf">CPF do Solicitante</Label><Input id="cpf" value={cpf} onChange={(e) => setCpf(e.target.value)} placeholder="000.000.000-00" required /></div>
                     </div>
-                    <Button type="submit" className="w-full sm:w-auto"><Search className="mr-2 h-4 w-4" />Consultar</Button>
+                    <Button type="submit" className="w-full bg-[#E56E14] text-white hover:bg-[#CC5F10] sm:w-auto"><Search className="mr-2 h-4 w-4" />Consultar</Button>
                   </form>
                 </CardContent>
               </Card>
@@ -99,7 +108,7 @@ export default function ConsultaPage() {
               {autenticado && notFound && <Alert variant="destructive" className="mb-8"><AlertCircle className="h-4 w-4" /><AlertTitle>Agendamento não encontrado</AlertTitle><AlertDescription>Não foi possível localizar um agendamento com os dados informados. Verifique o número do protocolo e tente novamente.</AlertDescription></Alert>}
               {autenticado && agendamento && (
                 <Card>
-                  <CardHeader><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><CardTitle className="flex items-center gap-2">{agendamento.tipo === "processo" ? <FileText className="h-5 w-5 text-primary" /> : <FileText className="h-5 w-5 text-secondary" />}{agendamento.tipo === "processo" ? "Processo em Trâmite" : "Pré-Projeto"}</CardTitle><CardDescription>Protocolo: {agendamento.protocolo}</CardDescription></div>{getStatusBadge(agendamento.status)}</div></CardHeader>
+                  <CardHeader><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5 text-[#E56E14]" />{agendamento.tipo === "processo" ? "Processo em Trâmite" : "Pré-Projeto"}</CardTitle><CardDescription>Protocolo: {agendamento.protocolo}</CardDescription></div>{getStatusBadge(agendamento.status)}</div></CardHeader>
                   <CardContent className="space-y-6">
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="flex items-start gap-3"><Calendar className="mt-0.5 h-5 w-5 text-muted-foreground" /><div><p className="text-sm text-muted-foreground">Data</p><p className="font-medium">{new Date(agendamento.data + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}</p></div></div>

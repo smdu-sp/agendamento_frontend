@@ -31,6 +31,7 @@ const infoCards = [
     title: "Perguntas Frequentes",
     description: "Aqui você encontra resposta para as dúvidas mais comuns.",
     iconBg: "#5CC9BD",
+    href: "/perguntas-frequentes",
   },
   {
     iconSrc: iconCancelamento,
@@ -90,11 +91,11 @@ export default function PortalHomePage() {
         </section>
 
         {/* ── Consultar Agendamento ── */}
-        <section className="border-y border-[#CBDAE2] bg-[rgba(209,235,232,0.25)]">
+        <section className="border-y border-[#CBDAE2] bg-[#D1EBE8]/20">
           <div className="mx-auto w-full max-w-[1900px] px-4 py-[65px]">
             <div className="mx-auto flex min-h-[250px] w-full max-w-[667px] flex-col gap-6 rounded-2xl border border-[#CBDAE2] bg-white py-6 shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]">
               <div className="flex flex-1 flex-col items-center px-6 text-center">
-                <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-[#D1EBE8]">
+                <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-[#D1EBE8]/20">
                   <Search className="h-6 w-6 text-[#5CC9BD]" style={{ strokeWidth: 1.3333 }} />
                 </div>
                 <h2
@@ -128,37 +129,46 @@ export default function PortalHomePage() {
               <h2 className="text-3xl font-bold text-gray-800">Informações Importantes</h2>
             </div>
             <div className="mx-auto grid max-w-[1444px] gap-6 sm:grid-cols-2 xl:grid-cols-4">
-              {infoCards.map((card) => (
-                <div
-                  key={card.title}
-                  className="box-border min-h-[176px] w-full max-w-[343px] rounded-2xl border border-[#CBDAE2] bg-white px-5 pt-5 pb-2 shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-                >
-                  <div className="mb-3 flex items-start gap-3">
-                    <div
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg"
-                      style={{ backgroundColor: card.iconBg }}
-                    >
-                      <Image
-                        src={card.iconSrc}
-                        alt={card.title}
-                        width={20}
-                        height={20}
-                        className="h-5 w-5 object-contain"
-                      />
-                    </div>
-                    <h3
-                      className={`${openSans.className} text-[18px] font-extrabold leading-tight text-[#0E171E]`}
-                    >
-                      {card.title}
-                    </h3>
-                  </div>
-                  <p
-                    className={`${openSans.className} text-[14px] font-normal leading-5 text-[#4C575F]`}
+              {infoCards.map((card) => {
+                const content = (
+                  <div
+                    className="box-border min-h-[176px] w-full max-w-[343px] rounded-2xl border border-[#CBDAE2] bg-white px-5 pt-5 pb-2 shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
                   >
-                    {card.description}
-                  </p>
-                </div>
-              ))}
+                    <div className="mb-3 flex items-start gap-3">
+                      <div
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg"
+                        style={{ backgroundColor: card.iconBg }}
+                      >
+                        <Image
+                          src={card.iconSrc}
+                          alt={card.title}
+                          width={20}
+                          height={20}
+                          className="h-5 w-5 object-contain"
+                        />
+                      </div>
+                      <h3
+                        className={`${openSans.className} text-[18px] font-extrabold leading-tight text-[#0E171E]`}
+                      >
+                        {card.title}
+                      </h3>
+                    </div>
+                    <p
+                      className={`${openSans.className} text-[14px] font-normal leading-5 text-[#4C575F]`}
+                    >
+                      {card.description}
+                    </p>
+                  </div>
+                )
+
+                return card.href ? (
+                  <Link key={card.title} href={card.href} className="block transition-transform hover:scale-[1.01]">
+                    {content}
+                  </Link>
+                ) : (
+                  <div key={card.title}>{content}</div>
+                )
+              })}
             </div>
           </div>
         </section>

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArthurSaboyaFooter } from "@/components/arthur-saboya/footer";
 import { ArthurSaboyaHeader } from "@/components/arthur-saboya/header";
+import { ArthurSaboyaPageBackgroundBanner } from "@/components/arthur-saboya/page-background-banner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -64,6 +65,10 @@ export default function RedefinirSenhaPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <ArthurSaboyaHeader />
+      <ArthurSaboyaPageBackgroundBanner
+        title="Redefinir Senha"
+        subtitle="Informe o token recebido e defina sua nova senha."
+      />
       <main className="flex-1 py-10">
         <div className="container mx-auto max-w-xl px-4">
           <Card>
