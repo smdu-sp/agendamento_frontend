@@ -29,7 +29,7 @@ export default async function PedidosPreProjetosArthurSaboyaPage() {
       </h1>
       <p className="mb-6 text-sm text-muted-foreground md:text-base">
         Solicitações públicas registradas na Sala Arthur Saboya. Acesso restrito
-        ao ponto focal da divisão configurada (e administradores).
+        ao ponto focal e administradores da divisão configurada (ou DEV).
       </p>
       <Card>
         <CardHeader>

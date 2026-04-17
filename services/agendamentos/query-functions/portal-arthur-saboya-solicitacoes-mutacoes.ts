@@ -142,7 +142,7 @@ export async function marcarAguardandoDataPortalArthurSaboya(
 export async function criarAgendamentoDaSolicitacaoPortalArthurSaboya(
   access_token: string,
   solicitacaoId: string,
-  payload: { dataHora: string; coordenadoriaId: string },
+  payload: { dataHora: string; coordenadoriaId: string; tecnicoId: string },
 ): Promise<IRespostaCriarAgendamentoSolicitacao> {
   const baseURL = getApiUrl();
   if (!baseURL) {

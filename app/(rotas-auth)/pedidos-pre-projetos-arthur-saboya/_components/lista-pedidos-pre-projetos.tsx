@@ -6,11 +6,10 @@ import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Search } from "lucide-react";
+import { CheckCircle2, Search, Send } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -26,43 +25,33 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  TooltipContent,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import * as agendamento from "@/services/agendamentos";
 import * as coordenadorias from "@/services/coordenadorias";
+import * as usuario from "@/services/usuarios";
+import type { ITecnico } from "@/services/usuarios";
 import type { ISolicitacaoPreProjetoArthurSaboya } from "@/types/solicitacao-pre-projeto-arthur-saboya";
 import type { ICoordenadoria } from "@/types/coordenadoria";
 
 const LIMITE = 15;
-
-const TEXTO_EMAIL_SOLICITAR_DATA =
-  "Por favor enviar data e hora para atendimento";
 
 function rotuloStatus(s: ISolicitacaoPreProjetoArthurSaboya["status"]) {
   switch (s) {
     case "SOLICITADO":
       return "Solicitado";
     case "RESPONDIDO":
-      return "Respondido";
+      return "Solucionado";
     case "AGUARDANDO_DATA":
       return "Aguardando data";
     case "AGENDAMENTO_CRIADO":
-      return "Agendamento criado";
+      return "Enviado para coordenadoria";
     default:
       return s;
   }
-}
-
-function montarMailto(
-  to: string,
-  subject: string,
-  body: string,
-  ccInstitucional?: string,
-) {
-  const q = new URLSearchParams();
-  q.set("subject", subject);
-  q.set("body", body);
-  const cc = ccInstitucional?.trim();
-  if (cc) q.set("cc", cc);
-  return `mailto:${encodeURIComponent(to)}?${q.toString()}`;
 }
 
 export default function ListaPedidosPreProjetos() {
@@ -71,7 +60,7 @@ export default function ListaPedidosPreProjetos() {
   const [buscaInput, setBuscaInput] = useState("");
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<
-    "" | "SOLICITADO" | "AGUARDANDO_DATA"
+    "" | "SOLICITADO" | "RESPONDIDO" | "AGUARDANDO_DATA" | "AGENDAMENTO_CRIADO"
   >("");
   const [pagina, setPagina] = useState(1);
   const [total, setTotal] = useState(0);
@@ -81,13 +70,14 @@ export default function ListaPedidosPreProjetos() {
   const [detalhe, setDetalhe] = useState<ISolicitacaoPreProjetoArthurSaboya | null>(
     null,
   );
-  const [rascunhoResposta, setRascunhoResposta] = useState("");
   const [confirmRespostaAberto, setConfirmRespostaAberto] = useState(false);
-  const [confirmAguardandoAberto, setConfirmAguardandoAberto] = useState(false);
   const [agendarAberto, setAgendarAberto] = useState(false);
   const [dataHoraAgendamento, setDataHoraAgendamento] = useState("");
   const [coordenadoriaAgendamento, setCoordenadoriaAgendamento] = useState("");
+  const [tecnicoArthurIdAgendamento, setTecnicoArthurIdAgendamento] =
+    useState("");
   const [listaCoord, setListaCoord] = useState<ICoordenadoria[]>([]);
+  const [tecnicosArthur, setTecnicosArthur] = useState<ITecnico[]>([]);
   const [salvando, setSalvando] = useState(false);
 
   const carregar = useCallback(async () => {
@@ -132,53 +122,32 @@ export default function ListaPedidosPreProjetos() {
     })();
   }, [token, status]);
 
+  useEffect(() => {
+    if (!token || status === "loading") return;
+    const divisaoArthur = process.env.NEXT_PUBLIC_DIVISAO_ID_PRE_PROJETOS?.trim();
+    if (!divisaoArthur) return;
+    void (async () => {
+      const r = await usuario.buscarTecnicosPorDivisao(divisaoArthur, token);
+      if (r.ok && Array.isArray(r.data)) {
+        setTecnicosArthur(r.data as ITecnico[]);
+      }
+    })();
+  }, [token, status]);
+
   const totalPaginas = Math.max(1, Math.ceil(total / LIMITE));
 
-  const abrirMailtoResponder = (row: ISolicitacaoPreProjetoArthurSaboya) => {
-    const de = row.emailContatoDivisao?.trim() || "";
-    const corpo = [
-      de
-        ? `Enviar preferencialmente pelo e-mail institucional da divisão: ${de}`
-        : "Cadastre o e-mail da coordenadoria vinculada à divisão para exibir o remetente institucional sugerido.",
-      "",
-      "--- Dúvida do munícipe ---",
-      "",
-      row.duvida,
-      "",
-      "--- Resposta ---",
-      "",
-      rascunhoResposta.trim(),
-      "",
-    ].join("\n");
-    const href = montarMailto(
-      row.email,
-      `Pré-projetos — protocolo ${row.protocolo}`,
-      corpo,
-      de,
-    );
-    window.location.href = href;
+  const abrirConfirmarRespondido = (row: ISolicitacaoPreProjetoArthurSaboya) => {
+    setDetalhe(row);
     setConfirmRespostaAberto(true);
   };
 
-  const abrirMailtoAgendar = (row: ISolicitacaoPreProjetoArthurSaboya) => {
-    const de = row.emailContatoDivisao?.trim() || "";
-    const corpo = [
-      de
-        ? `Enviar preferencialmente pelo e-mail institucional da divisão: ${de}`
-        : "",
-      "",
-      TEXTO_EMAIL_SOLICITAR_DATA,
-    ]
-      .filter(Boolean)
-      .join("\n");
-    const href = montarMailto(
-      row.email,
-      `Pré-projetos — protocolo ${row.protocolo}`,
-      corpo,
-      de,
-    );
-    window.location.href = href;
-    setConfirmAguardandoAberto(true);
+  const abrirDialogAgendar = (row: ISolicitacaoPreProjetoArthurSaboya) => {
+    setDetalhe(row);
+    setDataHoraAgendamento("");
+    setCoordenadoriaAgendamento("");
+    setTecnicoArthurIdAgendamento("");
+    if (row.coordenadoriaId) setCoordenadoriaAgendamento(row.coordenadoriaId);
+    setAgendarAberto(true);
   };
 
   const handleConfirmarRespondido = async () => {
@@ -193,34 +162,10 @@ export default function ListaPedidosPreProjetos() {
       toast.error(res.error ?? "Não foi possível atualizar o status.");
       return;
     }
-    toast.success("Status atualizado para Respondido.");
+    toast.success("Status atualizado para Solucionado.");
     setConfirmRespostaAberto(false);
     if (res.data) setDetalhe(res.data);
     void carregar();
-  };
-
-  const handleConfirmarAguardandoData = async () => {
-    if (!token || !detalhe) return;
-    setSalvando(true);
-    const res = await agendamento.marcarAguardandoDataPortalArthurSaboya(
-      token,
-      detalhe.id,
-    );
-    setSalvando(false);
-    if (!res.ok) {
-      toast.error(res.error ?? "Não foi possível atualizar o status.");
-      return;
-    }
-    toast.success("Status atualizado para Aguardando data.");
-    setConfirmAguardandoAberto(false);
-    if (res.data) setDetalhe(res.data);
-    void carregar();
-  };
-
-  const abrirDialogAgendar = () => {
-    setDataHoraAgendamento("");
-    setCoordenadoriaAgendamento("");
-    setAgendarAberto(true);
   };
 
   const handleCriarAgendamento = async () => {
@@ -233,19 +178,27 @@ export default function ListaPedidosPreProjetos() {
       toast.error("Selecione a coordenadoria.");
       return;
     }
+    if (!tecnicoArthurIdAgendamento) {
+      toast.error("Selecione o técnico da Sala Arthur Saboya.");
+      return;
+    }
     setSalvando(true);
     const iso = new Date(dataHoraAgendamento).toISOString();
     const res = await agendamento.criarAgendamentoDaSolicitacaoPortalArthurSaboya(
       token,
       detalhe.id,
-      { dataHora: iso, coordenadoriaId: coordenadoriaAgendamento },
+      {
+        dataHora: iso,
+        coordenadoriaId: coordenadoriaAgendamento,
+        tecnicoId: tecnicoArthurIdAgendamento,
+      },
     );
     setSalvando(false);
     if (!res.ok) {
       toast.error(res.error ?? "Falha ao criar agendamento.");
       return;
     }
-    toast.success("Agendamento registrado na coordenadoria.");
+    toast.success("Solicitação enviada para a coordenadoria.");
     setAgendarAberto(false);
     setDetalhe(null);
     void carregar();
@@ -260,6 +213,7 @@ export default function ListaPedidosPreProjetos() {
   }
 
   return (
+    <TooltipProvider delayDuration={300}>
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="flex-1 space-y-2">
@@ -330,6 +284,28 @@ export default function ListaPedidosPreProjetos() {
         >
           Aguardando data
         </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={filtroStatus === "RESPONDIDO" ? "default" : "outline"}
+          onClick={() => {
+            setPagina(1);
+            setFiltroStatus("RESPONDIDO");
+          }}
+        >
+          Solucionados
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={filtroStatus === "AGENDAMENTO_CRIADO" ? "default" : "outline"}
+          onClick={() => {
+            setPagina(1);
+            setFiltroStatus("AGENDAMENTO_CRIADO");
+          }}
+        >
+          Enviados
+        </Button>
       </div>
 
       {erro ? (
@@ -352,18 +328,19 @@ export default function ListaPedidosPreProjetos() {
               <TableHead>Formação</TableHead>
               <TableHead>Natureza</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead className="w-[260px]">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {carregando ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-muted-foreground">
+                <TableCell colSpan={8} className="text-muted-foreground">
                   Carregando…
                 </TableCell>
               </TableRow>
             ) : itens.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-muted-foreground">
+                <TableCell colSpan={8} className="text-muted-foreground">
                   Nenhum pedido encontrado.
                 </TableCell>
               </TableRow>
@@ -372,10 +349,7 @@ export default function ListaPedidosPreProjetos() {
                 <TableRow
                   key={row.id}
                   className="cursor-pointer"
-                  onClick={() => {
-                    setDetalhe(row);
-                    setRascunhoResposta("");
-                  }}
+                  onClick={() => setDetalhe(row)}
                 >
                   <TableCell className="whitespace-nowrap text-sm">
                     {format(new Date(row.criadoEm), "dd/MM/yyyy HH:mm", {
@@ -394,6 +368,56 @@ export default function ListaPedidosPreProjetos() {
                     {row.naturezaTexto}
                   </TableCell>
                   <TableCell className="text-sm">{rotuloStatus(row.status)}</TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <div className="flex flex-wrap gap-2">
+                      <TooltipPrimitive.Root>
+                        <TooltipPrimitive.Trigger asChild>
+                          <span className="inline-flex">
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="secondary"
+                              className="h-8 w-8 shrink-0"
+                              disabled={row.status !== "SOLICITADO" || salvando}
+                              onClick={() => abrirConfirmarRespondido(row)}
+                              aria-label="Dúvida respondida"
+                            >
+                              <CheckCircle2 />
+                            </Button>
+                          </span>
+                        </TooltipPrimitive.Trigger>
+                        <TooltipContent side="top" className="max-w-xs text-center">
+                          Marcar que a dúvida já foi respondida ao munícipe; o status
+                          passa a <strong>Solucionado</strong>.
+                        </TooltipContent>
+                      </TooltipPrimitive.Root>
+                      <TooltipPrimitive.Root>
+                        <TooltipPrimitive.Trigger asChild>
+                          <span className="inline-flex">
+                            <Button
+                              type="button"
+                              size="icon"
+                              className="h-8 w-8 shrink-0"
+                              disabled={
+                                !!row.agendamentoId ||
+                                !["SOLICITADO", "AGUARDANDO_DATA"].includes(
+                                  row.status,
+                                ) || salvando
+                              }
+                              onClick={() => abrirDialogAgendar(row)}
+                              aria-label="Enviar para coordenadoria"
+                            >
+                              <Send />
+                            </Button>
+                          </span>
+                        </TooltipPrimitive.Trigger>
+                        <TooltipContent side="top" className="max-w-xs text-center">
+                          Enviar à coordenadoria quando precisar de técnico no local.
+                          Informe data, coordenadoria e técnico da Arthur Saboya.
+                        </TooltipContent>
+                      </TooltipPrimitive.Root>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))
             )}
@@ -474,54 +498,8 @@ export default function ListaPedidosPreProjetos() {
                     {detalhe.duvida}
                   </p>
                 </div>
-                {detalhe.status === "SOLICITADO" ? (
-                  <div className="space-y-2">
-                    <label className="font-medium" htmlFor="resposta-rascunho">
-                      Rascunho da resposta (será incluído no e-mail)
-                    </label>
-                    <Textarea
-                      id="resposta-rascunho"
-                      rows={4}
-                      value={rascunhoResposta}
-                      onChange={(e) => setRascunhoResposta(e.target.value)}
-                      placeholder="Digite a resposta ao munícipe…"
-                    />
-                  </div>
-                ) : null}
               </div>
               <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
-                {detalhe.status === "SOLICITADO" ? (
-                  <>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => abrirMailtoResponder(detalhe)}
-                    >
-                      Responder dúvida
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => abrirMailtoAgendar(detalhe)}
-                    >
-                      Necessário agendar
-                    </Button>
-                  </>
-                ) : null}
-                {detalhe.status === "RESPONDIDO" ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => abrirMailtoAgendar(detalhe)}
-                  >
-                    Necessário agendar
-                  </Button>
-                ) : null}
-                {detalhe.status === "AGUARDANDO_DATA" && !detalhe.agendamentoId ? (
-                  <Button type="button" onClick={abrirDialogAgendar}>
-                    Enviar agendamento à coordenadoria
-                  </Button>
-                ) : null}
                 <Button type="button" variant="ghost" onClick={() => setDetalhe(null)}>
                   Fechar
                 </Button>
@@ -534,11 +512,11 @@ export default function ListaPedidosPreProjetos() {
       <Dialog open={confirmRespostaAberto} onOpenChange={setConfirmRespostaAberto}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirmar envio</DialogTitle>
+            <DialogTitle>Confirmar status</DialogTitle>
           </DialogHeader>
           <p className="text-sm">
-            O e-mail foi enviado e a dúvida foi respondida? Ao confirmar, o status
-            passa para <strong>Respondido</strong>.
+            Confirma que a dúvida foi solucionada? Ao confirmar, o status passa
+            para <strong>Solucionado</strong>.
           </p>
           <DialogFooter className="gap-2">
             <Button
@@ -556,42 +534,10 @@ export default function ListaPedidosPreProjetos() {
         </DialogContent>
       </Dialog>
 
-      <Dialog
-        open={confirmAguardandoAberto}
-        onOpenChange={setConfirmAguardandoAberto}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmar envio</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm">
-            Confirma que o e-mail foi enviado e deseja marcar a solicitação como{" "}
-            <strong>Aguardando data</strong>?
-          </p>
-          <DialogFooter className="gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setConfirmAguardandoAberto(false)}
-              disabled={salvando}
-            >
-              Não
-            </Button>
-            <Button
-              type="button"
-              onClick={handleConfirmarAguardandoData}
-              disabled={salvando}
-            >
-              Sim
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       <Dialog open={agendarAberto} onOpenChange={setAgendarAberto}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Agendamento na coordenadoria</DialogTitle>
+            <DialogTitle>Enviar para a coordenadoria</DialogTitle>
           </DialogHeader>
           {detalhe ? (
             <div className="space-y-3 text-sm">
@@ -631,6 +577,25 @@ export default function ListaPedidosPreProjetos() {
                   ))}
                 </select>
               </div>
+              <div className="space-y-1">
+                <label className="font-medium" htmlFor="tecnico-arthur-ag">
+                  Técnico da Sala Arthur Saboya
+                </label>
+                <select
+                  id="tecnico-arthur-ag"
+                  className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                  value={tecnicoArthurIdAgendamento}
+                  onChange={(e) => setTecnicoArthurIdAgendamento(e.target.value)}
+                >
+                  <option value="">Selecione…</option>
+                  {tecnicosArthur.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.nome}
+                      {t.login ? ` (${t.login})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           ) : null}
           <DialogFooter className="gap-2">
@@ -643,11 +608,12 @@ export default function ListaPedidosPreProjetos() {
               Cancelar
             </Button>
             <Button type="button" onClick={handleCriarAgendamento} disabled={salvando}>
-              Registrar agendamento
+              Enviar para coordenadoria
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
+    </TooltipProvider>
   );
 }
