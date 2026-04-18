@@ -17,6 +17,7 @@ import {
   municipeEstaLogado,
   obterEmailMunicipe,
   obterNomeMunicipe,
+  obterTokenMunicipe,
 } from "@/lib/municipe-sessao"
 
 const BASE = "/portal"
@@ -94,9 +95,12 @@ export default function PreProjetosPage() {
     setSubmitting(true)
     setSubmitError(null)
     try {
+      const tokenMunicipe = obterTokenMunicipe()
+      const headers: Record<string, string> = { "Content-Type": "application/json" }
+      if (tokenMunicipe) headers.Authorization = `Bearer ${tokenMunicipe}`
       const res = await fetch(`${base}/agendamentos/publico/pre-projetos`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           nome: formData.nome.trim(),
           email: formData.email.trim(),

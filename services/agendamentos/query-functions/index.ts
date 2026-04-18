@@ -1,6 +1,15 @@
 export { buscarTudo } from "./buscar-tudo";
 export { buscarSolicitacoesPortalArthurSaboya } from "./buscar-solicitacoes-portal-arthur-saboya";
 export {
+  listarChamadosPreProjetosMunicipe,
+  obterChamadoPreProjetosMunicipe,
+  enviarMensagemChamadoPreProjetosMunicipe,
+} from "./municipe-pre-projetos-chamados";
+export {
+  obterChamadoPortalArthurSaboya,
+  enviarMensagemChamadoPortalArthurSaboya,
+} from "./portal-arthur-saboya-chamado-detalhe";
+export {
   confirmarRespostaEnviadaPortalArthurSaboya,
   marcarAguardandoDataPortalArthurSaboya,
   criarAgendamentoDaSolicitacaoPortalArthurSaboya,

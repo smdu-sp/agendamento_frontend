@@ -106,7 +106,8 @@ export default function PortalHomePage() {
                 <p
                   className={`${openSans.className} mt-2 w-full max-w-[487px] text-[16px] font-normal leading-6 text-[#4C575F]`}
                 >
-                  Já possui um agendamento? Consulte o status ou faça alterações.
+                  Veja seus chamados de pré-projetos (Arthur Saboya), acompanhe o andamento em formato de
+                  conversa e envie mensagens à equipe.
                 </p>
               </div>
               <div className="flex h-10 items-start justify-center">

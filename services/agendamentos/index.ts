@@ -1,6 +1,11 @@
 export {
   buscarTudo,
   buscarSolicitacoesPortalArthurSaboya,
+  listarChamadosPreProjetosMunicipe,
+  obterChamadoPreProjetosMunicipe,
+  enviarMensagemChamadoPreProjetosMunicipe,
+  obterChamadoPortalArthurSaboya,
+  enviarMensagemChamadoPortalArthurSaboya,
   confirmarRespostaEnviadaPortalArthurSaboya,
   marcarAguardandoDataPortalArthurSaboya,
   criarAgendamentoDaSolicitacaoPortalArthurSaboya,

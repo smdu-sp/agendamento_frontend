@@ -35,8 +35,8 @@ export default async function PedidosPreProjetosArthurSaboyaPage() {
         <CardHeader>
           <CardTitle>Listagem</CardTitle>
           <CardDescription>
-            Dados da tabela de solicitações; use a busca para filtrar por nome,
-            e-mail, protocolo ou texto da dúvida.
+            Clique em uma linha para abrir o chamado em tela cheia (dados + linha do tempo). Use a
+            busca para filtrar por nome, e-mail, protocolo ou trecho da dúvida.
           </CardDescription>
         </CardHeader>
         <CardContent>

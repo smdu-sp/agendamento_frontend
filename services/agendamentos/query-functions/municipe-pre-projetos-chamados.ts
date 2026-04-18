@@ -1,28 +1,37 @@
 /** @format */
 
 import { getApiUrl } from "@/lib/api-url";
-import { getAuthHeaders } from "@/lib/api-headers";
-import type { IAgendamento } from "@/types/agendamento";
-import type { ISolicitacaoPreProjetoArthurSaboya } from "@/types/solicitacao-pre-projeto-arthur-saboya";
+import type {
+  IPaginadoSolicitacoesPreProjetoArthurSaboya,
+  ISolicitacaoPreProjetoArthurSaboyaDetalhe,
+} from "@/types/solicitacao-pre-projeto-arthur-saboya";
 
-export interface IRespostaMutacaoSolicitacao {
+export interface IRespostaListaChamadosMunicipe {
   ok: boolean;
   error: string | null;
-  data: ISolicitacaoPreProjetoArthurSaboya | null;
+  data: IPaginadoSolicitacoesPreProjetoArthurSaboya | null;
   status: number;
 }
 
-export interface IRespostaCriarAgendamentoSolicitacao {
+export interface IRespostaDetalheChamadoMunicipe {
   ok: boolean;
   error: string | null;
-  data: IAgendamento | null;
+  data: ISolicitacaoPreProjetoArthurSaboyaDetalhe | null;
   status: number;
 }
 
-export async function confirmarRespostaEnviadaPortalArthurSaboya(
-  access_token: string,
-  solicitacaoId: string,
-): Promise<IRespostaMutacaoSolicitacao> {
+function authMunicipe(token: string) {
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+export async function listarChamadosPreProjetosMunicipe(
+  municipeToken: string,
+  pagina: number = 1,
+  limite: number = 20,
+): Promise<IRespostaListaChamadosMunicipe> {
   const baseURL = getApiUrl();
   if (!baseURL) {
     return {
@@ -32,15 +41,15 @@ export async function confirmarRespostaEnviadaPortalArthurSaboya(
       status: 400,
     };
   }
-  const seg = encodeURIComponent(solicitacaoId);
-  const url = `${baseURL}agendamentos/solicitacoes-pre-projetos/arthur-saboya/portal/${seg}/confirmar-resposta-enviada`;
+  const params = new URLSearchParams({
+    pagina: String(pagina),
+    limite: String(limite),
+  });
+  const url = `${baseURL}agendamentos/municipes/pre-projetos-chamados?${params}`;
   try {
     const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(access_token),
-      },
+      method: "GET",
+      headers: authMunicipe(municipeToken),
       cache: "no-store",
     });
     let body: unknown;
@@ -54,12 +63,12 @@ export async function confirmarRespostaEnviadaPortalArthurSaboya(
         status: res.status || 400,
       };
     }
-    if (res.status === 200 || res.status === 201) {
+    if (res.status === 200) {
       return {
         ok: true,
         error: null,
-        data: body as ISolicitacaoPreProjetoArthurSaboya,
-        status: res.status,
+        data: body as IPaginadoSolicitacoesPreProjetoArthurSaboya,
+        status: 200,
       };
     }
     const msg =
@@ -80,10 +89,10 @@ export async function confirmarRespostaEnviadaPortalArthurSaboya(
   }
 }
 
-export async function marcarAguardandoDataPortalArthurSaboya(
-  access_token: string,
-  solicitacaoId: string,
-): Promise<IRespostaMutacaoSolicitacao> {
+export async function obterChamadoPreProjetosMunicipe(
+  municipeToken: string,
+  id: string,
+): Promise<IRespostaDetalheChamadoMunicipe> {
   const baseURL = getApiUrl();
   if (!baseURL) {
     return {
@@ -93,15 +102,11 @@ export async function marcarAguardandoDataPortalArthurSaboya(
       status: 400,
     };
   }
-  const seg = encodeURIComponent(solicitacaoId);
-  const url = `${baseURL}agendamentos/solicitacoes-pre-projetos/arthur-saboya/portal/${seg}/marcar-aguardando-data`;
+  const url = `${baseURL}agendamentos/municipes/pre-projetos-chamados/${id}`;
   try {
     const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(access_token),
-      },
+      method: "GET",
+      headers: authMunicipe(municipeToken),
       cache: "no-store",
     });
     let body: unknown;
@@ -115,12 +120,12 @@ export async function marcarAguardandoDataPortalArthurSaboya(
         status: res.status || 400,
       };
     }
-    if (res.status === 200 || res.status === 201) {
+    if (res.status === 200) {
       return {
         ok: true,
         error: null,
-        data: body as ISolicitacaoPreProjetoArthurSaboya,
-        status: res.status,
+        data: body as ISolicitacaoPreProjetoArthurSaboyaDetalhe,
+        status: 200,
       };
     }
     const msg =
@@ -141,11 +146,11 @@ export async function marcarAguardandoDataPortalArthurSaboya(
   }
 }
 
-export async function criarAgendamentoDaSolicitacaoPortalArthurSaboya(
-  access_token: string,
-  solicitacaoId: string,
-  payload: { dataHora: string; coordenadoriaId: string; tecnicoId: string },
-): Promise<IRespostaCriarAgendamentoSolicitacao> {
+export async function enviarMensagemChamadoPreProjetosMunicipe(
+  municipeToken: string,
+  id: string,
+  texto: string,
+): Promise<IRespostaDetalheChamadoMunicipe> {
   const baseURL = getApiUrl();
   if (!baseURL) {
     return {
@@ -155,16 +160,12 @@ export async function criarAgendamentoDaSolicitacaoPortalArthurSaboya(
       status: 400,
     };
   }
-  const seg = encodeURIComponent(solicitacaoId);
-  const url = `${baseURL}agendamentos/solicitacoes-pre-projetos/arthur-saboya/portal/${seg}/criar-agendamento`;
+  const url = `${baseURL}agendamentos/municipes/pre-projetos-chamados/${id}/mensagens`;
   try {
     const res = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(access_token),
-      },
-      body: JSON.stringify(payload),
+      headers: authMunicipe(municipeToken),
+      body: JSON.stringify({ texto }),
       cache: "no-store",
     });
     let body: unknown;
@@ -182,7 +183,7 @@ export async function criarAgendamentoDaSolicitacaoPortalArthurSaboya(
       return {
         ok: true,
         error: null,
-        data: body as IAgendamento,
+        data: body as ISolicitacaoPreProjetoArthurSaboyaDetalhe,
         status: res.status,
       };
     }

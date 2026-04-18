@@ -89,3 +89,9 @@ export function municipeEstaLogado(): boolean {
   if (typeof window === "undefined") return false;
   return Boolean(localStorage.getItem(CHAVE_TOKEN));
 }
+
+/** Token JWT do portal munícipe (localStorage), para chamadas autenticadas à API. */
+export function obterTokenMunicipe(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(CHAVE_TOKEN);
+}

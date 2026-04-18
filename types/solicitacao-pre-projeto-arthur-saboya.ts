@@ -6,6 +6,19 @@ export type StatusSolicitacaoPreProjetoArthurSaboya =
   | "AGUARDANDO_DATA"
   | "AGENDAMENTO_CRIADO";
 
+export type AutorMensagemPreProjetoArthurSaboya =
+  | "MUNICIPE"
+  | "PONTO_FOCAL"
+  | "SISTEMA";
+
+export interface IMensagemPreProjetoArthurSaboya {
+  id: string;
+  autor: AutorMensagemPreProjetoArthurSaboya;
+  corpo: string;
+  criadoEm: string;
+  nomeRemetente?: string | null;
+}
+
 export interface ISolicitacaoPreProjetoArthurSaboya {
   id: string;
   protocolo: string;
@@ -25,6 +38,11 @@ export interface ISolicitacaoPreProjetoArthurSaboya {
   emailContatoDivisao?: string | null;
   coordenadoriaId?: string | null;
   divisaoId?: string | null;
+}
+
+export interface ISolicitacaoPreProjetoArthurSaboyaDetalhe
+  extends ISolicitacaoPreProjetoArthurSaboya {
+  mensagens: IMensagemPreProjetoArthurSaboya[];
 }
 
 export interface IPaginadoSolicitacoesPreProjetoArthurSaboya {

@@ -3,6 +3,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -38,6 +39,7 @@ import type { ISolicitacaoPreProjetoArthurSaboya } from "@/types/solicitacao-pre
 import type { ICoordenadoria } from "@/types/coordenadoria";
 
 const LIMITE = 15;
+const PATH_CHAMADO = "/pedidos-pre-projetos-arthur-saboya";
 
 function rotuloStatus(s: ISolicitacaoPreProjetoArthurSaboya["status"]) {
   switch (s) {
@@ -55,6 +57,7 @@ function rotuloStatus(s: ISolicitacaoPreProjetoArthurSaboya["status"]) {
 }
 
 export default function ListaPedidosPreProjetos() {
+  const router = useRouter();
   const { data: session, status } = useSession();
   const token = session?.access_token;
   const [buscaInput, setBuscaInput] = useState("");
@@ -67,9 +70,8 @@ export default function ListaPedidosPreProjetos() {
   const [itens, setItens] = useState<ISolicitacaoPreProjetoArthurSaboya[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
-  const [detalhe, setDetalhe] = useState<ISolicitacaoPreProjetoArthurSaboya | null>(
-    null,
-  );
+  /** Linha selecionada apenas para os modais rápidos (solucionado / agendar). */
+  const [linhaAcao, setLinhaAcao] = useState<ISolicitacaoPreProjetoArthurSaboya | null>(null);
   const [confirmRespostaAberto, setConfirmRespostaAberto] = useState(false);
   const [agendarAberto, setAgendarAberto] = useState(false);
   const [dataHoraAgendamento, setDataHoraAgendamento] = useState("");
@@ -137,12 +139,12 @@ export default function ListaPedidosPreProjetos() {
   const totalPaginas = Math.max(1, Math.ceil(total / LIMITE));
 
   const abrirConfirmarRespondido = (row: ISolicitacaoPreProjetoArthurSaboya) => {
-    setDetalhe(row);
+    setLinhaAcao(row);
     setConfirmRespostaAberto(true);
   };
 
   const abrirDialogAgendar = (row: ISolicitacaoPreProjetoArthurSaboya) => {
-    setDetalhe(row);
+    setLinhaAcao(row);
     setDataHoraAgendamento("");
     setCoordenadoriaAgendamento("");
     setTecnicoArthurIdAgendamento("");
@@ -151,11 +153,11 @@ export default function ListaPedidosPreProjetos() {
   };
 
   const handleConfirmarRespondido = async () => {
-    if (!token || !detalhe) return;
+    if (!token || !linhaAcao) return;
     setSalvando(true);
     const res = await agendamento.confirmarRespostaEnviadaPortalArthurSaboya(
       token,
-      detalhe.id,
+      linhaAcao.protocolo,
     );
     setSalvando(false);
     if (!res.ok) {
@@ -164,12 +166,12 @@ export default function ListaPedidosPreProjetos() {
     }
     toast.success("Status atualizado para Solucionado.");
     setConfirmRespostaAberto(false);
-    if (res.data) setDetalhe(res.data);
+    setLinhaAcao(null);
     void carregar();
   };
 
   const handleCriarAgendamento = async () => {
-    if (!token || !detalhe) return;
+    if (!token || !linhaAcao) return;
     if (!dataHoraAgendamento.trim()) {
       toast.error("Informe data e hora do agendamento.");
       return;
@@ -186,7 +188,7 @@ export default function ListaPedidosPreProjetos() {
     const iso = new Date(dataHoraAgendamento).toISOString();
     const res = await agendamento.criarAgendamentoDaSolicitacaoPortalArthurSaboya(
       token,
-      detalhe.id,
+      linhaAcao.protocolo,
       {
         dataHora: iso,
         coordenadoriaId: coordenadoriaAgendamento,
@@ -200,7 +202,7 @@ export default function ListaPedidosPreProjetos() {
     }
     toast.success("Solicitação enviada para a coordenadoria.");
     setAgendarAberto(false);
-    setDetalhe(null);
+    setLinhaAcao(null);
     void carregar();
   };
 
@@ -348,8 +350,12 @@ export default function ListaPedidosPreProjetos() {
               itens.map((row) => (
                 <TableRow
                   key={row.id}
-                  className="cursor-pointer"
-                  onClick={() => setDetalhe(row)}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() =>
+                    router.push(
+                      `${PATH_CHAMADO}/${encodeURIComponent(row.protocolo)}`,
+                    )
+                  }
                 >
                   <TableCell className="whitespace-nowrap text-sm">
                     {format(new Date(row.criadoEm), "dd/MM/yyyy HH:mm", {
@@ -456,60 +462,12 @@ export default function ListaPedidosPreProjetos() {
       ) : null}
 
       <Dialog
-        open={!!detalhe}
+        open={confirmRespostaAberto}
         onOpenChange={(open) => {
-          if (!open) setDetalhe(null);
+          setConfirmRespostaAberto(open);
+          if (!open) setLinhaAcao(null);
         }}
       >
-        <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto sm:max-w-xl">
-          {detalhe ? (
-            <>
-              <DialogHeader>
-                <DialogTitle>Pedido {detalhe.protocolo}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-3 text-sm">
-                <p>
-                  <span className="font-medium">Data:</span>{" "}
-                  {format(new Date(detalhe.criadoEm), "dd/MM/yyyy HH:mm", {
-                    locale: ptBR,
-                  })}
-                </p>
-                <p>
-                  <span className="font-medium">Munícipe:</span> {detalhe.nome}
-                </p>
-                <p>
-                  <span className="font-medium">E-mail:</span> {detalhe.email}
-                </p>
-                <p>
-                  <span className="font-medium">Formação:</span>{" "}
-                  {detalhe.formacaoTexto}
-                </p>
-                <p>
-                  <span className="font-medium">Natureza:</span>{" "}
-                  {detalhe.naturezaTexto}
-                </p>
-                <p>
-                  <span className="font-medium">Status:</span>{" "}
-                  {rotuloStatus(detalhe.status)}
-                </p>
-                <div>
-                  <p className="font-medium">Dúvida</p>
-                  <p className="mt-1 whitespace-pre-wrap rounded-md border bg-muted/40 p-3">
-                    {detalhe.duvida}
-                  </p>
-                </div>
-              </div>
-              <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
-                <Button type="button" variant="ghost" onClick={() => setDetalhe(null)}>
-                  Fechar
-                </Button>
-              </DialogFooter>
-            </>
-          ) : null}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={confirmRespostaAberto} onOpenChange={setConfirmRespostaAberto}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirmar status</DialogTitle>
@@ -522,7 +480,10 @@ export default function ListaPedidosPreProjetos() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setConfirmRespostaAberto(false)}
+              onClick={() => {
+                setConfirmRespostaAberto(false);
+                setLinhaAcao(null);
+              }}
               disabled={salvando}
             >
               Não
@@ -534,18 +495,24 @@ export default function ListaPedidosPreProjetos() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={agendarAberto} onOpenChange={setAgendarAberto}>
+      <Dialog
+        open={agendarAberto}
+        onOpenChange={(open) => {
+          setAgendarAberto(open);
+          if (!open) setLinhaAcao(null);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Enviar para a coordenadoria</DialogTitle>
           </DialogHeader>
-          {detalhe ? (
+          {linhaAcao ? (
             <div className="space-y-3 text-sm">
               <p>
-                <span className="font-medium">Munícipe:</span> {detalhe.nome}
+                <span className="font-medium">Munícipe:</span> {linhaAcao.nome}
               </p>
               <p>
-                <span className="font-medium">E-mail:</span> {detalhe.email}
+                <span className="font-medium">E-mail:</span> {linhaAcao.email}
               </p>
               <div className="space-y-1">
                 <label className="font-medium" htmlFor="dt-ag">
@@ -602,7 +569,10 @@ export default function ListaPedidosPreProjetos() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setAgendarAberto(false)}
+              onClick={() => {
+                setAgendarAberto(false);
+                setLinhaAcao(null);
+              }}
               disabled={salvando}
             >
               Cancelar
