@@ -38,6 +38,8 @@ export interface ISolicitacaoPreProjetoArthurSaboya {
   emailContatoDivisao?: string | null;
   coordenadoriaId?: string | null;
   divisaoId?: string | null;
+  /** Sigla (e nome, se houver) da coordenadoria vinculada à solicitação ou à divisão. */
+  coordenadoriaTexto?: string | null;
 }
 
 export interface ISolicitacaoPreProjetoArthurSaboyaDetalhe

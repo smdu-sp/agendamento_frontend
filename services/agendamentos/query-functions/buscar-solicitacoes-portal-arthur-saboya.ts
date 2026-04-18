@@ -9,7 +9,7 @@ export async function buscarSolicitacoesPortalArthurSaboya(
   pagina: number = 1,
   limite: number = 10,
   busca: string = "",
-  statusFiltro: "" | "SOLICITADO" | "AGUARDANDO_DATA" = "",
+  statusFiltro: "" | "SOLICITADO" | "AGUARDANDO_DATA" | "RESPONDIDO" | "AGENDAMENTO_CRIADO" = "",
 ): Promise<IRespostaSolicitacoesPreProjetoArthurSaboya> {
   const baseURL = getApiUrl();
   if (!baseURL) {

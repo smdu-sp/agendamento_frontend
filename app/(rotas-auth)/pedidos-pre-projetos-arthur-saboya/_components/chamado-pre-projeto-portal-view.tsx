@@ -2,17 +2,16 @@
 
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowLeft, CheckCircle2, Send } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ChevronRight, Mail, Send } from "lucide-react";
 import { toast } from "sonner";
 import { PreProjetoChamadoChat } from "@/components/arthur-saboya/pre-projeto-chamado-chat";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +24,8 @@ import * as agendamento from "@/services/agendamentos";
 import * as coordenadorias from "@/services/coordenadorias";
 import * as usuario from "@/services/usuarios";
 import type { ITecnico } from "@/services/usuarios";
+import { ModeToggle } from "@/components/toggle-theme";
+import { mensagensPreProjetoParaChat } from "@/lib/pre-projeto-chamado-mensagens";
 import type { ISolicitacaoPreProjetoArthurSaboyaDetalhe } from "@/types/solicitacao-pre-projeto-arthur-saboya";
 import type { ICoordenadoria } from "@/types/coordenadoria";
 
@@ -45,21 +46,33 @@ function rotuloStatus(s: ISolicitacaoPreProjetoArthurSaboyaDetalhe["status"]) {
   }
 }
 
-function chipStatus(status: ISolicitacaoPreProjetoArthurSaboyaDetalhe["status"]) {
-  const base =
-    "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold tracking-wide";
-  switch (status) {
-    case "SOLICITADO":
-      return `${base} bg-amber-100 text-amber-900 dark:bg-amber-950/50 dark:text-amber-100`;
-    case "RESPONDIDO":
-      return `${base} bg-emerald-100 text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100`;
-    case "AGUARDANDO_DATA":
-      return `${base} bg-sky-100 text-sky-900 dark:bg-sky-950/50 dark:text-sky-100`;
-    case "AGENDAMENTO_CRIADO":
-      return `${base} bg-violet-100 text-violet-900 dark:bg-violet-950/50 dark:text-violet-100`;
-    default:
-      return `${base} bg-muted text-muted-foreground`;
-  }
+function InfoItem({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-0.5">
+      <dt className="text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">{label}</dt>
+      <dd className="text-[13.5px] font-medium leading-snug text-[#0F172A]">{children}</dd>
+    </div>
+  );
+}
+
+const CHIP_CONFIGS: Record<string, { bg: string; text: string; dot: string }> = {
+  SOLICITADO:         { bg: "#EAF0FB", text: "#0A328D", dot: "#0A328D" },
+  RESPONDIDO:         { bg: "#EDF7F5", text: "#0f8578", dot: "#5CC9BD" },
+  AGUARDANDO_DATA:    { bg: "#FDF3EB", text: "#a94a08", dot: "#E56E14" },
+  AGENDAMENTO_CRIADO: { bg: "#F3F0FB", text: "#4a2098", dot: "#7c3aed" },
+};
+
+function StatusChip({ status }: { status: ISolicitacaoPreProjetoArthurSaboyaDetalhe["status"] }) {
+  const cfg = CHIP_CONFIGS[status] ?? { bg: "#F1F5F9", text: "#475569", dot: "#94A3B8" };
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-wide"
+      style={{ backgroundColor: cfg.bg, color: cfg.text }}
+    >
+      <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: cfg.dot }} />
+      {rotuloStatus(status)}
+    </span>
+  );
 }
 
 export default function ChamadoPreProjetoPortalView({
@@ -85,6 +98,11 @@ export default function ChamadoPreProjetoPortalView({
   const [listaCoord, setListaCoord] = useState<ICoordenadoria[]>([]);
   const [tecnicosArthur, setTecnicosArthur] = useState<ITecnico[]>([]);
   const [salvando, setSalvando] = useState(false);
+
+  const mensagensChat = useMemo(
+    () => (chamado ? mensagensPreProjetoParaChat(chamado) : []),
+    [chamado],
+  );
 
   const carregarChamado = useCallback(async () => {
     if (!token || !referenciaChamado) return;
@@ -210,64 +228,71 @@ export default function ChamadoPreProjetoPortalView({
     );
   }
 
+  const protocoloExibicao = chamado?.protocolo ?? referenciaChamado;
+
   return (
-    <div className="flex min-h-[calc(100dvh-4.5rem)] flex-col bg-gradient-to-b from-muted/50 via-background to-background">
-      <header className="sticky top-0 z-20 border-b border-border/60 bg-background/90 shadow-sm backdrop-blur-md">
-        <div className="mx-auto max-w-[1600px] px-4 pb-2 pt-3 md:px-8">
-          <nav className="text-sm text-muted-foreground" aria-label="Localização no sistema">
-            <ol className="flex flex-wrap items-center gap-1.5">
-              <li>
-                <Link href={LISTA_PATH} className="font-medium text-foreground hover:underline">
-                  Arthur Saboya
-                </Link>
-              </li>
-              <li aria-hidden className="select-none text-muted-foreground/80">
-                /
-              </li>
-              <li className="font-mono text-sm font-semibold tracking-tight text-foreground md:text-base">
-                {chamado?.protocolo ?? referenciaChamado}
-              </li>
-            </ol>
+    <div className="flex min-h-[calc(100dvh-4.5rem)] flex-col bg-[#F6F8FB] text-[#0F172A] antialiased [-webkit-font-smoothing:antialiased]">
+      <header className="sticky top-0 z-20 border-b border-[#E5EAF2] bg-[rgba(255,255,255,0.85)] backdrop-blur-md">
+        <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-3 px-4 py-3.5 sm:px-7">
+          <nav
+            className="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-[13px] text-[#64748B]"
+            aria-label="Localização no sistema"
+          >
+            <Link href={LISTA_PATH} className="font-medium hover:text-[#0A328D]">
+              Sala Arthur Saboya
+            </Link>
+            <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[#94A3B8]" aria-hidden />
+            <Link href={LISTA_PATH} className="font-medium hover:text-[#0A328D]">
+              Pedidos
+            </Link>
+            <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[#94A3B8]" aria-hidden />
+            <span className="font-mono font-semibold tracking-tight text-[#0F172A]">
+              {protocoloExibicao}
+            </span>
           </nav>
+          <div className="shrink-0">
+            <ModeToggle />
+          </div>
         </div>
-        <div className="mx-auto flex max-w-[1600px] flex-col gap-4 border-t border-border/40 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-8">
-          <div className="flex flex-wrap items-center gap-3 md:gap-4">
+      </header>
+
+      <div className="mx-auto flex min-h-0 w-full max-w-[1400px] flex-1 flex-col px-4 pb-6 pt-4 sm:px-7 sm:pb-10">
+        <div className="mb-4 flex w-full flex-wrap items-center justify-between gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
             <Button
               type="button"
               variant="outline"
               size="sm"
-              className="shrink-0 gap-2 border-dashed"
+              className="h-9 shrink-0 gap-2 rounded-lg border-[#D7DFEA] bg-transparent px-2.5 py-1.5 text-xs font-semibold text-[#334155] hover:bg-[#F8FAFC] sm:px-3 sm:text-[13px]"
               onClick={() => router.push(LISTA_PATH)}
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-3.5 w-3.5" />
               Lista de pedidos
             </Button>
+            <span className="font-mono text-[13px] font-medium text-[#64748B]">{protocoloExibicao}</span>
             {chamado ? (
-              <>
-                <div className="hidden h-8 w-px bg-border sm:block" aria-hidden />
-                <span className={chipStatus(chamado.status)}>{rotuloStatus(chamado.status)}</span>
-              </>
+              <StatusChip status={chamado.status} />
             ) : (
-              <span className="text-sm text-muted-foreground">Carregando chamado…</span>
+              <span className="text-[13px] text-[#64748B]">Carregando chamado…</span>
             )}
           </div>
           {chamado ? (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex w-full flex-wrap justify-end gap-2 sm:ml-auto sm:w-auto">
               <Button
                 type="button"
                 size="sm"
-                variant="secondary"
-                className="gap-2"
+                variant="outline"
+                className="h-9 gap-2 rounded-lg border-[#D7DFEA] bg-transparent px-2.5 py-1.5 text-xs font-semibold text-[#334155] hover:bg-[#F8FAFC] disabled:opacity-55 sm:px-3 sm:text-[13px]"
                 disabled={chamado.status !== "SOLICITADO" || salvando}
                 onClick={() => setConfirmAberto(true)}
               >
-                <CheckCircle2 className="h-4 w-4" />
+                <CheckCircle2 className="h-3.5 w-3.5" />
                 Marcar solucionado
               </Button>
               <Button
                 type="button"
                 size="sm"
-                className="gap-2 bg-[#E56E14] text-white hover:bg-[#CC5F10]"
+                className="h-9 gap-2 rounded-lg border border-transparent bg-[#E56E14] px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-[#c95d0e] disabled:opacity-55 sm:px-3 sm:text-[13px]"
                 disabled={
                   !!chamado.agendamentoId ||
                   !["SOLICITADO", "AGUARDANDO_DATA"].includes(chamado.status) ||
@@ -275,83 +300,92 @@ export default function ChamadoPreProjetoPortalView({
                 }
                 onClick={abrirAgendar}
               >
-                <Send className="h-4 w-4" />
+                <Send className="h-3.5 w-3.5" />
                 Enviar à coordenadoria
               </Button>
             </div>
           ) : null}
         </div>
-      </header>
 
-      <div className="mx-auto flex w-full max-w-[1600px] flex-1 min-h-0 flex-col gap-5 px-4 py-5 md:flex-row md:gap-6 md:px-8 md:py-6">
-        <aside className="flex w-full shrink-0 flex-col md:w-[min(100%,380px)]">
-          <Card className="border-border/80 shadow-md md:sticky md:top-24">
-            <CardHeader className="border-b border-border/60 bg-muted/30 pb-4">
-              <CardTitle className="text-base font-semibold">Solicitante e pedido</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 pt-5">
-              {carregando ? (
-                <p className="text-sm text-muted-foreground">Carregando dados…</p>
-              ) : erro ? (
-                <p className="text-sm text-destructive">{erro}</p>
-              ) : chamado ? (
-                <dl className="space-y-3 text-sm">
-                  <div>
-                    <dt className="text-xs font-medium uppercase text-muted-foreground">Abertura</dt>
-                    <dd className="mt-0.5 font-medium">
-                      {format(new Date(chamado.criadoEm), "dd/MM/yyyy 'às' HH:mm", {
-                        locale: ptBR,
-                      })}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs font-medium uppercase text-muted-foreground">Munícipe</dt>
-                    <dd className="mt-0.5">{chamado.nome}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs font-medium uppercase text-muted-foreground">E-mail</dt>
-                    <dd className="mt-0.5 break-all">{chamado.email}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs font-medium uppercase text-muted-foreground">Formação</dt>
-                    <dd className="mt-0.5 text-muted-foreground">{chamado.formacaoTexto}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs font-medium uppercase text-muted-foreground">Natureza</dt>
-                    <dd className="mt-0.5 text-muted-foreground">{chamado.naturezaTexto}</dd>
-                  </div>
-                  {chamado.emailContatoDivisao ? (
-                    <div className="rounded-lg border border-dashed bg-muted/20 p-3 text-xs">
-                      <p className="font-medium text-foreground">Contato institucional</p>
-                      <p className="mt-1 break-all text-muted-foreground">{chamado.emailContatoDivisao}</p>
+        <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-5 lg:grid-cols-[320px_1fr] lg:gap-5">
+          <aside className="flex w-full shrink-0 flex-col lg:w-full">
+            <div className="overflow-hidden rounded-[14px] border border-[#E5EAF2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] lg:sticky lg:top-20">
+              {chamado && (
+                <div className="border-b border-[#E5EAF2] px-5 pb-4 pt-1">
+                  <div className="flex items-center gap-3 py-4">
+                    <div
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[15px] font-bold"
+                      style={{ backgroundColor: "#EDBA94", color: "#0A328D" }}
+                    >
+                      {chamado.nome
+                        .split(" ")
+                        .filter(Boolean)
+                        .slice(0, 2)
+                        .map((n) => n[0]?.toUpperCase())
+                        .join("")}
                     </div>
-                  ) : null}
-                </dl>
-              ) : null}
-            </CardContent>
-          </Card>
-        </aside>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-[#0F172A]">{chamado.nome}</p>
+                      <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-[#64748B]">
+                        <Mail className="h-3 w-3 shrink-0 opacity-80" />
+                        {chamado.email}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-        <main className="flex min-h-0 min-w-0 flex-1 flex-col">
-          {carregando ? (
-            <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed bg-muted/20 p-8 text-sm text-muted-foreground">
-              Carregando conversa…
+              <div className="px-5 py-5">
+                {carregando ? (
+                  <p className="text-sm text-[#64748B]">Carregando dados…</p>
+                ) : erro ? (
+                  <p className="text-sm text-destructive">{erro}</p>
+                ) : chamado ? (
+                  <div className="flex flex-col gap-3.5 text-sm">
+                    <dl className="flex flex-col gap-3.5">
+                      <InfoItem label="Protocolo">
+                        <span className="font-mono text-[12.5px] font-medium tracking-tight text-[#0F172A]">
+                          {chamado.protocolo}
+                        </span>
+                      </InfoItem>
+                      <InfoItem label="Abertura">
+                        {format(new Date(chamado.criadoEm), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      </InfoItem>
+                      <InfoItem label="Formação">{chamado.formacaoTexto}</InfoItem>
+                      <InfoItem label="Natureza">{chamado.naturezaTexto}</InfoItem>
+                    </dl>
+                    {chamado.emailContatoDivisao ? (
+                      <div className="rounded-[10px] border border-dashed border-[#5CC9BD] bg-[#EDF7F5] p-3 text-xs">
+                        <p className="font-semibold text-[#0f8578]">Contato institucional</p>
+                        <p className="mt-1 wrap-break-word text-[#64748B]">{chamado.emailContatoDivisao}</p>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
             </div>
-          ) : chamado ? (
-            <PreProjetoChamadoChat
-              variante="painel"
-              mensagens={chamado.mensagens ?? []}
-              onEnviar={handleEnviarMensagem}
-              enviando={enviandoChat}
-              titulo="Linha do tempo"
-              placeholder="Escreva a resposta ao munícipe (registrada no chamado)…"
-            />
-          ) : (
-            <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed p-8 text-sm text-muted-foreground">
-              Não foi possível carregar o chamado.
-            </div>
-          )}
-        </main>
+          </aside>
+
+          <main className="flex min-h-[min(52vh,520px)] min-w-0 flex-col lg:min-h-0 lg:flex-1">
+            {carregando ? (
+              <div className="flex flex-1 items-center justify-center rounded-[14px] border border-dashed border-[#E5EAF2] bg-white/60 p-8 text-sm text-[#64748B]">
+                Carregando conversa…
+              </div>
+            ) : chamado ? (
+              <PreProjetoChamadoChat
+                variante="painel"
+                mensagens={mensagensChat}
+                onEnviar={handleEnviarMensagem}
+                enviando={enviandoChat}
+                titulo="Linha do tempo"
+              />
+            ) : (
+              <div className="flex flex-1 items-center justify-center rounded-[14px] border border-dashed border-[#E5EAF2] p-8 text-sm text-[#64748B]">
+                Não foi possível carregar o chamado.
+              </div>
+            )}
+          </main>
+        </div>
       </div>
 
       <Dialog open={confirmAberto} onOpenChange={setConfirmAberto}>

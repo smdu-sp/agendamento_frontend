@@ -12,20 +12,28 @@ import type {
   IMensagemPreProjetoArthurSaboya,
 } from "@/types/solicitacao-pre-projeto-arthur-saboya"
 
-/** Munícipe à esquerda; equipe Arthur Saboya (ponto focal) à direita; sistema ao centro. */
 function alinhamento(autor: AutorMensagemPreProjetoArthurSaboya): "left" | "right" | "center" {
   if (autor === "MUNICIPE") return "left"
   if (autor === "PONTO_FOCAL") return "right"
   return "center"
 }
 
+function iniciais(nome: string | null | undefined, fallback = "?") {
+  if (!nome) return fallback
+  return nome
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((n) => n[0]?.toUpperCase())
+    .join("")
+}
+
 export function PreProjetoChamadoChat({
   mensagens,
   onEnviar,
   enviando,
-  placeholder = "Escreva uma mensagem…",
-  titulo = "Andamentos",
-  /** `painel` = ocupa altura disponível (tela cheia / coluna flex). */
+  placeholder = "Escreva a resposta ao munícipe (registrada no chamado)…",
+  titulo = "Linha do tempo",
   variante = "card",
 }: {
   mensagens: IMensagemPreProjetoArthurSaboya[]
@@ -54,62 +62,163 @@ export function PreProjetoChamadoChat({
   return (
     <div
       className={cn(
-        "flex flex-col border border-border bg-card",
+        "flex flex-col bg-white",
         painel
-          ? "min-h-0 flex-1 overflow-hidden rounded-xl shadow-sm"
-          : "gap-3 rounded-lg shadow-none",
+          ? "min-h-0 flex-1 overflow-hidden rounded-[14px] border border-[#E5EAF2] shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+          : "gap-3 rounded-lg border border-border shadow-none",
       )}
     >
-      <div className="shrink-0 border-b border-border px-4 py-3">
-        <h3 className="text-sm font-semibold text-foreground">{titulo}</h3>
-        <p className="text-xs text-muted-foreground">
-          Munícipe à esquerda; equipe da Sala Arthur Saboya à direita; avisos do sistema ao centro.
-        </p>
-      </div>
+      {/* Header — alinhado ao .card-head do protótipo */}
       <div
         className={cn(
-          "space-y-3 overflow-y-auto px-3 py-2",
-          painel ? "min-h-0 flex-1" : "max-h-[min(420px,50vh)]",
+          "flex shrink-0 items-center justify-between border-b border-[#E5EAF2]",
+          painel ? "px-5 py-4" : "border-border px-5 py-4",
+        )}
+      >
+        <div>
+          <h3
+            className={cn(
+              "font-semibold text-[#0F172A]",
+              painel ? "m-0 text-[14px] leading-tight" : "text-sm",
+            )}
+          >
+            {titulo}
+          </h3>
+          <p
+            className={cn(
+              painel ? "mt-0.5 text-[12.5px] font-normal leading-snug text-[#64748B]" : "text-xs text-muted-foreground",
+            )}
+          >
+            Histórico completo do chamado — respostas e alterações de status.
+          </p>
+        </div>
+        {mensagens.length > 0 && (
+          <span
+            className={cn(
+              "shrink-0 text-[#64748B]",
+              painel ? "text-xs" : "text-xs text-muted-foreground",
+            )}
+          >
+            {mensagens.length} interaç{mensagens.length === 1 ? "ão" : "ões"}
+          </span>
+        )}
+      </div>
+
+      {/* Timeline — .timeline do protótipo */}
+      <div
+        className={cn(
+          "overflow-y-auto",
+          painel
+            ? "flex min-h-0 flex-1 flex-col gap-[18px] p-5"
+            : "max-h-[min(420px,50vh)] space-y-4 px-5 py-4",
         )}
       >
         {mensagens.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">Nenhuma mensagem ainda.</p>
+          <p
+            className={cn(
+              "text-center text-sm text-[#64748B]",
+              painel ? "py-8" : "py-8 text-muted-foreground",
+            )}
+          >
+            Nenhuma mensagem ainda.
+          </p>
         ) : (
           mensagens.map((m) => {
             const pos = alinhamento(m.autor)
             const isCentro = pos === "center"
+
+            if (isCentro) {
+              return painel ? (
+                <div key={m.id} className="flex items-center gap-2.5 py-1 text-xs text-[#64748B]">
+                  <span className="h-px flex-1 bg-[#E5EAF2]" />
+                  <span
+                    className="max-w-[min(100%,520px)] rounded-[10px] border border-dashed px-3 py-2 text-center text-[12.5px] italic leading-snug"
+                    style={{ borderColor: "#5CC9BD", backgroundColor: "#EDF7F5", color: "#0f6b62" }}
+                  >
+                    {m.corpo}
+                    {" · "}
+                    {format(new Date(m.criadoEm), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                  </span>
+                  <span className="h-px flex-1 bg-[#E5EAF2]" />
+                </div>
+              ) : (
+                <div key={m.id} className="flex items-center gap-3">
+                  <span className="h-px flex-1 bg-border" />
+                  <span
+                    className="inline-flex items-center gap-1.5 rounded-full border border-dashed px-3 py-1 text-[11px] italic text-muted-foreground"
+                    style={{ borderColor: "#5CC9BD", backgroundColor: "#EDF7F5", color: "#0f8578" }}
+                  >
+                    {m.corpo}
+                    {" · "}
+                    {format(new Date(m.criadoEm), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                  </span>
+                  <span className="h-px flex-1 bg-border" />
+                </div>
+              )
+            }
+
+            const isOutgoing = pos === "right"
+            const nome = m.nomeRemetente ?? (m.autor === "MUNICIPE" ? "Munícipe" : "Arthur Saboya")
+            const ini = iniciais(nome)
+
             return (
               <div
                 key={m.id}
-                className={
-                  pos === "right"
-                    ? "flex justify-end"
-                    : pos === "left"
-                      ? "flex justify-start"
-                      : "flex justify-center"
-                }
+                className={cn(
+                  "flex gap-3",
+                  isOutgoing ? "ml-auto flex-row-reverse" : "flex-row",
+                  painel ? "max-w-[78%] items-start" : "max-w-[80%] items-end gap-2.5",
+                )}
               >
                 <div
-                  className={
-                    isCentro
-                      ? "max-w-[95%] rounded-md border border-dashed border-muted-foreground/40 bg-muted/30 px-3 py-2 text-xs text-muted-foreground"
-                      : m.autor === "MUNICIPE"
-                        ? "max-w-[85%] rounded-2xl rounded-bl-md bg-[#E56E14] px-3 py-2 text-sm text-white shadow-sm"
-                        : "max-w-[85%] rounded-2xl rounded-br-md bg-muted px-3 py-2 text-sm text-foreground shadow-sm"
+                  className={cn(
+                    "flex shrink-0 items-center justify-center rounded-full font-bold",
+                    painel ? "h-8 w-8 text-xs" : "h-8 w-8 text-[11px]",
+                  )}
+                  style={
+                    isOutgoing
+                      ? { backgroundColor: "#0A328D", color: "#fff" }
+                      : { backgroundColor: "#EDBA94", color: "#0A328D" }
                   }
                 >
+                  {ini}
+                </div>
+
+                <div className="min-w-0 flex-1">
                   <div
-                    className={
-                      isCentro
-                        ? "mb-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
-                        : "mb-1 text-[10px] font-medium opacity-90"
+                    className={cn(
+                      "mb-1 flex items-center gap-2 text-[11.5px] text-[#64748B]",
+                      isOutgoing ? "justify-end" : "justify-start",
+                    )}
+                  >
+                    <span className="font-semibold text-[#334155]">{nome}</span>
+                    <span>·</span>
+                    <span>{format(new Date(m.criadoEm), "dd/MM/yyyy HH:mm", { locale: ptBR })}</span>
+                  </div>
+                  <div
+                    className={cn(
+                      "text-[13.5px] leading-normal text-[#0F172A] wrap-anywhere",
+                      painel
+                        ? isOutgoing
+                          ? "rounded-[12px] rounded-tr-[4px] px-[14px] py-2.5 text-white"
+                          : "rounded-[12px] rounded-tl-[4px] bg-[#F1F5F9] px-[14px] py-2.5"
+                        : cn(
+                            "rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
+                            isOutgoing ? "rounded-tr-sm" : "rounded-tl-sm",
+                          ),
+                    )}
+                    style={
+                      painel
+                        ? isOutgoing
+                          ? { backgroundColor: "#E56E14", color: "#fff" }
+                          : {}
+                        : isOutgoing
+                          ? { backgroundColor: "#E56E14", color: "#fff" }
+                          : { backgroundColor: "#F1F5F9", color: "#0F172A" }
                     }
                   >
-                    {m.nomeRemetente ?? (m.autor === "MUNICIPE" ? "Munícipe" : "Equipe")}
-                    {" · "}
-                    {format(new Date(m.criadoEm), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                    <p className="whitespace-pre-wrap">{m.corpo}</p>
                   </div>
-                  <p className="whitespace-pre-wrap break-words">{m.corpo}</p>
                 </div>
               </div>
             )
@@ -117,30 +226,53 @@ export function PreProjetoChamadoChat({
         )}
         <div ref={fimRef} />
       </div>
-      <div className="shrink-0 border-t border-border bg-muted/20 p-3">
+
+      {/* Composer — .composer do protótipo */}
+      <div
+        className={cn(
+          "shrink-0 border-t px-5 py-4",
+          painel ? "border-[#E5EAF2] bg-[#F8FAFC]" : "border-border bg-muted/20",
+        )}
+      >
         <Textarea
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
           placeholder={placeholder}
-          rows={3}
-          className="mb-2 resize-none"
+          rows={painel ? 2 : 3}
+          className={cn(
+            "resize-none bg-white text-[#0F172A] transition-[border-color,box-shadow] placeholder:text-[#94A3B8] focus-visible:border-[#0A328D] focus-visible:ring-[3px] focus-visible:ring-[rgba(10,50,141,0.12)]",
+            painel
+              ? "mb-2.5 min-h-[72px] rounded-lg border border-[#D7DFEA] px-3 py-2.5 text-inherit shadow-none"
+              : "mb-3",
+          )}
           disabled={enviando}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
+            if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
               e.preventDefault()
               void submit()
             }
           }}
         />
-        <Button
-          type="button"
-          className="w-full bg-[#E56E14] text-white hover:bg-[#CC5F10] sm:w-auto"
-          disabled={enviando || !texto.trim()}
-          onClick={() => void submit()}
+        <div
+          className={cn(
+            "flex flex-wrap items-center justify-between gap-2.5",
+            painel ? "mt-2.5" : "gap-3",
+          )}
         >
-          <Send className="mr-2 h-4 w-4" />
-          Enviar
-        </Button>
+          <span className="text-xs text-[#64748B]">Ctrl/⌘ + Enter para enviar</span>
+          <Button
+            type="button"
+            className={cn(
+              "gap-2 rounded-lg border border-transparent bg-[#E56E14] px-[14px] py-2 text-[13px] font-semibold text-white hover:bg-[#c95d0e]",
+              painel && "h-9",
+            )}
+            disabled={enviando || !texto.trim()}
+            onClick={() => void submit()}
+          >
+            <Send className="h-4 w-4 shrink-0" />
+            Enviar resposta
+          </Button>
+        </div>
       </div>
     </div>
   )

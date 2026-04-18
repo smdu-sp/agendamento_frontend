@@ -7,8 +7,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CheckCircle2, Search, Send } from "lucide-react";
-import { toast } from "sonner";
+import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,27 +18,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  TooltipContent,
-  TooltipProvider,
-} from "@/components/ui/tooltip";
-import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import * as agendamento from "@/services/agendamentos";
-import * as coordenadorias from "@/services/coordenadorias";
-import * as usuario from "@/services/usuarios";
-import type { ITecnico } from "@/services/usuarios";
 import type { ISolicitacaoPreProjetoArthurSaboya } from "@/types/solicitacao-pre-projeto-arthur-saboya";
-import type { ICoordenadoria } from "@/types/coordenadoria";
 
 const LIMITE = 15;
 const PATH_CHAMADO = "/pedidos-pre-projetos-arthur-saboya";
+
+type FiltroStatus = "" | "SOLICITADO" | "RESPONDIDO" | "AGUARDANDO_DATA" | "AGENDAMENTO_CRIADO";
 
 function rotuloStatus(s: ISolicitacaoPreProjetoArthurSaboya["status"]) {
   switch (s) {
@@ -50,10 +35,40 @@ function rotuloStatus(s: ISolicitacaoPreProjetoArthurSaboya["status"]) {
     case "AGUARDANDO_DATA":
       return "Aguardando data";
     case "AGENDAMENTO_CRIADO":
-      return "Enviado para coordenadoria";
+      return "Enviado à coord.";
     default:
       return s;
   }
+}
+
+function StatusChip({ status }: { status: ISolicitacaoPreProjetoArthurSaboya["status"] }) {
+  const configs: Record<string, { bg: string; text: string; dot: string }> = {
+    SOLICITADO: { bg: "#EAF0FB", text: "#0A328D", dot: "#0A328D" },
+    RESPONDIDO: { bg: "#EDF7F5", text: "#0f8578", dot: "#5CC9BD" },
+    AGUARDANDO_DATA: { bg: "#FDF3EB", text: "#a94a08", dot: "#E56E14" },
+    AGENDAMENTO_CRIADO: { bg: "#F3F0FB", text: "#4a2098", dot: "#7c3aed" },
+  };
+  const cfg = configs[status] ?? { bg: "#F1F5F9", text: "#475569", dot: "#94A3B8" };
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
+      style={{ backgroundColor: cfg.bg, color: cfg.text }}
+    >
+      <span
+        className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
+        style={{ backgroundColor: cfg.dot }}
+      />
+      {rotuloStatus(status)}
+    </span>
+  );
+}
+
+interface Stats {
+  total: number;
+  solicitados: number;
+  aguardando: number;
+  respondidos: number;
+  enviados: number;
 }
 
 export default function ListaPedidosPreProjetos() {
@@ -62,25 +77,31 @@ export default function ListaPedidosPreProjetos() {
   const token = session?.access_token;
   const [buscaInput, setBuscaInput] = useState("");
   const [busca, setBusca] = useState("");
-  const [filtroStatus, setFiltroStatus] = useState<
-    "" | "SOLICITADO" | "RESPONDIDO" | "AGUARDANDO_DATA" | "AGENDAMENTO_CRIADO"
-  >("");
+  const [filtroStatus, setFiltroStatus] = useState<FiltroStatus>("");
   const [pagina, setPagina] = useState(1);
   const [total, setTotal] = useState(0);
   const [itens, setItens] = useState<ISolicitacaoPreProjetoArthurSaboya[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
-  /** Linha selecionada apenas para os modais rápidos (solucionado / agendar). */
-  const [linhaAcao, setLinhaAcao] = useState<ISolicitacaoPreProjetoArthurSaboya | null>(null);
-  const [confirmRespostaAberto, setConfirmRespostaAberto] = useState(false);
-  const [agendarAberto, setAgendarAberto] = useState(false);
-  const [dataHoraAgendamento, setDataHoraAgendamento] = useState("");
-  const [coordenadoriaAgendamento, setCoordenadoriaAgendamento] = useState("");
-  const [tecnicoArthurIdAgendamento, setTecnicoArthurIdAgendamento] =
-    useState("");
-  const [listaCoord, setListaCoord] = useState<ICoordenadoria[]>([]);
-  const [tecnicosArthur, setTecnicosArthur] = useState<ITecnico[]>([]);
-  const [salvando, setSalvando] = useState(false);
+  const [stats, setStats] = useState<Stats | null>(null);
+
+  const carregarStats = useCallback(async () => {
+    if (!token) return;
+    const [resAll, resSol, resAguard, resResp, resEnv] = await Promise.all([
+      agendamento.buscarSolicitacoesPortalArthurSaboya(token, 1, 1, "", ""),
+      agendamento.buscarSolicitacoesPortalArthurSaboya(token, 1, 1, "", "SOLICITADO"),
+      agendamento.buscarSolicitacoesPortalArthurSaboya(token, 1, 1, "", "AGUARDANDO_DATA"),
+      agendamento.buscarSolicitacoesPortalArthurSaboya(token, 1, 1, "", "RESPONDIDO"),
+      agendamento.buscarSolicitacoesPortalArthurSaboya(token, 1, 1, "", "AGENDAMENTO_CRIADO"),
+    ]);
+    setStats({
+      total: resAll.data?.total ?? 0,
+      solicitados: resSol.data?.total ?? 0,
+      aguardando: resAguard.data?.total ?? 0,
+      respondidos: resResp.data?.total ?? 0,
+      enviados: resEnv.data?.total ?? 0,
+    });
+  }, [token]);
 
   const carregar = useCallback(async () => {
     if (!token) return;
@@ -115,96 +136,11 @@ export default function ListaPedidosPreProjetos() {
   }, [status, token, carregar]);
 
   useEffect(() => {
-    if (!token || status === "loading") return;
-    void (async () => {
-      const r = await coordenadorias.listaCompleta(token);
-      if (r.ok && Array.isArray(r.data)) {
-        setListaCoord((r.data as ICoordenadoria[]).filter((c) => c.status));
-      }
-    })();
-  }, [token, status]);
-
-  useEffect(() => {
-    if (!token || status === "loading") return;
-    const divisaoArthur = process.env.NEXT_PUBLIC_DIVISAO_ID_PRE_PROJETOS?.trim();
-    if (!divisaoArthur) return;
-    void (async () => {
-      const r = await usuario.buscarTecnicosPorDivisao(divisaoArthur, token);
-      if (r.ok && Array.isArray(r.data)) {
-        setTecnicosArthur(r.data as ITecnico[]);
-      }
-    })();
-  }, [token, status]);
+    if (status === "loading" || !token) return;
+    void carregarStats();
+  }, [status, token, carregarStats]);
 
   const totalPaginas = Math.max(1, Math.ceil(total / LIMITE));
-
-  const abrirConfirmarRespondido = (row: ISolicitacaoPreProjetoArthurSaboya) => {
-    setLinhaAcao(row);
-    setConfirmRespostaAberto(true);
-  };
-
-  const abrirDialogAgendar = (row: ISolicitacaoPreProjetoArthurSaboya) => {
-    setLinhaAcao(row);
-    setDataHoraAgendamento("");
-    setCoordenadoriaAgendamento("");
-    setTecnicoArthurIdAgendamento("");
-    if (row.coordenadoriaId) setCoordenadoriaAgendamento(row.coordenadoriaId);
-    setAgendarAberto(true);
-  };
-
-  const handleConfirmarRespondido = async () => {
-    if (!token || !linhaAcao) return;
-    setSalvando(true);
-    const res = await agendamento.confirmarRespostaEnviadaPortalArthurSaboya(
-      token,
-      linhaAcao.protocolo,
-    );
-    setSalvando(false);
-    if (!res.ok) {
-      toast.error(res.error ?? "Não foi possível atualizar o status.");
-      return;
-    }
-    toast.success("Status atualizado para Solucionado.");
-    setConfirmRespostaAberto(false);
-    setLinhaAcao(null);
-    void carregar();
-  };
-
-  const handleCriarAgendamento = async () => {
-    if (!token || !linhaAcao) return;
-    if (!dataHoraAgendamento.trim()) {
-      toast.error("Informe data e hora do agendamento.");
-      return;
-    }
-    if (!coordenadoriaAgendamento) {
-      toast.error("Selecione a coordenadoria.");
-      return;
-    }
-    if (!tecnicoArthurIdAgendamento) {
-      toast.error("Selecione o técnico da Sala Arthur Saboya.");
-      return;
-    }
-    setSalvando(true);
-    const iso = new Date(dataHoraAgendamento).toISOString();
-    const res = await agendamento.criarAgendamentoDaSolicitacaoPortalArthurSaboya(
-      token,
-      linhaAcao.protocolo,
-      {
-        dataHora: iso,
-        coordenadoriaId: coordenadoriaAgendamento,
-        tecnicoId: tecnicoArthurIdAgendamento,
-      },
-    );
-    setSalvando(false);
-    if (!res.ok) {
-      toast.error(res.error ?? "Falha ao criar agendamento.");
-      return;
-    }
-    toast.success("Solicitação enviada para a coordenadoria.");
-    setAgendarAberto(false);
-    setLinhaAcao(null);
-    void carregar();
-  };
 
   if (status === "loading" || !token) {
     return (
@@ -214,19 +150,48 @@ export default function ListaPedidosPreProjetos() {
     );
   }
 
+  const FILTROS: { k: FiltroStatus; label: string; count: number | undefined }[] = [
+    { k: "", label: "Todos", count: stats?.total },
+    { k: "SOLICITADO", label: "Solicitados", count: stats?.solicitados },
+    { k: "AGUARDANDO_DATA", label: "Aguardando data", count: stats?.aguardando },
+    { k: "RESPONDIDO", label: "Solucionados", count: stats?.respondidos },
+    { k: "AGENDAMENTO_CRIADO", label: "Enviados", count: stats?.enviados },
+  ];
+
   return (
-    <TooltipProvider delayDuration={300}>
-    <div className="space-y-6">
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5">
+        {[
+          { label: "Total", value: stats?.total, accent: "#0A328D" },
+          { label: "Solicitados", value: stats?.solicitados, accent: "#0A328D" },
+          { label: "Aguardando data", value: stats?.aguardando, accent: "#E56E14" },
+          { label: "Solucionados", value: stats?.respondidos, accent: "#5CC9BD" },
+          { label: "Enviados", value: stats?.enviados, accent: "#7c3aed" },
+        ].map((s) => (
+          <div
+            key={s.label}
+            className="rounded-xl border bg-card px-4 py-3 shadow-sm"
+            style={{ borderLeftWidth: 3, borderLeftColor: s.accent }}
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              {s.label}
+            </p>
+            <p className="mt-1 text-2xl font-bold tracking-tight" style={{ color: s.accent }}>
+              {s.value ?? "—"}
+            </p>
+          </div>
+        ))}
+      </div>
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        <div className="flex-1 space-y-2">
-          <label htmlFor="busca-pedidos" className="text-sm font-medium">
-            Buscar
-          </label>
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             id="busca-pedidos"
             value={buscaInput}
             onChange={(e) => setBuscaInput(e.target.value)}
             placeholder="Nome, e-mail, protocolo ou trecho da dúvida"
+            className="pl-9"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 setPagina(1);
@@ -249,65 +214,47 @@ export default function ListaPedidosPreProjetos() {
         </Button>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <span className="mr-2 self-center text-sm text-muted-foreground">
-          Filtro por status:
-        </span>
-        <Button
-          type="button"
-          size="sm"
-          variant={filtroStatus === "" ? "default" : "outline"}
-          onClick={() => {
-            setPagina(1);
-            setFiltroStatus("");
-          }}
-        >
-          Todos
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant={filtroStatus === "SOLICITADO" ? "default" : "outline"}
-          onClick={() => {
-            setPagina(1);
-            setFiltroStatus("SOLICITADO");
-          }}
-        >
-          Solicitados
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant={filtroStatus === "AGUARDANDO_DATA" ? "default" : "outline"}
-          onClick={() => {
-            setPagina(1);
-            setFiltroStatus("AGUARDANDO_DATA");
-          }}
-        >
-          Aguardando data
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant={filtroStatus === "RESPONDIDO" ? "default" : "outline"}
-          onClick={() => {
-            setPagina(1);
-            setFiltroStatus("RESPONDIDO");
-          }}
-        >
-          Solucionados
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant={filtroStatus === "AGENDAMENTO_CRIADO" ? "default" : "outline"}
-          onClick={() => {
-            setPagina(1);
-            setFiltroStatus("AGENDAMENTO_CRIADO");
-          }}
-        >
-          Enviados
-        </Button>
+      <div
+        className="inline-flex flex-wrap gap-1 rounded-xl p-1"
+        style={{ backgroundColor: "#F1F5F9" }}
+      >
+        {FILTROS.map((f) => {
+          const active = filtroStatus === f.k;
+          return (
+            <button
+              key={f.k}
+              type="button"
+              onClick={() => {
+                setPagina(1);
+                setFiltroStatus(f.k);
+              }}
+              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all"
+              style={
+                active
+                  ? {
+                      backgroundColor: "#fff",
+                      color: "#0A328D",
+                      boxShadow: "0 1px 2px rgba(15,23,42,.06)",
+                    }
+                  : { color: "#64748B" }
+              }
+            >
+              {f.label}
+              {f.count !== undefined && (
+                <span
+                  className="rounded-full px-1.5 py-px text-[10px] font-bold"
+                  style={
+                    active
+                      ? { backgroundColor: "#EAF0FB", color: "#0A328D" }
+                      : { backgroundColor: "rgba(0,0,0,0.07)", color: "#64748B" }
+                  }
+                >
+                  {f.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {erro ? (
@@ -327,10 +274,10 @@ export default function ListaPedidosPreProjetos() {
               <TableHead>Protocolo</TableHead>
               <TableHead>Munícipe</TableHead>
               <TableHead>E-mail</TableHead>
+              <TableHead>Coordenadoria</TableHead>
               <TableHead>Formação</TableHead>
               <TableHead>Natureza</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="w-[260px]">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -352,20 +299,17 @@ export default function ListaPedidosPreProjetos() {
                   key={row.id}
                   className="cursor-pointer hover:bg-muted/50"
                   onClick={() =>
-                    router.push(
-                      `${PATH_CHAMADO}/${encodeURIComponent(row.protocolo)}`,
-                    )
+                    router.push(`${PATH_CHAMADO}/${encodeURIComponent(row.protocolo)}`)
                   }
                 >
                   <TableCell className="whitespace-nowrap text-sm">
-                    {format(new Date(row.criadoEm), "dd/MM/yyyy HH:mm", {
-                      locale: ptBR,
-                    })}
+                    {format(new Date(row.criadoEm), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                   </TableCell>
                   <TableCell className="font-mono text-sm">{row.protocolo}</TableCell>
                   <TableCell>{row.nome}</TableCell>
-                  <TableCell className="max-w-[200px] truncate text-sm">
-                    {row.email}
+                  <TableCell className="max-w-[200px] truncate text-sm">{row.email}</TableCell>
+                  <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
+                    {row.coordenadoriaTexto?.trim() || "—"}
                   </TableCell>
                   <TableCell className="max-w-[160px] text-sm text-muted-foreground">
                     {row.formacaoTexto}
@@ -373,56 +317,8 @@ export default function ListaPedidosPreProjetos() {
                   <TableCell className="max-w-[180px] text-sm text-muted-foreground">
                     {row.naturezaTexto}
                   </TableCell>
-                  <TableCell className="text-sm">{rotuloStatus(row.status)}</TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <div className="flex flex-wrap gap-2">
-                      <TooltipPrimitive.Root>
-                        <TooltipPrimitive.Trigger asChild>
-                          <span className="inline-flex">
-                            <Button
-                              type="button"
-                              size="icon"
-                              variant="secondary"
-                              className="h-8 w-8 shrink-0"
-                              disabled={row.status !== "SOLICITADO" || salvando}
-                              onClick={() => abrirConfirmarRespondido(row)}
-                              aria-label="Dúvida respondida"
-                            >
-                              <CheckCircle2 />
-                            </Button>
-                          </span>
-                        </TooltipPrimitive.Trigger>
-                        <TooltipContent side="top" className="max-w-xs text-center">
-                          Marcar que a dúvida já foi respondida ao munícipe; o status
-                          passa a <strong>Solucionado</strong>.
-                        </TooltipContent>
-                      </TooltipPrimitive.Root>
-                      <TooltipPrimitive.Root>
-                        <TooltipPrimitive.Trigger asChild>
-                          <span className="inline-flex">
-                            <Button
-                              type="button"
-                              size="icon"
-                              className="h-8 w-8 shrink-0"
-                              disabled={
-                                !!row.agendamentoId ||
-                                !["SOLICITADO", "AGUARDANDO_DATA"].includes(
-                                  row.status,
-                                ) || salvando
-                              }
-                              onClick={() => abrirDialogAgendar(row)}
-                              aria-label="Enviar para coordenadoria"
-                            >
-                              <Send />
-                            </Button>
-                          </span>
-                        </TooltipPrimitive.Trigger>
-                        <TooltipContent side="top" className="max-w-xs text-center">
-                          Enviar à coordenadoria quando precisar de técnico no local.
-                          Informe data, coordenadoria e técnico da Arthur Saboya.
-                        </TooltipContent>
-                      </TooltipPrimitive.Root>
-                    </div>
+                  <TableCell>
+                    <StatusChip status={row.status} />
                   </TableCell>
                 </TableRow>
               ))
@@ -460,130 +356,6 @@ export default function ListaPedidosPreProjetos() {
       ) : total > 0 ? (
         <p className="text-sm text-muted-foreground">{total} pedido(s).</p>
       ) : null}
-
-      <Dialog
-        open={confirmRespostaAberto}
-        onOpenChange={(open) => {
-          setConfirmRespostaAberto(open);
-          if (!open) setLinhaAcao(null);
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmar status</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm">
-            Confirma que a dúvida foi solucionada? Ao confirmar, o status passa
-            para <strong>Solucionado</strong>.
-          </p>
-          <DialogFooter className="gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setConfirmRespostaAberto(false);
-                setLinhaAcao(null);
-              }}
-              disabled={salvando}
-            >
-              Não
-            </Button>
-            <Button type="button" onClick={handleConfirmarRespondido} disabled={salvando}>
-              Sim
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
-        open={agendarAberto}
-        onOpenChange={(open) => {
-          setAgendarAberto(open);
-          if (!open) setLinhaAcao(null);
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Enviar para a coordenadoria</DialogTitle>
-          </DialogHeader>
-          {linhaAcao ? (
-            <div className="space-y-3 text-sm">
-              <p>
-                <span className="font-medium">Munícipe:</span> {linhaAcao.nome}
-              </p>
-              <p>
-                <span className="font-medium">E-mail:</span> {linhaAcao.email}
-              </p>
-              <div className="space-y-1">
-                <label className="font-medium" htmlFor="dt-ag">
-                  Data e hora
-                </label>
-                <Input
-                  id="dt-ag"
-                  type="datetime-local"
-                  value={dataHoraAgendamento}
-                  onChange={(e) => setDataHoraAgendamento(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="font-medium" htmlFor="coord-ag">
-                  Coordenadoria
-                </label>
-                <select
-                  id="coord-ag"
-                  className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-                  value={coordenadoriaAgendamento}
-                  onChange={(e) => setCoordenadoriaAgendamento(e.target.value)}
-                >
-                  <option value="">Selecione…</option>
-                  {listaCoord.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.sigla}
-                      {c.nome ? ` — ${c.nome}` : ""}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="font-medium" htmlFor="tecnico-arthur-ag">
-                  Técnico da Sala Arthur Saboya
-                </label>
-                <select
-                  id="tecnico-arthur-ag"
-                  className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-                  value={tecnicoArthurIdAgendamento}
-                  onChange={(e) => setTecnicoArthurIdAgendamento(e.target.value)}
-                >
-                  <option value="">Selecione…</option>
-                  {tecnicosArthur.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.nome}
-                      {t.login ? ` (${t.login})` : ""}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          ) : null}
-          <DialogFooter className="gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setAgendarAberto(false);
-                setLinhaAcao(null);
-              }}
-              disabled={salvando}
-            >
-              Cancelar
-            </Button>
-            <Button type="button" onClick={handleCriarAgendamento} disabled={salvando}>
-              Enviar para coordenadoria
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
-    </TooltipProvider>
   );
 }

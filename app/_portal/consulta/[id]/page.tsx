@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { ArrowLeft, FileText } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
@@ -15,6 +15,7 @@ import {
   municipeEstaLogado,
   obterTokenMunicipe,
 } from "@/lib/municipe-sessao"
+import { mensagensPreProjetoParaChat } from "@/lib/pre-projeto-chamado-mensagens"
 import * as agendamento from "@/services/agendamentos"
 import type { ISolicitacaoPreProjetoArthurSaboyaDetalhe } from "@/types/solicitacao-pre-projeto-arthur-saboya"
 import { format } from "date-fns"
@@ -47,6 +48,11 @@ export default function ConsultaChamadoDetalhePage() {
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
+
+  const mensagensChat = useMemo(
+    () => (chamado ? mensagensPreProjetoParaChat(chamado) : []),
+    [chamado],
+  )
 
   const carregar = useCallback(async () => {
     const token = obterTokenMunicipe()
@@ -211,7 +217,7 @@ export default function ConsultaChamadoDetalhePage() {
                 </CardContent>
               </Card>
               <PreProjetoChamadoChat
-                mensagens={chamado.mensagens ?? []}
+                mensagens={mensagensChat}
                 onEnviar={enviar}
                 enviando={enviando}
                 titulo="Andamentos do chamado"
