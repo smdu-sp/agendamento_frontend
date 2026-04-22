@@ -11,11 +11,11 @@ import {
 } from '@/components/ui/breadcrumb';
 import { ChevronRight, House } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { isChamadoArthurSaboyaDetalhePath } from '@/lib/pedidos-arthur-saboya-route';
+import { isPedidosPreProjetosArthurSaboyaAreaPath } from '@/lib/pedidos-arthur-saboya-route';
 
 export default function Breadcrumbs() {
 	const pathname = usePathname();
-	if (isChamadoArthurSaboyaDetalhePath(pathname)) {
+	if (isPedidosPreProjetosArthurSaboyaAreaPath(pathname)) {
 		return null;
 	}
 	const segments = pathname === '/' ? [''] : pathname.split('/');

@@ -7,12 +7,12 @@ import Breadcrumbs from "@/components/breadcrumbs";
 import { ModeToggle } from "@/components/toggle-theme";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { isChamadoArthurSaboyaDetalhePath } from "@/lib/pedidos-arthur-saboya-route";
+import { isPedidosPreProjetosArthurSaboyaAreaPath } from "@/lib/pedidos-arthur-saboya-route";
 
-/** Barra superior do app; some na tela de detalhe do chamado Arthur (há barra própria na página). */
+/** Barra superior do app; some na área Arthur Saboya (navbar própria nas páginas). */
 export function AuthInsetHeader() {
   const pathname = usePathname();
-  if (isChamadoArthurSaboyaDetalhePath(pathname)) {
+  if (isPedidosPreProjetosArthurSaboyaAreaPath(pathname)) {
     return null;
   }
 

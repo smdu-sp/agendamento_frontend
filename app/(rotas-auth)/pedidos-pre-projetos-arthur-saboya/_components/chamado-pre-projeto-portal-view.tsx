@@ -231,9 +231,9 @@ export default function ChamadoPreProjetoPortalView({
   const protocoloExibicao = chamado?.protocolo ?? referenciaChamado;
 
   return (
-    <div className="flex min-h-[calc(100dvh-4.5rem)] flex-col bg-[#F6F8FB] text-[#0F172A] antialiased [-webkit-font-smoothing:antialiased]">
+    <div className="-mx-4 flex min-h-[calc(100dvh-4.5rem)] flex-col bg-[#F6F8FB] text-[#0F172A] antialiased [-webkit-font-smoothing:antialiased]">
       <header className="sticky top-0 z-20 border-b border-[#E5EAF2] bg-[rgba(255,255,255,0.85)] backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-3 px-4 py-3.5 sm:px-7">
+        <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between gap-3 px-4 py-3.5 sm:px-7">
           <nav
             className="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-[13px] text-[#64748B]"
             aria-label="Localização no sistema"

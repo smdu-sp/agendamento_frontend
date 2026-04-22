@@ -27,6 +27,7 @@ import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 
 const BASE = "/portal"
+const CONSULTA_BASE = "/consulta"
 
 function rotuloStatus(s: ISolicitacaoPreProjetoArthurSaboya["status"]) {
   switch (s) {
@@ -179,7 +180,7 @@ export default function ConsultaPage() {
                                 <TableCell className="text-sm">{rotuloStatus(row.status)}</TableCell>
                                 <TableCell className="text-right">
                                   <Button asChild size="sm" variant="secondary">
-                                    <Link href={`${BASE}/consulta/${row.id}`}>Abrir chamado</Link>
+                                    <Link href={`${CONSULTA_BASE}/${row.id}`}>Abrir chamado</Link>
                                   </Button>
                                 </TableCell>
                               </TableRow>

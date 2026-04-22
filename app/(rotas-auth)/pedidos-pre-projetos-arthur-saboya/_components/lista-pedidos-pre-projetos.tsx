@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Search } from "lucide-react";
+import { ChevronRight, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -51,7 +51,7 @@ function StatusChip({ status }: { status: ISolicitacaoPreProjetoArthurSaboya["st
   const cfg = configs[status] ?? { bg: "#F1F5F9", text: "#475569", dot: "#94A3B8" };
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
+      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-wide"
       style={{ backgroundColor: cfg.bg, color: cfg.text }}
     >
       <span
@@ -144,7 +144,7 @@ export default function ListaPedidosPreProjetos() {
 
   if (status === "loading" || !token) {
     return (
-      <p className="text-sm text-muted-foreground">
+      <p className="py-6 text-center text-sm text-[#64748B]">
         {status === "loading" ? "Carregando sessão…" : "Sessão indisponível."}
       </p>
     );
@@ -160,136 +160,177 @@ export default function ListaPedidosPreProjetos() {
 
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {[
-          { label: "Total", value: stats?.total, accent: "#0A328D" },
-          { label: "Solicitados", value: stats?.solicitados, accent: "#0A328D" },
-          { label: "Aguardando data", value: stats?.aguardando, accent: "#E56E14" },
-          { label: "Solucionados", value: stats?.respondidos, accent: "#5CC9BD" },
-          { label: "Enviados", value: stats?.enviados, accent: "#7c3aed" },
+          {
+            label: "Total",
+            value: stats?.total,
+            accent: "#0A328D",
+            trend: "Todos os pedidos registrados",
+          },
+          {
+            label: "Solicitados",
+            value: stats?.solicitados,
+            accent: "#0A328D",
+            trend: "Aguardando primeira resposta",
+          },
+          {
+            label: "Aguardando data",
+            value: stats?.aguardando,
+            accent: "#E56E14",
+            trend: "Munícipe deve informar data",
+          },
+          {
+            label: "Solucionados",
+            value: stats?.respondidos,
+            accent: "#5CC9BD",
+            trend: "Encerrados na sala",
+          },
+          {
+            label: "Enviados",
+            value: stats?.enviados,
+            accent: "#7c3aed",
+            trend: "Encaminhados à coordenadoria",
+          },
         ].map((s) => (
           <div
             key={s.label}
-            className="rounded-xl border bg-card px-4 py-3 shadow-sm"
+            className="flex flex-col gap-1.5 rounded-[12px] border border-[#E5EAF2] bg-white px-4 py-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
             style={{ borderLeftWidth: 3, borderLeftColor: s.accent }}
           >
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#64748B]">
               {s.label}
             </p>
-            <p className="mt-1 text-2xl font-bold tracking-tight" style={{ color: s.accent }}>
+            <p className="text-2xl font-bold tracking-tight tabular-nums" style={{ color: s.accent }}>
               {s.value ?? "—"}
             </p>
+            <p className="text-[11.5px] leading-snug text-[#64748B]">{s.trend}</p>
           </div>
         ))}
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            id="busca-pedidos"
-            value={buscaInput}
-            onChange={(e) => setBuscaInput(e.target.value)}
-            placeholder="Nome, e-mail, protocolo ou trecho da dúvida"
-            className="pl-9"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                setPagina(1);
-                setBusca(buscaInput.trim());
-              }
-            }}
-          />
-        </div>
-        <Button
-          type="button"
-          variant="secondary"
-          className="shrink-0"
-          onClick={() => {
-            setPagina(1);
-            setBusca(buscaInput.trim());
-          }}
-        >
-          <Search className="mr-2 h-4 w-4" />
-          Buscar
-        </Button>
-      </div>
-
-      <div
-        className="inline-flex flex-wrap gap-1 rounded-xl p-1"
-        style={{ backgroundColor: "#F1F5F9" }}
-      >
-        {FILTROS.map((f) => {
-          const active = filtroStatus === f.k;
-          return (
-            <button
-              key={f.k}
-              type="button"
-              onClick={() => {
-                setPagina(1);
-                setFiltroStatus(f.k);
+      <div className="mb-3.5 flex flex-wrap items-end gap-2.5 gap-y-3">
+        <div className="flex min-w-[min(100%,240px)] flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94A3B8]" />
+            <Input
+              id="busca-pedidos"
+              value={buscaInput}
+              onChange={(e) => setBuscaInput(e.target.value)}
+              placeholder="Buscar por protocolo, munícipe, e-mail ou trecho da dúvida…"
+              className="h-10 rounded-lg border-[#D7DFEA] bg-white pl-9 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:border-[#0A328D]/40 focus-visible:ring-[#0A328D]/15"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  setPagina(1);
+                  setBusca(buscaInput.trim());
+                }
               }}
-              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all"
-              style={
-                active
-                  ? {
-                      backgroundColor: "#fff",
-                      color: "#0A328D",
-                      boxShadow: "0 1px 2px rgba(15,23,42,.06)",
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-10 shrink-0 gap-2 rounded-lg border-[#D7DFEA] bg-transparent px-4 text-xs font-semibold text-[#334155] hover:bg-[#F8FAFC] sm:text-[13px]"
+            onClick={() => {
+              setPagina(1);
+              setBusca(buscaInput.trim());
+            }}
+          >
+            <Search className="h-4 w-4" />
+            Buscar
+          </Button>
+        </div>
+        <div className="inline-flex max-w-full flex-wrap gap-0.5 rounded-[10px] border border-[#E5EAF2] bg-[#F1F5F9] p-0.5">
+          {FILTROS.map((f) => {
+            const active = filtroStatus === f.k;
+            return (
+              <button
+                key={f.k}
+                type="button"
+                onClick={() => {
+                  setPagina(1);
+                  setFiltroStatus(f.k);
+                }}
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12.5px] font-semibold transition-all"
+                style={
+                  active
+                    ? {
+                        backgroundColor: "#fff",
+                        color: "#0A328D",
+                        boxShadow: "0 1px 2px rgba(15,23,42,.06)",
+                      }
+                    : { color: "#64748B" }
+                }
+              >
+                {f.label}
+                {f.count !== undefined && (
+                  <span
+                    className="rounded-full px-1.5 py-px text-[11px] font-bold"
+                    style={
+                      active
+                        ? { backgroundColor: "rgba(10,50,141,0.1)", color: "#0A328D" }
+                        : { backgroundColor: "rgba(0,0,0,0.06)", color: "#64748B" }
                     }
-                  : { color: "#64748B" }
-              }
-            >
-              {f.label}
-              {f.count !== undefined && (
-                <span
-                  className="rounded-full px-1.5 py-px text-[10px] font-bold"
-                  style={
-                    active
-                      ? { backgroundColor: "#EAF0FB", color: "#0A328D" }
-                      : { backgroundColor: "rgba(0,0,0,0.07)", color: "#64748B" }
-                  }
-                >
-                  {f.count}
-                </span>
-              )}
-            </button>
-          );
-        })}
+                  >
+                    {f.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {erro ? (
         <div
           role="alert"
-          className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          className="rounded-[10px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200"
         >
           {erro}
         </div>
       ) : null}
 
-      <div className="rounded-md border">
-        <Table>
+      <div className="overflow-hidden rounded-[14px] border border-[#E5EAF2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <div className="overflow-x-auto">
+          <Table className="min-w-[960px] text-[13px]">
           <TableHeader>
-            <TableRow>
-              <TableHead>Data</TableHead>
-              <TableHead>Protocolo</TableHead>
-              <TableHead>Munícipe</TableHead>
-              <TableHead>E-mail</TableHead>
-              <TableHead>Coordenadoria</TableHead>
-              <TableHead>Formação</TableHead>
-              <TableHead>Natureza</TableHead>
-              <TableHead>Status</TableHead>
+            <TableRow className="border-[#E5EAF2] hover:bg-transparent">
+              <TableHead className="h-11 w-[140px] min-w-[120px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B] first:pl-4 sm:first:pl-6">
+                Protocolo
+              </TableHead>
+              <TableHead className="h-11 min-w-[180px] bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+                Munícipe
+              </TableHead>
+              <TableHead className="h-11 min-w-[150px] bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+                Natureza
+              </TableHead>
+              <TableHead className="h-11 w-[130px] min-w-[118px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+                Status
+              </TableHead>
+              <TableHead className="h-11 w-[150px] min-w-[130px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+                Abertura
+              </TableHead>
+              <TableHead className="h-11 min-w-[160px] bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+                E-mail
+              </TableHead>
+              <TableHead className="h-11 min-w-[160px] bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+                Coordenadoria
+              </TableHead>
+              <TableHead className="h-11 w-10 bg-[#F8FAFC] px-0 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B] last:pr-4 sm:last:pr-6">
+                <span className="sr-only">Abrir</span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {carregando ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-muted-foreground">
+              <TableRow className="border-[#E5EAF2] hover:bg-transparent">
+                <TableCell colSpan={8} className="py-10 text-center text-[#64748B]">
                   Carregando…
                 </TableCell>
               </TableRow>
             ) : itens.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-muted-foreground">
+              <TableRow className="border-[#E5EAF2] hover:bg-transparent">
+                <TableCell colSpan={8} className="py-10 text-center text-[#64748B]">
                   Nenhum pedido encontrado.
                 </TableCell>
               </TableRow>
@@ -297,65 +338,77 @@ export default function ListaPedidosPreProjetos() {
               itens.map((row) => (
                 <TableRow
                   key={row.id}
-                  className="cursor-pointer hover:bg-muted/50"
+                  className="cursor-pointer border-[#E5EAF2] hover:bg-[#F8FAFC]"
                   onClick={() =>
                     router.push(`${PATH_CHAMADO}/${encodeURIComponent(row.protocolo)}`)
                   }
                 >
-                  <TableCell className="whitespace-nowrap text-sm">
+                  <TableCell className="px-3 py-2.5 font-mono text-[12.5px] font-medium text-[#0F172A] first:pl-4 sm:first:pl-6">
+                    {row.protocolo}
+                  </TableCell>
+                  <TableCell className="max-w-[240px] px-3 py-2.5">
+                    <div className="truncate font-medium text-[#0F172A]">{row.nome}</div>
+                    <div className="truncate text-[11.5px] text-[#64748B]">{row.formacaoTexto}</div>
+                  </TableCell>
+                  <TableCell className="max-w-[200px] px-3 py-2.5">
+                    <span className="inline-block max-w-full truncate rounded-full bg-[#F1F5F9] px-2.5 py-0.5 text-xs font-medium text-[#475569]">
+                      {row.naturezaTexto}
+                    </span>
+                  </TableCell>
+                  <TableCell className="px-3 py-2.5">
+                    <StatusChip status={row.status} />
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap px-3 py-2.5 text-[12.5px] text-[#64748B]">
                     {format(new Date(row.criadoEm), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                   </TableCell>
-                  <TableCell className="font-mono text-sm">{row.protocolo}</TableCell>
-                  <TableCell>{row.nome}</TableCell>
-                  <TableCell className="max-w-[200px] truncate text-sm">{row.email}</TableCell>
-                  <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
+                  <TableCell className="max-w-[200px] truncate px-3 py-2.5 text-[#64748B]">
+                    {row.email}
+                  </TableCell>
+                  <TableCell className="max-w-[200px] truncate px-3 py-2.5 text-[#64748B]">
                     {row.coordenadoriaTexto?.trim() || "—"}
                   </TableCell>
-                  <TableCell className="max-w-[160px] text-sm text-muted-foreground">
-                    {row.formacaoTexto}
-                  </TableCell>
-                  <TableCell className="max-w-[180px] text-sm text-muted-foreground">
-                    {row.naturezaTexto}
-                  </TableCell>
-                  <TableCell>
-                    <StatusChip status={row.status} />
+                  <TableCell className="w-10 px-0 text-[#94A3B8] last:pr-4 sm:last:pr-6">
+                    <ChevronRight className="mx-auto h-4 w-4 shrink-0" aria-hidden />
                   </TableCell>
                 </TableRow>
               ))
             )}
           </TableBody>
         </Table>
-      </div>
-
-      {total > LIMITE ? (
-        <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
-          <span>
-            Página {pagina} de {totalPaginas} — {total} registro(s)
-          </span>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={pagina <= 1 || carregando}
-              onClick={() => setPagina((p) => Math.max(1, p - 1))}
-            >
-              Anterior
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={pagina >= totalPaginas || carregando}
-              onClick={() => setPagina((p) => p + 1)}
-            >
-              Próxima
-            </Button>
-          </div>
         </div>
-      ) : total > 0 ? (
-        <p className="text-sm text-muted-foreground">{total} pedido(s).</p>
-      ) : null}
+
+        {total > LIMITE ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#E5EAF2] px-4 py-3.5 text-[13px] text-[#64748B] sm:px-5">
+            <span>
+              Página {pagina} de {totalPaginas} — {total} registro(s)
+            </span>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9 rounded-lg border-[#D7DFEA] bg-transparent text-xs font-semibold text-[#334155] hover:bg-[#F8FAFC] sm:text-[13px]"
+                disabled={pagina <= 1 || carregando}
+                onClick={() => setPagina((p) => Math.max(1, p - 1))}
+              >
+                Anterior
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9 rounded-lg border-[#D7DFEA] bg-transparent text-xs font-semibold text-[#334155] hover:bg-[#F8FAFC] sm:text-[13px]"
+                disabled={pagina >= totalPaginas || carregando}
+                onClick={() => setPagina((p) => p + 1)}
+              >
+                Próxima
+              </Button>
+            </div>
+          </div>
+        ) : total > 0 ? (
+          <p className="border-t border-[#E5EAF2] px-4 py-3.5 text-[13px] text-[#64748B] sm:px-5">{total} pedido(s).</p>
+        ) : null}
+      </div>
     </div>
   );
 }

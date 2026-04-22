@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { ArrowLeft, FileText } from "lucide-react"
+import { ArrowLeft, ChevronRight, Mail } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { ArthurSaboyaFooter } from "@/components/arthur-saboya/footer"
@@ -22,6 +22,8 @@ import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 
 const BASE = "/portal"
+const LISTA_PATH = "/consulta"
+const PROXIMA_PREFIX = "/consulta"
 
 function rotuloStatus(s: ISolicitacaoPreProjetoArthurSaboyaDetalhe["status"]) {
   switch (s) {
@@ -36,6 +38,35 @@ function rotuloStatus(s: ISolicitacaoPreProjetoArthurSaboyaDetalhe["status"]) {
     default:
       return s
   }
+}
+
+function InfoItem({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-0.5">
+      <dt className="text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">{label}</dt>
+      <dd className="text-[13.5px] font-medium leading-snug text-[#0F172A]">{children}</dd>
+    </div>
+  )
+}
+
+const CHIP_CONFIGS: Record<string, { bg: string; text: string; dot: string }> = {
+  SOLICITADO: { bg: "#EAF0FB", text: "#0A328D", dot: "#0A328D" },
+  RESPONDIDO: { bg: "#EDF7F5", text: "#0f8578", dot: "#5CC9BD" },
+  AGUARDANDO_DATA: { bg: "#FDF3EB", text: "#a94a08", dot: "#E56E14" },
+  AGENDAMENTO_CRIADO: { bg: "#F3F0FB", text: "#4a2098", dot: "#7c3aed" },
+}
+
+function StatusChip({ status }: { status: ISolicitacaoPreProjetoArthurSaboyaDetalhe["status"] }) {
+  const cfg = CHIP_CONFIGS[status] ?? { bg: "#F1F5F9", text: "#475569", dot: "#94A3B8" }
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-wide"
+      style={{ backgroundColor: cfg.bg, color: cfg.text }}
+    >
+      <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: cfg.dot }} />
+      {rotuloStatus(status)}
+    </span>
+  )
 }
 
 export default function ConsultaChamadoDetalhePage() {
@@ -121,7 +152,7 @@ export default function ConsultaChamadoDetalhePage() {
         <ArthurSaboyaHeader />
         <ArthurSaboyaPageBackgroundBanner>
           <Link
-            href={`${BASE}/acesso?proxima=${encodeURIComponent(`${BASE}/consulta/${id}`)}`}
+            href={`${BASE}/acesso?proxima=${encodeURIComponent(`${PROXIMA_PREFIX}/${id}`)}`}
             className="mb-4 inline-flex items-center gap-2 text-sm text-white/90 hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -138,12 +169,12 @@ export default function ConsultaChamadoDetalhePage() {
               </CardHeader>
               <CardContent className="flex flex-col gap-2">
                 <Button asChild>
-                  <Link href={`${BASE}/acesso?proxima=${encodeURIComponent(`${BASE}/consulta/${id}`)}`}>
+                  <Link href={`${BASE}/acesso?proxima=${encodeURIComponent(`${PROXIMA_PREFIX}/${id}`)}`}>
                     Entrar
                   </Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link href={`${BASE}/consulta`}>Voltar à lista</Link>
+                  <Link href={LISTA_PATH}>Voltar à lista</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -154,80 +185,144 @@ export default function ConsultaChamadoDetalhePage() {
     )
   }
 
+  const protocoloExibicao = chamado?.protocolo ?? id
+
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-[#F6F8FB] text-[#0F172A]">
       <ArthurSaboyaHeader />
       <ArthurSaboyaPageBackgroundBanner>
-        <button
-          type="button"
-          onClick={() => router.push(`${BASE}/consulta`)}
-          className="mb-4 inline-flex items-center gap-2 text-sm text-white/90 transition-colors hover:text-white"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Voltar à lista
-        </button>
-        <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#E56E14]">
-            <FileText className="h-7 w-7 text-white" />
-          </div>
-          <div>
+        <div className="mx-auto w-full max-w-[1400px]">
+          <nav
+            className="mb-4 flex min-w-0 flex-wrap items-center gap-2 text-[13px] text-white/85"
+            aria-label="Localização no portal"
+          >
+            <Link href={BASE} className="font-medium transition-colors hover:text-white">
+              Início
+            </Link>
+            <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
+            <Link href={LISTA_PATH} className="font-medium transition-colors hover:text-white">
+              Meus chamados
+            </Link>
+            <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
+            <span className="font-mono font-semibold tracking-tight text-white">{protocoloExibicao}</span>
+          </nav>
+
+          <button
+            type="button"
+            onClick={() => router.push(LISTA_PATH)}
+            className="mb-4 inline-flex items-center gap-2 text-sm text-white/90 transition-colors hover:text-white"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar à lista
+          </button>
+
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
             <h1 className="text-2xl font-bold text-white md:text-3xl">
               {chamado ? `Chamado ${chamado.protocolo}` : "Chamado"}
             </h1>
-            <p className="text-white/90">Pré-projetos — Sala Arthur Saboya</p>
+            {chamado ? <StatusChip status={chamado.status} /> : null}
           </div>
+          <p className="mt-1 text-white/90">Pré-projetos — Sala Arthur Saboya</p>
         </div>
       </ArthurSaboyaPageBackgroundBanner>
-      <main className="flex-1 bg-[#D1EBE8]/20 py-10">
-        <div className="container mx-auto max-w-3xl px-4">
+
+      <main className="flex-1 py-8 sm:py-10">
+        <div className="mx-auto flex min-h-0 w-full max-w-[1400px] flex-1 flex-col px-4 pb-8 sm:px-7 sm:pb-10">
           {erro ? (
             <div
               role="alert"
-              className="mb-4 rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+              className="mb-4 rounded-[10px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
             >
               {erro}
             </div>
           ) : null}
-          {carregando ? (
-            <p className="text-sm text-muted-foreground">Carregando chamado…</p>
-          ) : chamado ? (
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Dados do pedido</CardTitle>
-                  <CardDescription>
-                    Aberto em{" "}
-                    {format(new Date(chamado.criadoEm), "dd/MM/yyyy HH:mm", { locale: ptBR })} — status:{" "}
-                    <strong>{rotuloStatus(chamado.status)}</strong>
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-2 text-sm sm:grid-cols-2">
-                  <p>
-                    <span className="text-muted-foreground">Solicitante:</span> {chamado.nome}
-                  </p>
-                  <p>
-                    <span className="text-muted-foreground">E-mail:</span> {chamado.email}
-                  </p>
-                  <p className="sm:col-span-2">
-                    <span className="text-muted-foreground">Formação:</span> {chamado.formacaoTexto}
-                  </p>
-                  <p className="sm:col-span-2">
-                    <span className="text-muted-foreground">Natureza:</span> {chamado.naturezaTexto}
-                  </p>
-                </CardContent>
-              </Card>
-              <PreProjetoChamadoChat
-                mensagens={mensagensChat}
-                onEnviar={enviar}
-                enviando={enviando}
-                titulo="Andamentos do chamado"
-              />
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">Não foi possível exibir este chamado.</p>
-          )}
+
+          <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-5 lg:grid-cols-[320px_1fr] lg:gap-5">
+            <aside className="flex w-full shrink-0 flex-col lg:w-full">
+              <div className="overflow-hidden rounded-[14px] border border-[#E5EAF2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] lg:sticky lg:top-8">
+                {chamado ? (
+                  <>
+                    <div className="border-b border-[#E5EAF2] px-5 pb-4 pt-1">
+                      <div className="flex items-center gap-3 py-4">
+                        <div
+                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[15px] font-bold"
+                          style={{ backgroundColor: "#EDBA94", color: "#0A328D" }}
+                        >
+                          {chamado.nome
+                            .split(" ")
+                            .filter(Boolean)
+                            .slice(0, 2)
+                            .map((n) => n[0]?.toUpperCase())
+                            .join("")}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-[#0F172A]">{chamado.nome}</p>
+                          <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-[#64748B]">
+                            <Mail className="h-3 w-3 shrink-0 opacity-80" />
+                            {chamado.email}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="px-5 py-5">
+                      <div className="flex flex-col gap-3.5 text-sm">
+                        <dl className="flex flex-col gap-3.5">
+                          <InfoItem label="Protocolo">
+                            <span className="font-mono text-[12.5px] font-medium tracking-tight text-[#0F172A]">
+                              {chamado.protocolo}
+                            </span>
+                          </InfoItem>
+                          <InfoItem label="Abertura">
+                            {format(new Date(chamado.criadoEm), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                          </InfoItem>
+                          <InfoItem label="Formação">{chamado.formacaoTexto}</InfoItem>
+                          <InfoItem label="Natureza">{chamado.naturezaTexto}</InfoItem>
+                        </dl>
+                        {chamado.emailContatoDivisao ? (
+                          <div className="rounded-[10px] border border-dashed border-[#5CC9BD] bg-[#EDF7F5] p-3 text-xs">
+                            <p className="font-semibold text-[#0f8578]">Contato institucional</p>
+                            <p className="mt-1 wrap-break-word text-[#64748B]">{chamado.emailContatoDivisao}</p>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="px-5 py-5">
+                    <p className="text-sm text-[#64748B]">
+                      {carregando ? "Carregando dados…" : "Não foi possível carregar os dados deste chamado."}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </aside>
+
+            <section className="flex min-h-[min(52vh,520px)] min-w-0 flex-col lg:min-h-0 lg:flex-1">
+              {carregando ? (
+                <div className="flex flex-1 items-center justify-center rounded-[14px] border border-dashed border-[#E5EAF2] bg-white/60 p-8 text-sm text-[#64748B]">
+                  Carregando conversa…
+                </div>
+              ) : chamado ? (
+                <PreProjetoChamadoChat
+                  variante="painel"
+                  mensagens={mensagensChat}
+                  onEnviar={enviar}
+                  enviando={enviando}
+                  perspectiva="municipe"
+                  titulo="Linha do tempo"
+                  placeholder="Escreva sua mensagem para a equipe da Sala Arthur Saboya…"
+                />
+              ) : (
+                <div className="flex flex-1 items-center justify-center rounded-[14px] border border-dashed border-[#E5EAF2] p-8 text-sm text-[#64748B]">
+                  Não foi possível exibir este chamado.
+                </div>
+              )}
+            </section>
+          </div>
         </div>
       </main>
+
       <ArthurSaboyaFooter />
     </div>
   )

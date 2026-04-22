@@ -4,14 +4,7 @@ import { auth } from "@/lib/auth/auth";
 import { redirect } from "next/navigation";
 import { validaUsuario } from "@/services/usuarios";
 import { usuarioPodeAcessarPedidosPreProjetosArthurSaboya } from "@/lib/pedidos-pre-projetos-arthur-saboya-acesso";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import ListaPedidosPreProjetos from "./_components/lista-pedidos-pre-projetos";
+import { ListaPedidosArthurSaboyaShell } from "./_components/lista-pedidos-arthur-saboya-shell";
 
 export default async function PedidosPreProjetosArthurSaboyaPage() {
   const session = await auth();
@@ -22,27 +15,5 @@ export default async function PedidosPreProjetosArthurSaboyaPage() {
     redirect("/");
   }
 
-  return (
-    <div className="relative w-full px-0 pb-10 md:px-8 md:pb-0">
-      <h1 className="mb-2 text-xl font-bold md:text-4xl">
-        Pedidos — Pré-projetos (Arthur Saboya)
-      </h1>
-      <p className="mb-6 text-sm text-muted-foreground md:text-base">
-        Solicitações públicas registradas na Sala Arthur Saboya. Acesso restrito
-        ao ponto focal e administradores da divisão configurada (ou DEV).
-      </p>
-      <Card>
-        <CardHeader>
-          <CardTitle>Listagem</CardTitle>
-          <CardDescription>
-            Clique em uma linha para abrir o chamado em tela cheia (dados + linha do tempo). Use a
-            busca para filtrar por nome, e-mail, protocolo ou trecho da dúvida.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ListaPedidosPreProjetos />
-        </CardContent>
-      </Card>
-    </div>
-  );
+  return <ListaPedidosArthurSaboyaShell />;
 }

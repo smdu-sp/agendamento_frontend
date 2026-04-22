@@ -12,9 +12,12 @@ import type {
   IMensagemPreProjetoArthurSaboya,
 } from "@/types/solicitacao-pre-projeto-arthur-saboya"
 
-function alinhamento(autor: AutorMensagemPreProjetoArthurSaboya): "left" | "right" | "center" {
-  if (autor === "MUNICIPE") return "left"
-  if (autor === "PONTO_FOCAL") return "right"
+function alinhamento(
+  autor: AutorMensagemPreProjetoArthurSaboya,
+  perspectiva: "tecnico" | "municipe",
+): "left" | "right" | "center" {
+  if (autor === "MUNICIPE") return perspectiva === "municipe" ? "right" : "left"
+  if (autor === "PONTO_FOCAL") return perspectiva === "municipe" ? "left" : "right"
   return "center"
 }
 
@@ -35,6 +38,7 @@ export function PreProjetoChamadoChat({
   placeholder = "Escreva a resposta ao munícipe (registrada no chamado)…",
   titulo = "Linha do tempo",
   variante = "card",
+  perspectiva = "tecnico",
 }: {
   mensagens: IMensagemPreProjetoArthurSaboya[]
   onEnviar: (texto: string) => void | Promise<void>
@@ -42,6 +46,7 @@ export function PreProjetoChamadoChat({
   placeholder?: string
   titulo?: string
   variante?: "card" | "painel"
+  perspectiva?: "tecnico" | "municipe"
 }) {
   const [texto, setTexto] = useState("")
   const fimRef = useRef<HTMLDivElement>(null)
@@ -124,7 +129,7 @@ export function PreProjetoChamadoChat({
           </p>
         ) : (
           mensagens.map((m) => {
-            const pos = alinhamento(m.autor)
+            const pos = alinhamento(m.autor, perspectiva)
             const isCentro = pos === "center"
 
             if (isCentro) {
@@ -210,10 +215,10 @@ export function PreProjetoChamadoChat({
                     style={
                       painel
                         ? isOutgoing
-                          ? { backgroundColor: "#E56E14", color: "#fff" }
+                          ? { backgroundColor: "#0A328D", color: "#fff" }
                           : {}
                         : isOutgoing
-                          ? { backgroundColor: "#E56E14", color: "#fff" }
+                          ? { backgroundColor: "#0A328D", color: "#fff" }
                           : { backgroundColor: "#F1F5F9", color: "#0F172A" }
                     }
                   >
