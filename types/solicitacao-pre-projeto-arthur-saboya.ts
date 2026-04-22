@@ -34,6 +34,7 @@ export interface ISolicitacaoPreProjetoArthurSaboya {
   duvida: string;
   status: StatusSolicitacaoPreProjetoArthurSaboya;
   agendamentoId?: string | null;
+  dataAgendamento?: string | null;
   avaliacaoNota?: number | null;
   avaliacaoComentario?: string | null;
   avaliacaoEm?: string | null;

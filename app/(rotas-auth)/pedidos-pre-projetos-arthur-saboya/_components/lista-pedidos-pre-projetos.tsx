@@ -292,7 +292,7 @@ export default function ListaPedidosPreProjetos() {
 
       <div className="overflow-hidden rounded-[14px] border border-[#E5EAF2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
         <div className="overflow-x-auto">
-          <Table className="min-w-[960px] text-[13px]">
+          <Table className="min-w-[1080px] text-[13px]">
           <TableHeader>
             <TableRow className="border-[#E5EAF2] hover:bg-transparent">
               <TableHead className="h-11 w-[140px] min-w-[120px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B] first:pl-4 sm:first:pl-6">
@@ -310,6 +310,9 @@ export default function ListaPedidosPreProjetos() {
               <TableHead className="h-11 w-[150px] min-w-[130px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
                 Abertura
               </TableHead>
+              <TableHead className="h-11 w-[170px] min-w-[150px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+                Data agendamento
+              </TableHead>
               <TableHead className="h-11 min-w-[160px] bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
                 E-mail
               </TableHead>
@@ -324,13 +327,13 @@ export default function ListaPedidosPreProjetos() {
           <TableBody>
             {carregando ? (
               <TableRow className="border-[#E5EAF2] hover:bg-transparent">
-                <TableCell colSpan={8} className="py-10 text-center text-[#64748B]">
+                <TableCell colSpan={9} className="py-10 text-center text-[#64748B]">
                   Carregando…
                 </TableCell>
               </TableRow>
             ) : itens.length === 0 ? (
               <TableRow className="border-[#E5EAF2] hover:bg-transparent">
-                <TableCell colSpan={8} className="py-10 text-center text-[#64748B]">
+                <TableCell colSpan={9} className="py-10 text-center text-[#64748B]">
                   Nenhum pedido encontrado.
                 </TableCell>
               </TableRow>
@@ -360,6 +363,11 @@ export default function ListaPedidosPreProjetos() {
                   </TableCell>
                   <TableCell className="whitespace-nowrap px-3 py-2.5 text-[12.5px] text-[#64748B]">
                     {format(new Date(row.criadoEm), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap px-3 py-2.5 text-[12.5px] text-[#64748B]">
+                    {row.dataAgendamento
+                      ? format(new Date(row.dataAgendamento), "dd/MM/yyyy HH:mm", { locale: ptBR })
+                      : "—"}
                   </TableCell>
                   <TableCell className="max-w-[200px] truncate px-3 py-2.5 text-[#64748B]">
                     {row.email}

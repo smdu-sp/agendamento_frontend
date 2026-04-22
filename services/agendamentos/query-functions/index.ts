@@ -15,6 +15,7 @@ export {
   confirmarRespostaEnviadaPortalArthurSaboya,
   marcarAguardandoDataPortalArthurSaboya,
   criarAgendamentoDaSolicitacaoPortalArthurSaboya,
+  atribuirTecnicoCoordenadoriaSolicitacaoPortalArthurSaboya,
 } from "./portal-arthur-saboya-solicitacoes-mutacoes";
 export { buscarDoDia } from "./buscar-do-dia";
 export { buscarPorId } from "./buscar-por-id";

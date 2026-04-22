@@ -108,6 +108,9 @@ export default function ChamadoPreProjetoPortalView({
   const [tecnicoArthurIdAgendamento, setTecnicoArthurIdAgendamento] = useState("");
   const [listaCoord, setListaCoord] = useState<ICoordenadoria[]>([]);
   const [tecnicosArthur, setTecnicosArthur] = useState<ITecnico[]>([]);
+  const [atribuirCoordAberto, setAtribuirCoordAberto] = useState(false);
+  const [tecnicosCoordenadoria, setTecnicosCoordenadoria] = useState<ITecnico[]>([]);
+  const [tecnicoCoordenadoriaId, setTecnicoCoordenadoriaId] = useState("");
   const [salvando, setSalvando] = useState(false);
 
   const mensagensChat = useMemo(
@@ -159,6 +162,23 @@ export default function ChamadoPreProjetoPortalView({
       }
     })();
   }, [token, status, chamado?.divisaoId]);
+
+  useEffect(() => {
+    if (!token || status === "loading" || !atribuirCoordAberto) return;
+    const coordId = chamado?.coordenadoriaId?.trim();
+    if (!coordId) {
+      setTecnicosCoordenadoria([]);
+      return;
+    }
+    void (async () => {
+      const r = await usuario.buscarTecnicosPorCoordenadoria(coordId, token);
+      if (r.ok && Array.isArray(r.data)) {
+        setTecnicosCoordenadoria(r.data as ITecnico[]);
+      } else {
+        setTecnicosCoordenadoria([]);
+      }
+    })();
+  }, [token, status, atribuirCoordAberto, chamado?.coordenadoriaId]);
 
   const handleEnviarMensagem = async (texto: string) => {
     if (!token) return;
@@ -249,11 +269,38 @@ export default function ChamadoPreProjetoPortalView({
     );
     setSalvando(false);
     if (!res.ok) {
-      toast.error(res.error ?? "Falha ao criar agendamento.");
+      toast.error(res.error ?? "Falha ao encaminhar para a coordenadoria.");
       return;
     }
     toast.success("Solicitação enviada para a coordenadoria.");
     setAgendarAberto(false);
+    void carregarChamado();
+  };
+
+  const abrirAtribuirTecnicoCoordenadoria = () => {
+    setTecnicoCoordenadoriaId("");
+    setAtribuirCoordAberto(true);
+  };
+
+  const handleAtribuirTecnicoCoordenadoria = async () => {
+    if (!token || !chamado) return;
+    if (!tecnicoCoordenadoriaId) {
+      toast.error("Selecione o técnico da coordenadoria.");
+      return;
+    }
+    setSalvando(true);
+    const res = await agendamento.atribuirTecnicoCoordenadoriaSolicitacaoPortalArthurSaboya(
+      token,
+      chamado.protocolo,
+      { tecnicoId: tecnicoCoordenadoriaId },
+    );
+    setSalvando(false);
+    if (!res.ok) {
+      toast.error(res.error ?? "Falha ao atribuir técnico da coordenadoria.");
+      return;
+    }
+    toast.success("Técnico da coordenadoria atribuído com sucesso.");
+    setAtribuirCoordAberto(false);
     void carregarChamado();
   };
 
@@ -266,6 +313,26 @@ export default function ChamadoPreProjetoPortalView({
   }
 
   const protocoloExibicao = chamado?.protocolo ?? referenciaChamado;
+  const permissaoUsuario = String((session?.usuario as { permissao?: string } | undefined)?.permissao ?? "");
+  const divisaoUsuario = (session?.usuario as { divisaoId?: string } | undefined)?.divisaoId?.trim();
+  const divisaoArthur = process.env.NEXT_PUBLIC_DIVISAO_ID_PRE_PROJETOS?.trim();
+  const usuarioArthur =
+    permissaoUsuario === "DEV" ||
+    permissaoUsuario === "ADM" ||
+    (permissaoUsuario === "PONTO_FOCAL" &&
+      !!divisaoArthur &&
+      !!divisaoUsuario &&
+      divisaoUsuario === divisaoArthur);
+  const tecnicoArthurPodeEnviarMensagem =
+    permissaoUsuario === "TEC" &&
+    !!divisaoArthur &&
+    !!divisaoUsuario &&
+    divisaoUsuario === divisaoArthur;
+  const usuarioPodeAtribuirCoordenadoria =
+    permissaoUsuario === "COORDENADOR" ||
+    (permissaoUsuario === "PONTO_FOCAL" && !usuarioArthur) ||
+    permissaoUsuario === "ADM" ||
+    permissaoUsuario === "DEV";
 
   return (
     <div className="-mx-4 flex min-h-[calc(100dvh-4.5rem)] flex-col bg-[#F6F8FB] text-[#0F172A] antialiased [-webkit-font-smoothing:antialiased]">
@@ -315,31 +382,48 @@ export default function ChamadoPreProjetoPortalView({
           </div>
           {chamado ? (
             <div className="flex w-full flex-wrap justify-end gap-2 sm:ml-auto sm:w-auto">
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="h-9 gap-2 rounded-lg border-[#D7DFEA] bg-transparent px-2.5 py-1.5 text-xs font-semibold text-[#334155] hover:bg-[#F8FAFC] disabled:opacity-55 sm:px-3 sm:text-[13px]"
-                disabled={chamado.status !== "SOLICITADO" || salvando}
-                onClick={() => setConfirmAberto(true)}
-              >
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                Marcar solucionado
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                className="h-9 gap-2 rounded-lg border border-transparent bg-[#E56E14] px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-[#c95d0e] disabled:opacity-55 sm:px-3 sm:text-[13px]"
-                disabled={
-                  !!chamado.agendamentoId ||
-                  !["SOLICITADO", "AGUARDANDO_DATA"].includes(chamado.status) ||
-                  salvando
-                }
-                onClick={abrirAgendar}
-              >
-                <Send className="h-3.5 w-3.5" />
-                Enviar à coordenadoria
-              </Button>
+              {usuarioArthur ? (
+                <>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="h-9 gap-2 rounded-lg border-[#D7DFEA] bg-transparent px-2.5 py-1.5 text-xs font-semibold text-[#334155] hover:bg-[#F8FAFC] disabled:opacity-55 sm:px-3 sm:text-[13px]"
+                    disabled={chamado.status !== "SOLICITADO" || salvando}
+                    onClick={() => setConfirmAberto(true)}
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    Marcar solucionado
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-9 gap-2 rounded-lg border border-transparent bg-[#E56E14] px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-[#c95d0e] disabled:opacity-55 sm:px-3 sm:text-[13px]"
+                    disabled={
+                      !!chamado.agendamentoId ||
+                      !["SOLICITADO", "AGUARDANDO_DATA"].includes(chamado.status) ||
+                      salvando
+                    }
+                    onClick={abrirAgendar}
+                  >
+                    <Send className="h-3.5 w-3.5" />
+                    Enviar à coordenadoria
+                  </Button>
+                </>
+              ) : null}
+              {usuarioPodeAtribuirCoordenadoria ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-9 gap-2 rounded-lg border-[#D7DFEA] bg-transparent px-2.5 py-1.5 text-xs font-semibold text-[#334155] hover:bg-[#F8FAFC] disabled:opacity-55 sm:px-3 sm:text-[13px]"
+                  disabled={chamado.status !== "AGENDAMENTO_CRIADO" || salvando}
+                  onClick={abrirAtribuirTecnicoCoordenadoria}
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Atribuir técnico da coordenadoria
+                </Button>
+              ) : null}
             </div>
           ) : null}
         </div>
@@ -414,7 +498,17 @@ export default function ChamadoPreProjetoPortalView({
                 mensagens={mensagensChat}
                 onEnviar={handleEnviarMensagem}
                 enviando={enviandoChat}
-                bloqueado={chamado.status === "RESPONDIDO"}
+                bloqueado={chamado.status === "RESPONDIDO" || !tecnicoArthurPodeEnviarMensagem}
+                placeholderBloqueado={
+                  chamado.status === "RESPONDIDO"
+                    ? "Este chamado foi solucionado e não aceita novas mensagens."
+                    : "Somente o técnico da Sala Arthur Saboya e o munícipe podem enviar mensagens."
+                }
+                mensagemBloqueado={
+                  chamado.status === "RESPONDIDO"
+                    ? "Chamado solucionado: envio de mensagens desativado."
+                    : "Envio de mensagens indisponível para este perfil neste chamado."
+                }
                 titulo="Linha do tempo"
               />
             ) : (
@@ -539,6 +633,57 @@ export default function ChamadoPreProjetoPortalView({
             </Button>
             <Button type="button" onClick={() => void handleCriarAgendamento()} disabled={salvando}>
               Enviar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={atribuirCoordAberto} onOpenChange={setAtribuirCoordAberto}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Atribuir técnico da coordenadoria</DialogTitle>
+          </DialogHeader>
+          {chamado ? (
+            <div className="space-y-3 text-sm">
+              <p>
+                <span className="font-medium">Protocolo:</span> {chamado.protocolo}
+              </p>
+              <div className="space-y-1">
+                <label className="font-medium" htmlFor="tecnico-coord-full">
+                  Técnico da coordenadoria
+                </label>
+                <select
+                  id="tecnico-coord-full"
+                  className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                  value={tecnicoCoordenadoriaId}
+                  onChange={(e) => setTecnicoCoordenadoriaId(e.target.value)}
+                >
+                  <option value="">Selecione…</option>
+                  {tecnicosCoordenadoria.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.nome}
+                      {t.login ? ` (${t.login})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          ) : null}
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setAtribuirCoordAberto(false)}
+              disabled={salvando}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={() => void handleAtribuirTecnicoCoordenadoria()}
+              disabled={salvando}
+            >
+              Confirmar atribuição
             </Button>
           </DialogFooter>
         </DialogContent>

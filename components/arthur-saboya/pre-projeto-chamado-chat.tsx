@@ -38,6 +38,7 @@ export function PreProjetoChamadoChat({
   bloqueado = false,
   placeholder = "Escreva a resposta ao munícipe (registrada no chamado)…",
   placeholderBloqueado = "Este chamado foi solucionado e não aceita novas mensagens.",
+  mensagemBloqueado = "Chamado solucionado: envio de mensagens desativado.",
   titulo = "Linha do tempo",
   variante = "card",
   perspectiva = "tecnico",
@@ -48,6 +49,7 @@ export function PreProjetoChamadoChat({
   bloqueado?: boolean
   placeholder?: string
   placeholderBloqueado?: string
+  mensagemBloqueado?: string
   titulo?: string
   variante?: "card" | "painel"
   perspectiva?: "tecnico" | "municipe"
@@ -274,7 +276,7 @@ export function PreProjetoChamadoChat({
           )}
         >
           <span className="text-xs text-[#64748B]">
-            {bloqueado ? "Chamado solucionado: envio de mensagens desativado." : "Ctrl/⌘ + Enter para enviar"}
+            {bloqueado ? mensagemBloqueado : "Ctrl/⌘ + Enter para enviar"}
           </span>
           <Button
             type="button"

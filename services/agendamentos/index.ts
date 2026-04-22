@@ -11,6 +11,7 @@ export {
   confirmarRespostaEnviadaPortalArthurSaboya,
   marcarAguardandoDataPortalArthurSaboya,
   criarAgendamentoDaSolicitacaoPortalArthurSaboya,
+  atribuirTecnicoCoordenadoriaSolicitacaoPortalArthurSaboya,
   buscarDoDia,
   buscarPorId,
   getUltimaImportacaoPlanilha,
