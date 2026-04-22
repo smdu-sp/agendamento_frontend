@@ -5,7 +5,8 @@ export {
     listaCompleta,
     validaUsuario,
     buscarTecnicosPorCoordenadoria,
-    buscarTecnicosPorDivisao
+    buscarTecnicosPorDivisao,
+    buscarTecnicosArthurSaboya
 } from './query-functions';
 export type { ITecnico } from './query-functions';
 

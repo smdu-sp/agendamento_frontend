@@ -204,3 +204,119 @@ export async function enviarMensagemChamadoPreProjetosMunicipe(
     };
   }
 }
+
+export async function marcarChamadoPreProjetosMunicipeComoSolucionado(
+  municipeToken: string,
+  id: string,
+): Promise<IRespostaDetalheChamadoMunicipe> {
+  const baseURL = getApiUrl();
+  if (!baseURL) {
+    return {
+      ok: false,
+      error: "URL da API não configurada.",
+      data: null,
+      status: 400,
+    };
+  }
+  const url = `${baseURL}agendamentos/municipes/pre-projetos-chamados/${id}/marcar-solucionado`;
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: authMunicipe(municipeToken),
+      cache: "no-store",
+    });
+    let body: unknown;
+    try {
+      body = await res.json();
+    } catch {
+      return {
+        ok: false,
+        error: `Resposta inválida (status ${res.status}).`,
+        data: null,
+        status: res.status || 400,
+      };
+    }
+    if (res.status === 200 || res.status === 201) {
+      return {
+        ok: true,
+        error: null,
+        data: body as ISolicitacaoPreProjetoArthurSaboyaDetalhe,
+        status: res.status,
+      };
+    }
+    const msg =
+      typeof body === "object" &&
+      body !== null &&
+      "message" in body &&
+      typeof (body as { message: unknown }).message === "string"
+        ? (body as { message: string }).message
+        : `Erro ${res.status}`;
+    return { ok: false, error: msg, data: null, status: res.status };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : String(e),
+      data: null,
+      status: 400,
+    };
+  }
+}
+
+export async function avaliarChamadoPreProjetosMunicipe(
+  municipeToken: string,
+  id: string,
+  payload: { nota: number; comentario?: string },
+): Promise<IRespostaDetalheChamadoMunicipe> {
+  const baseURL = getApiUrl();
+  if (!baseURL) {
+    return {
+      ok: false,
+      error: "URL da API não configurada.",
+      data: null,
+      status: 400,
+    };
+  }
+  const url = `${baseURL}agendamentos/municipes/pre-projetos-chamados/${id}/avaliacao`;
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: authMunicipe(municipeToken),
+      body: JSON.stringify(payload),
+      cache: "no-store",
+    });
+    let body: unknown;
+    try {
+      body = await res.json();
+    } catch {
+      return {
+        ok: false,
+        error: `Resposta inválida (status ${res.status}).`,
+        data: null,
+        status: res.status || 400,
+      };
+    }
+    if (res.status === 200 || res.status === 201) {
+      return {
+        ok: true,
+        error: null,
+        data: body as ISolicitacaoPreProjetoArthurSaboyaDetalhe,
+        status: res.status,
+      };
+    }
+    const msg =
+      typeof body === "object" &&
+      body !== null &&
+      "message" in body &&
+      typeof (body as { message: unknown }).message === "string"
+        ? (body as { message: string }).message
+        : `Erro ${res.status}`;
+    return { ok: false, error: msg, data: null, status: res.status };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : String(e),
+      data: null,
+      status: 400,
+    };
+  }
+}

@@ -62,6 +62,17 @@ const CHIP_CONFIGS: Record<string, { bg: string; text: string; dot: string }> = 
   AGENDAMENTO_CRIADO: { bg: "#F3F0FB", text: "#4a2098", dot: "#7c3aed" },
 };
 
+const HORA_INICIO_FUNCIONAMENTO = 13;
+const HORA_FIM_FUNCIONAMENTO = 17;
+
+const HORARIOS_MEIA_HORA = Array.from(
+  { length: (HORA_FIM_FUNCIONAMENTO - HORA_INICIO_FUNCIONAMENTO) * 2 + 1 },
+  (_, i) => {
+  const hora = String(HORA_INICIO_FUNCIONAMENTO + Math.floor(i / 2)).padStart(2, "0");
+  const minuto = i % 2 === 0 ? "00" : "30";
+  return `${hora}:${minuto}`;
+});
+
 function StatusChip({ status }: { status: ISolicitacaoPreProjetoArthurSaboyaDetalhe["status"] }) {
   const cfg = CHIP_CONFIGS[status] ?? { bg: "#F1F5F9", text: "#475569", dot: "#94A3B8" };
   return (
@@ -136,15 +147,18 @@ export default function ChamadoPreProjetoPortalView({
 
   useEffect(() => {
     if (!token || status === "loading") return;
-    const divisaoArthur = process.env.NEXT_PUBLIC_DIVISAO_ID_PRE_PROJETOS?.trim();
-    if (!divisaoArthur) return;
     void (async () => {
-      const r = await usuario.buscarTecnicosPorDivisao(divisaoArthur, token);
+      const divisaoArthur = chamado?.divisaoId?.trim();
+      const r = divisaoArthur
+        ? await usuario.buscarTecnicosPorDivisao(divisaoArthur, token)
+        : await usuario.buscarTecnicosArthurSaboya(token);
       if (r.ok && Array.isArray(r.data)) {
         setTecnicosArthur(r.data as ITecnico[]);
+      } else {
+        setTecnicosArthur([]);
       }
     })();
-  }, [token, status]);
+  }, [token, status, chamado?.divisaoId]);
 
   const handleEnviarMensagem = async (texto: string) => {
     if (!token) return;
@@ -185,6 +199,23 @@ export default function ChamadoPreProjetoPortalView({
     setAgendarAberto(true);
   };
 
+  const dataAgendamento = dataHoraAgendamento ? dataHoraAgendamento.slice(0, 10) : "";
+  const horaAgendamento = dataHoraAgendamento ? dataHoraAgendamento.slice(11, 16) : "";
+
+  const handleDataAgendamentoChange = (novaData: string) => {
+    if (!novaData) {
+      setDataHoraAgendamento("");
+      return;
+    }
+    const hora = HORARIOS_MEIA_HORA.includes(horaAgendamento) ? horaAgendamento : "13:00";
+    setDataHoraAgendamento(`${novaData}T${hora}`);
+  };
+
+  const handleHoraAgendamentoChange = (novaHora: string) => {
+    if (!dataAgendamento || !HORARIOS_MEIA_HORA.includes(novaHora)) return;
+    setDataHoraAgendamento(`${dataAgendamento}T${novaHora}`);
+  };
+
   const handleCriarAgendamento = async () => {
     if (!token || !chamado) return;
     if (!dataHoraAgendamento.trim()) {
@@ -199,8 +230,14 @@ export default function ChamadoPreProjetoPortalView({
       toast.error("Selecione o técnico da Sala Arthur Saboya.");
       return;
     }
+    const dataSelecionada = new Date(dataHoraAgendamento);
+    const minuto = dataSelecionada.getMinutes();
+    if (Number.isNaN(dataSelecionada.getTime()) || (minuto !== 0 && minuto !== 30)) {
+      toast.error("Selecione um horário com minutos 00 ou 30.");
+      return;
+    }
     setSalvando(true);
-    const iso = new Date(dataHoraAgendamento).toISOString();
+    const iso = dataSelecionada.toISOString();
     const res = await agendamento.criarAgendamentoDaSolicitacaoPortalArthurSaboya(
       token,
       chamado.protocolo,
@@ -377,6 +414,7 @@ export default function ChamadoPreProjetoPortalView({
                 mensagens={mensagensChat}
                 onEnviar={handleEnviarMensagem}
                 enviando={enviandoChat}
+                bloqueado={chamado.status === "RESPONDIDO"}
                 titulo="Linha do tempo"
               />
             ) : (
@@ -427,12 +465,28 @@ export default function ChamadoPreProjetoPortalView({
                 <label className="font-medium" htmlFor="dt-ag-full">
                   Data e hora
                 </label>
-                <Input
-                  id="dt-ag-full"
-                  type="datetime-local"
-                  value={dataHoraAgendamento}
-                  onChange={(e) => setDataHoraAgendamento(e.target.value)}
-                />
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <Input
+                    id="dt-ag-full"
+                    type="date"
+                    value={dataAgendamento}
+                    onChange={(e) => handleDataAgendamentoChange(e.target.value)}
+                  />
+                  <select
+                    id="hr-ag-full"
+                    className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                    value={horaAgendamento}
+                    onChange={(e) => handleHoraAgendamentoChange(e.target.value)}
+                    disabled={!dataAgendamento}
+                  >
+                    <option value="">Selecione</option>
+                    {HORARIOS_MEIA_HORA.map((hora) => (
+                      <option key={hora} value={hora}>
+                        {hora}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div className="space-y-1">
                 <label className="font-medium" htmlFor="coord-ag-full">

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { Send } from "lucide-react"
+import { CheckCircle2, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
@@ -35,7 +35,9 @@ export function PreProjetoChamadoChat({
   mensagens,
   onEnviar,
   enviando,
+  bloqueado = false,
   placeholder = "Escreva a resposta ao munícipe (registrada no chamado)…",
+  placeholderBloqueado = "Este chamado foi solucionado e não aceita novas mensagens.",
   titulo = "Linha do tempo",
   variante = "card",
   perspectiva = "tecnico",
@@ -43,7 +45,9 @@ export function PreProjetoChamadoChat({
   mensagens: IMensagemPreProjetoArthurSaboya[]
   onEnviar: (texto: string) => void | Promise<void>
   enviando?: boolean
+  bloqueado?: boolean
   placeholder?: string
+  placeholderBloqueado?: string
   titulo?: string
   variante?: "card" | "painel"
   perspectiva?: "tecnico" | "municipe"
@@ -57,7 +61,7 @@ export function PreProjetoChamadoChat({
 
   const submit = async () => {
     const t = texto.trim()
-    if (!t || enviando) return
+    if (!t || enviando || bloqueado) return
     setTexto("")
     await onEnviar(t)
   }
@@ -140,6 +144,10 @@ export function PreProjetoChamadoChat({
                     className="max-w-[min(100%,520px)] rounded-[10px] border border-dashed px-3 py-2 text-center text-[12.5px] italic leading-snug"
                     style={{ borderColor: "#5CC9BD", backgroundColor: "#EDF7F5", color: "#0f6b62" }}
                   >
+                    <span className="inline-flex items-center gap-1.5">
+                      <CheckCircle2 className="h-3 w-3 shrink-0" />
+                    </span>
+                    {" "}
                     {m.corpo}
                     {" · "}
                     {format(new Date(m.criadoEm), "dd/MM/yyyy HH:mm", { locale: ptBR })}
@@ -153,6 +161,7 @@ export function PreProjetoChamadoChat({
                     className="inline-flex items-center gap-1.5 rounded-full border border-dashed px-3 py-1 text-[11px] italic text-muted-foreground"
                     style={{ borderColor: "#5CC9BD", backgroundColor: "#EDF7F5", color: "#0f8578" }}
                   >
+                    <CheckCircle2 className="h-3 w-3 shrink-0" />
                     {m.corpo}
                     {" · "}
                     {format(new Date(m.criadoEm), "dd/MM/yyyy HH:mm", { locale: ptBR })}
@@ -242,7 +251,7 @@ export function PreProjetoChamadoChat({
         <Textarea
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
-          placeholder={placeholder}
+          placeholder={bloqueado ? placeholderBloqueado : placeholder}
           rows={painel ? 2 : 3}
           className={cn(
             "resize-none bg-white text-[#0F172A] transition-[border-color,box-shadow] placeholder:text-[#94A3B8] focus-visible:border-[#0A328D] focus-visible:ring-[3px] focus-visible:ring-[rgba(10,50,141,0.12)]",
@@ -250,7 +259,7 @@ export function PreProjetoChamadoChat({
               ? "mb-2.5 min-h-[72px] rounded-lg border border-[#D7DFEA] px-3 py-2.5 text-inherit shadow-none"
               : "mb-3",
           )}
-          disabled={enviando}
+          disabled={enviando || bloqueado}
           onKeyDown={(e) => {
             if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
               e.preventDefault()
@@ -264,14 +273,16 @@ export function PreProjetoChamadoChat({
             painel ? "mt-2.5" : "gap-3",
           )}
         >
-          <span className="text-xs text-[#64748B]">Ctrl/⌘ + Enter para enviar</span>
+          <span className="text-xs text-[#64748B]">
+            {bloqueado ? "Chamado solucionado: envio de mensagens desativado." : "Ctrl/⌘ + Enter para enviar"}
+          </span>
           <Button
             type="button"
             className={cn(
               "gap-2 rounded-lg border border-transparent bg-[#E56E14] px-[14px] py-2 text-[13px] font-semibold text-white hover:bg-[#c95d0e]",
               painel && "h-9",
             )}
-            disabled={enviando || !texto.trim()}
+            disabled={enviando || bloqueado || !texto.trim()}
             onClick={() => void submit()}
           >
             <Send className="h-4 w-4 shrink-0" />

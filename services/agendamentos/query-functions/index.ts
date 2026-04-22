@@ -4,6 +4,8 @@ export {
   listarChamadosPreProjetosMunicipe,
   obterChamadoPreProjetosMunicipe,
   enviarMensagemChamadoPreProjetosMunicipe,
+  marcarChamadoPreProjetosMunicipeComoSolucionado,
+  avaliarChamadoPreProjetosMunicipe,
 } from "./municipe-pre-projetos-chamados";
 export {
   obterChamadoPortalArthurSaboya,

@@ -34,6 +34,9 @@ export interface ISolicitacaoPreProjetoArthurSaboya {
   duvida: string;
   status: StatusSolicitacaoPreProjetoArthurSaboya;
   agendamentoId?: string | null;
+  avaliacaoNota?: number | null;
+  avaliacaoComentario?: string | null;
+  avaliacaoEm?: string | null;
   /** E-mail institucional sugerido (coordenadoria da divisão ou da solicitação). */
   emailContatoDivisao?: string | null;
   coordenadoriaId?: string | null;

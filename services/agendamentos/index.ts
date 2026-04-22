@@ -4,6 +4,8 @@ export {
   listarChamadosPreProjetosMunicipe,
   obterChamadoPreProjetosMunicipe,
   enviarMensagemChamadoPreProjetosMunicipe,
+  marcarChamadoPreProjetosMunicipeComoSolucionado,
+  avaliarChamadoPreProjetosMunicipe,
   obterChamadoPortalArthurSaboya,
   enviarMensagemChamadoPortalArthurSaboya,
   confirmarRespostaEnviadaPortalArthurSaboya,

@@ -136,6 +136,11 @@ export default function ConsultaPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
+                    <div className="mb-4 flex justify-end">
+                      <Button asChild className="w-full sm:w-auto">
+                        <Link href="/pre-projetos">Abrir nova solicitação</Link>
+                      </Button>
+                    </div>
                     {erro ? (
                       <div
                         role="alert"
@@ -180,7 +185,7 @@ export default function ConsultaPage() {
                                 <TableCell className="text-sm">{rotuloStatus(row.status)}</TableCell>
                                 <TableCell className="text-right">
                                   <Button asChild size="sm" variant="secondary">
-                                    <Link href={`${CONSULTA_BASE}/${row.id}`}>Abrir chamado</Link>
+                                    <Link href={`${CONSULTA_BASE}/${row.id}`}>Visualizar</Link>
                                   </Button>
                                 </TableCell>
                               </TableRow>

@@ -1,15 +1,18 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { ArrowLeft, ChevronRight, Mail } from "lucide-react"
+import { ArrowLeft, CheckCircle2, ChevronRight, Mail, Star } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
+import { toast } from "sonner"
 import { ArthurSaboyaFooter } from "@/components/arthur-saboya/footer"
 import { ArthurSaboyaHeader } from "@/components/arthur-saboya/header"
 import { ArthurSaboyaPageBackgroundBanner } from "@/components/arthur-saboya/page-background-banner"
 import { PreProjetoChamadoChat } from "@/components/arthur-saboya/pre-projeto-chamado-chat"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
 import {
   EVENTO_SESSAO_MUNICIPE,
   municipeEstaLogado,
@@ -79,6 +82,11 @@ export default function ConsultaChamadoDetalhePage() {
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
+  const [confirmarSolucaoAberto, setConfirmarSolucaoAberto] = useState(false)
+  const [salvandoSolucao, setSalvandoSolucao] = useState(false)
+  const [notaAvaliacao, setNotaAvaliacao] = useState(0)
+  const [comentarioAvaliacao, setComentarioAvaliacao] = useState("")
+  const [enviandoAvaliacao, setEnviandoAvaliacao] = useState(false)
 
   const mensagensChat = useMemo(
     () => (chamado ? mensagensPreProjetoParaChat(chamado) : []),
@@ -120,6 +128,12 @@ export default function ConsultaChamadoDetalhePage() {
     void carregar()
   }, [autenticado, id, carregar])
 
+  useEffect(() => {
+    if (!chamado) return
+    setNotaAvaliacao(chamado.avaliacaoNota ?? 0)
+    setComentarioAvaliacao(chamado.avaliacaoComentario ?? "")
+  }, [chamado])
+
   const enviar = async (texto: string) => {
     const token = obterTokenMunicipe()
     if (!token || !id) return
@@ -132,6 +146,43 @@ export default function ConsultaChamadoDetalhePage() {
     }
     setErro(null)
     setChamado(res.data)
+  }
+
+  const marcarComoSolucionado = async () => {
+    const token = obterTokenMunicipe()
+    if (!token || !id) return
+    setSalvandoSolucao(true)
+    const res = await agendamento.marcarChamadoPreProjetosMunicipeComoSolucionado(token, id)
+    setSalvandoSolucao(false)
+    if (!res.ok || !res.data) {
+      toast.error(res.error ?? "Não foi possível atualizar o status do chamado.")
+      return
+    }
+    setErro(null)
+    setChamado(res.data)
+    setConfirmarSolucaoAberto(false)
+    toast.success("Chamado marcado como solucionado.")
+  }
+
+  const enviarAvaliacao = async () => {
+    const token = obterTokenMunicipe()
+    if (!token || !id) return
+    if (notaAvaliacao < 1 || notaAvaliacao > 5) {
+      toast.error("Selecione uma nota de 1 a 5 estrelas.")
+      return
+    }
+    setEnviandoAvaliacao(true)
+    const res = await agendamento.avaliarChamadoPreProjetosMunicipe(token, id, {
+      nota: notaAvaliacao,
+      comentario: comentarioAvaliacao.trim() || undefined,
+    })
+    setEnviandoAvaliacao(false)
+    if (!res.ok || !res.data) {
+      toast.error(res.error ?? "Não foi possível registrar a avaliação.")
+      return
+    }
+    setChamado(res.data)
+    toast.success("Avaliação enviada. Obrigado pelo feedback!")
   }
 
   if (!hidratar) {
@@ -237,6 +288,21 @@ export default function ConsultaChamadoDetalhePage() {
             </div>
           ) : null}
 
+          {chamado ? (
+            <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+              <Button
+                type="button"
+                size="sm"
+                className="h-9 gap-2 rounded-lg bg-[#0A328D] px-3 text-xs font-semibold text-white hover:bg-[#082a76] disabled:cursor-not-allowed disabled:opacity-55 sm:text-[13px]"
+                disabled={chamado.status === "RESPONDIDO" || salvandoSolucao}
+                onClick={() => setConfirmarSolucaoAberto(true)}
+              >
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Marcar atendimento como solucionado
+              </Button>
+            </div>
+          ) : null}
+
           <div className="grid min-h-0 flex-1 grid-cols-1 items-stretch gap-5 lg:grid-cols-[320px_1fr] lg:gap-5">
             <aside className="flex w-full shrink-0 flex-col lg:w-full">
               <div className="overflow-hidden rounded-[14px] border border-[#E5EAF2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] lg:sticky lg:top-8">
@@ -298,7 +364,7 @@ export default function ConsultaChamadoDetalhePage() {
               </div>
             </aside>
 
-            <section className="flex min-h-[min(52vh,520px)] min-w-0 flex-col lg:min-h-0 lg:flex-1">
+            <section className="flex min-h-[min(52vh,520px)] min-w-0 flex-col gap-3 lg:min-h-0 lg:flex-1">
               {carregando ? (
                 <div className="flex flex-1 items-center justify-center rounded-[14px] border border-dashed border-[#E5EAF2] bg-white/60 p-8 text-sm text-[#64748B]">
                   Carregando conversa…
@@ -309,6 +375,7 @@ export default function ConsultaChamadoDetalhePage() {
                   mensagens={mensagensChat}
                   onEnviar={enviar}
                   enviando={enviando}
+                  bloqueado={chamado.status === "RESPONDIDO"}
                   perspectiva="municipe"
                   titulo="Linha do tempo"
                   placeholder="Escreva sua mensagem para a equipe da Sala Arthur Saboya…"
@@ -318,12 +385,116 @@ export default function ConsultaChamadoDetalhePage() {
                   Não foi possível exibir este chamado.
                 </div>
               )}
+              {chamado?.status === "RESPONDIDO" ? (
+                <div className="rounded-[10px] border border-[#5CC9BD] bg-[#EDF7F5] px-4 py-3 text-[15px] text-[#0f6b62]">
+                  <p className="inline-flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 shrink-0" />
+                    Este chamado foi marcado como <strong>solucionado</strong>. Para novas dúvidas o munícipe
+                    deve abrir um novo pedido.
+                  </p>
+                </div>
+              ) : null}
+              {chamado?.status === "RESPONDIDO" && !chamado.avaliacaoNota ? (
+                <div className="rounded-[12px] border border-[#D7DFEA] bg-white px-4 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+                  <p className="text-sm font-semibold text-[#0F172A]">
+                    Avalie o atendimento (1 a 5 estrelas)
+                  </p>
+                  <div className="mt-2 flex items-center gap-1.5">
+                    {[1, 2, 3, 4, 5].map((n) => {
+                      const ativo = n <= notaAvaliacao
+                      return (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => setNotaAvaliacao(n)}
+                          className="rounded-md p-1 transition-colors hover:bg-[#F1F5F9]"
+                          aria-label={`Avaliar com ${n} estrela${n > 1 ? "s" : ""}`}
+                          disabled={enviandoAvaliacao}
+                        >
+                          <Star
+                            className="h-6 w-6"
+                            style={{
+                              color: ativo ? "#E56E14" : "#94A3B8",
+                              fill: ativo ? "#E56E14" : "transparent",
+                            }}
+                          />
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <div className="mt-3">
+                    <label className="mb-1 block text-xs font-medium text-[#64748B]" htmlFor="avaliacao-comentario">
+                      Elogio ou reclamação (opcional)
+                    </label>
+                    <Textarea
+                      id="avaliacao-comentario"
+                      rows={3}
+                      value={comentarioAvaliacao}
+                      onChange={(e) => setComentarioAvaliacao(e.target.value)}
+                      placeholder="Escreva seu comentário sobre o atendimento..."
+                      className="resize-none border-[#D7DFEA] bg-white text-[#0F172A] placeholder:text-[#94A3B8]"
+                      disabled={enviandoAvaliacao}
+                    />
+                  </div>
+                  <div className="mt-3 flex justify-end">
+                    <Button
+                      type="button"
+                      className="bg-[#0A328D] text-white hover:bg-[#082a76] disabled:opacity-60"
+                      onClick={() => void enviarAvaliacao()}
+                      disabled={enviandoAvaliacao || notaAvaliacao < 1}
+                    >
+                      Enviar avaliação
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+              {chamado?.avaliacaoNota ? (
+                <div className="rounded-[12px] border border-[#D7DFEA] bg-white px-4 py-3 text-sm text-[#334155]">
+                  <p className="font-medium text-[#0F172A]">Avaliação registrada</p>
+                  <p className="mt-1">
+                    Nota: <strong>{chamado.avaliacaoNota}</strong> estrela{chamado.avaliacaoNota > 1 ? "s" : ""}.
+                  </p>
+                  {chamado.avaliacaoComentario?.trim() ? (
+                    <p className="mt-1 text-[#475569]">{chamado.avaliacaoComentario}</p>
+                  ) : null}
+                </div>
+              ) : null}
             </section>
           </div>
         </div>
       </main>
 
       <ArthurSaboyaFooter />
+
+      <Dialog open={confirmarSolucaoAberto} onOpenChange={setConfirmarSolucaoAberto}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar encerramento do chamado</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm">
+            Ao confirmar, este atendimento será marcado como <strong>solucionado</strong>.
+            Caso tenha novas dúvidas, será necessário abrir um novo pedido.
+          </p>
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setConfirmarSolucaoAberto(false)}
+              disabled={salvandoSolucao}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              className="bg-[#0A328D] text-white hover:bg-[#082a76]"
+              onClick={() => void marcarComoSolucionado()}
+              disabled={salvandoSolucao}
+            >
+              Sim, marcar solucionado
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
