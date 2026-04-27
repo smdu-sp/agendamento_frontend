@@ -50,6 +50,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { useEffectivePermissao } from "@/providers/ImpersonationProvider";
+import { abrirOutlookComposeAgendamentoTecnico } from "@/lib/outlook-agendamento-teams";
 
 /** Converte valor da API (ISO em UTC) para `Date` do instante correto; formata no fuso do navegador. */
 const paraDateAgendamento = (data: Date | string): Date =>
@@ -59,26 +60,31 @@ const formatarDataHora = (data: Date | string): string => {
   return format(paraDateAgendamento(data), "dd/MM/yyyy 'às' HH:mm");
 };
 
-const PROCESSO_DIGITAL_REGEX = /^\d{4}\.\d{4}\/\d{7}-\d$/;
+function montarAssuntoEIntervaloIsoOutlook(agend: IAgendamento) {
+  const coordenadoriaSigla = agend.coordenadoria?.sigla ?? "";
+  const processo = agend.processo ?? "";
+  const assunto =
+    `Agendamento Técnico - ${coordenadoriaSigla} - Processo: ${processo}`.trim();
+  const inicio = paraDateAgendamento(agend.dataHora);
+  const fim = agend.dataFim
+    ? paraDateAgendamento(agend.dataFim)
+    : new Date(inicio.getTime() + 60 * 60 * 1000);
+  return {
+    assunto,
+    inicioIso: inicio.toISOString(),
+    fimIso: fim.toISOString(),
+  };
+}
 
-/** Mesmo texto cadastrado no backend (`PRE_PROJETO_TIPO_AGENDAMENTO_TEXTO`). */
-const TIPO_TEXTO_PRE_PROJETOS_ARTHUR_SABOYA =
-  "Pré-projetos (Arthur Saboya)";
+const PROCESSO_DIGITAL_REGEX = /^\d{4}\.\d{4}\/\d{7}-\d$/;
 
 const isProcessoDigital = (processo?: string): boolean => {
   const valor = (processo || "").trim();
   return PROCESSO_DIGITAL_REGEX.test(valor);
 };
 
-const getTipoProcesso = (
-  processo?: string,
-  tipoAgendamentoTexto?: string | null,
-): "Digital" | "Físico" | "" => {
-  if ((tipoAgendamentoTexto || "").trim() === TIPO_TEXTO_PRE_PROJETOS_ARTHUR_SABOYA) {
-    return "";
-  }
-  return isProcessoDigital(processo) ? "Digital" : "Físico";
-};
+const getTipoProcesso = (processo?: string): "Digital" | "Físico" =>
+  isProcessoDigital(processo) ? "Digital" : "Físico";
 
 interface ListaAgendamentosProps {
   dados: IAgendamento[];
@@ -221,63 +227,18 @@ export default function ListaAgendamentos({
       return;
     }
 
-    const emailMunicipe = agend.email || "";
-    const emailTecnico = agend.tecnico?.email ? agend.tecnico.email : "";
-    const attendees = [emailMunicipe, emailTecnico].filter(Boolean).join(",");
+    const { assunto, inicioIso, fimIso } = montarAssuntoEIntervaloIsoOutlook(agend);
+    const emailMunicipe = (agend.email || "").trim();
+    const emailTecnico = (agend.tecnico?.email || "").trim();
 
-    const coordenadoriaSigla = agend.coordenadoria?.sigla || "";
-    const processo = agend.processo || "";
-
-    const subject =
-      `Agendamento Técnico - ${coordenadoriaSigla} - Processo: ${processo}`.trim();
-
-    const inicio = paraDateAgendamento(agend.dataHora);
-    const fim = agend.dataFim
-      ? paraDateAgendamento(agend.dataFim)
-      : new Date(inicio.getTime() + 60 * 60 * 1000);
-
-    const startIso = inicio.toISOString();
-    const endIso = fim.toISOString();
-
-    const textoCondicoes =
-      "[n]CONDIÇÕES DO ATENDIMENTO - LEIA COM ATENÇÃO![/n]\r\n\r\n" +      
-      "A realização do atendimento é condicionada à aceitação das condições aqui descritas, nos termos do [l=https://legislacao.prefeitura.sp.gov.br/leis/lei-18375-de-29-de-dezembro-de-2025]artigo 21 da Lei nº 18.375, de 29 de dezembro de 2025[/l], e dos [l=https://legislacao.prefeitura.sp.gov.br/leis/portaria-secretaria-municipal-de-urbanismo-e-licenciamento-smul-167-de-4-de-dezembro-de-2024]artigos 7º e 8º da Portaria SMUL nº 167, de 4 de dezembro de 2024[/l]. \r\n\r\n" +
-      "Este atendimento será realizado exclusivamente por meio do Microsoft Teams (para informações sobre o aplicativo, [l=https://statics.teams.cdn.office.net/evergreen-assets/safelinks/2/atp-safelinks.html]acesse aqui[/l]), de maneira remota e com gravação de seu conteúdo, asseguradas as disposições da [l=https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709compilado.htm]Lei Geral de Proteção de Dados Pessoais (LGPD).[/l]\r\n\r\n" +
-      "O atendimento técnico tem caráter meramente orientativo. Sua realização não configura pré-condição e não isenta a parte interessada de responder integralmente ao comunicado ou, conforme o caso, interpor recurso contra indeferimento, dentro dos respectivos prazos legais, sob pena de indeferimento.\r\n\r\n" +
-      "As informações trocadas entre técnico e a parte interessada durante o atendimento técnico [n]não vinculam[/n], sob qualquer hipótese, a análise e a decisão do pedido.\r\n\r\n" +
-      "O ingresso e permanência na reunião remota na data e horário programados será considerado como aceitação tácita destas condições.";
-
-    // Converte para HTML para o Outlook Web exibir negrito e links
-    const bodyHtml = textoCondicoes
-      .replace(/\[n\]([\s\S]*?)\[\/n\]/g, "<strong>$1</strong>")
-      .replace(
-        /\[l=([\s\S]*?)\]([\s\S]*?)\[\/l\]/g,
-        (_, url, text) =>
-          `<a href="${url.trim().replace(/&/g, "&amp;")}">${text}</a>`
-      )
-      .replace(/\r\n\r\n/g, "</p><p>")
-      .replace(/\r\n/g, "<br/>");
-    const body = `<p>${bodyHtml}</p>`;
-
-    const params = new URLSearchParams({
-      path: "/calendar/action/compose",
-      rru: "addevent",
-      startdt: startIso,
-      enddt: endIso,
-      subject,
-      body,
-      hideattn: "true", // Oculta a lista de participantes para os convidados (munícipe não vê e-mail do técnico).
-      online: "true", // Marca a opção "Reunião do Teams" no formulário do Outlook.
+    abrirOutlookComposeAgendamentoTecnico({
+      emailOrganizadorCoordenadoria: emailCoordenadoria,
+      assunto,
+      inicioIso,
+      fimIso,
+      emailsParticipantes: [emailMunicipe, emailTecnico],
     });
-    if (attendees) params.set("to", attendees);
-
-    const emailEncoded = encodeURIComponent(emailCoordenadoria);
-    const url = `https://outlook.office.com/calendar/${emailEncoded}/deeplink/compose?${params.toString()}`;
-
-    if (typeof window !== "undefined") {
-      window.open(url, "_blank", "noopener,noreferrer");
-      setAgendamentoParaConfirmarOutlook(agend);
-    }
+    setAgendamentoParaConfirmarOutlook(agend);
   };
 
   const handleConfirmarAgendadoOutlook = async (confirmado: boolean) => {
@@ -681,15 +642,12 @@ export default function ListaAgendamentos({
                           </TableCell>
                           <TableCell>{agend.processo || "-"}</TableCell>
                           <TableCell>
-                            {getTipoProcesso(
-                              agend.processo,
-                              agend.tipoAgendamento?.texto,
-                            )}
+                            {getTipoProcesso(agend.processo)}
                           </TableCell>
                           <TableCell>{agend.tecnico?.divisao?.sigla || "-"}</TableCell>
                           <TableCell>
                             {podeAtribuir ? (
-                              <div className="flex flex-col gap-0.5">
+                              <div className="flex flex-col gap-1">
                                 <AtribuirTecnico
                                   agendamentoId={agend.id}
                                   coordenadoriaId={agend.coordenadoriaId!}
@@ -703,7 +661,7 @@ export default function ListaAgendamentos({
                                 )}
                               </div>
                             ) : (
-                              <>
+                              <div className="flex flex-col gap-1">
                                 {agend.tecnico?.nome || (
                                   agend.tecnicoResponsavelPlanilha ? (
                                     <span className="text-muted-foreground">
@@ -715,7 +673,7 @@ export default function ListaAgendamentos({
                                     </span>
                                   )
                                 )}
-                              </>
+                              </div>
                             )}
                           </TableCell>
                           <TableCell>
@@ -773,7 +731,7 @@ export default function ListaAgendamentos({
                               </Button>
                             ) : null}
 
-                            {(isPontoFocal || isCoordenador) && (
+                            {(isPontoFocal || isCoordenador || isAdm || isDev) && (
                               <Button
                                 size="sm"
                                 variant="outline"

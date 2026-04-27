@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { ArrowLeft, CheckCircle2, ChevronRight, Mail, Star } from "lucide-react"
+import { ArrowLeft, Ban, CheckCircle2, ChevronRight, Mail, Star } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { toast } from "sonner"
@@ -84,6 +84,8 @@ export default function ConsultaChamadoDetalhePage() {
   const [enviando, setEnviando] = useState(false)
   const [confirmarSolucaoAberto, setConfirmarSolucaoAberto] = useState(false)
   const [salvandoSolucao, setSalvandoSolucao] = useState(false)
+  const [confirmarCancelamentoAberto, setConfirmarCancelamentoAberto] = useState(false)
+  const [cancelandoAtendimento, setCancelandoAtendimento] = useState(false)
   const [notaAvaliacao, setNotaAvaliacao] = useState(0)
   const [comentarioAvaliacao, setComentarioAvaliacao] = useState("")
   const [enviandoAvaliacao, setEnviandoAvaliacao] = useState(false)
@@ -162,6 +164,22 @@ export default function ConsultaChamadoDetalhePage() {
     setChamado(res.data)
     setConfirmarSolucaoAberto(false)
     toast.success("Chamado marcado como solucionado.")
+  }
+
+  const cancelarAtendimento = async () => {
+    const token = obterTokenMunicipe()
+    if (!token || !id) return
+    setCancelandoAtendimento(true)
+    const res = await agendamento.cancelarAtendimentoChamadoPreProjetosMunicipe(token, id)
+    setCancelandoAtendimento(false)
+    if (!res.ok || !res.data) {
+      toast.error(res.error ?? "Não foi possível cancelar o atendimento.")
+      return
+    }
+    setErro(null)
+    setChamado(res.data)
+    setConfirmarCancelamentoAberto(false)
+    toast.success("Atendimento cancelado com sucesso.")
   }
 
   const enviarAvaliacao = async () => {
@@ -290,6 +308,17 @@ export default function ConsultaChamadoDetalhePage() {
 
           {chamado ? (
             <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-9 gap-2 rounded-lg border-[#d9e2ef] px-3 text-xs font-semibold text-[#334155] hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-55 sm:text-[13px]"
+                disabled={chamado.status !== "AGENDAMENTO_CRIADO" || cancelandoAtendimento}
+                onClick={() => setConfirmarCancelamentoAberto(true)}
+              >
+                <Ban className="h-3.5 w-3.5" />
+                Cancelar atendimento
+              </Button>
               <Button
                 type="button"
                 size="sm"
@@ -491,6 +520,35 @@ export default function ConsultaChamadoDetalhePage() {
               disabled={salvandoSolucao}
             >
               Sim, marcar solucionado
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={confirmarCancelamentoAberto} onOpenChange={setConfirmarCancelamentoAberto}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancelar atendimento agendado</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm">
+            Ao confirmar, o atendimento será cancelado e a equipe da Sala Arthur Saboya será notificada por e-mail.
+          </p>
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setConfirmarCancelamentoAberto(false)}
+              disabled={cancelandoAtendimento}
+            >
+              Voltar
+            </Button>
+            <Button
+              type="button"
+              className="bg-[#0A328D] text-white hover:bg-[#082a76]"
+              onClick={() => void cancelarAtendimento()}
+              disabled={cancelandoAtendimento}
+            >
+              Sim, cancelar atendimento
             </Button>
           </DialogFooter>
         </DialogContent>

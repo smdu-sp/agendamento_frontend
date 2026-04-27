@@ -39,7 +39,7 @@ function mensagemErro(error: unknown): string {
 }
 
 /** Monta um IUsuario mínimo a partir do JWT da sessão (quando a API não responde). */
-function usuarioFallbackDaSessao(session: NonNullable<Awaited<ReturnType<typeof auth>>>): IUsuario | null {
+function usuarioFallbackDaSessao(session: any): IUsuario | null {
 	const u = session.usuario as Record<string, unknown> | null | undefined;
 	if (!u) return null;
 	const sub = u.sub;

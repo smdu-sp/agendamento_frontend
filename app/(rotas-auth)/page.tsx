@@ -1,10 +1,8 @@
 /** @format */
 
-import { TableSkeleton } from "@/components/data-table";
 import { auth } from "@/lib/auth/auth";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { Suspense } from "react";
 import { IPermissao } from "@/types/usuario";
 import * as agendamento from "@/services/agendamentos";
 import { IAgendamento } from "@/types/agendamento";
@@ -22,11 +20,7 @@ export default async function HomeSuspense({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  return (
-    <Suspense fallback={<TableSkeleton />}>
-      <Home searchParams={searchParams} />
-    </Suspense>
-  );
+  return Home({ searchParams });
 }
 
 async function Home({

@@ -15,7 +15,7 @@ import { NavUser } from './nav-user';
 
 import ToogleSidebarBtn from './toogle-sidebar';
 
-export function AppSidebar({
+export async function AppSidebar({
 	props,
 }: {
 	props?: ComponentProps<typeof Sidebar>;
@@ -31,10 +31,10 @@ export function AppSidebar({
 					</SidebarMenuItem>
 				</SidebarMenu>
 			</SidebarHeader>
-			<NavMain />
+			{await NavMain()}
 			<SidebarFooter>
 				<ImpersonationSelector />
-				<NavUser />
+				{await NavUser()}
 			</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>

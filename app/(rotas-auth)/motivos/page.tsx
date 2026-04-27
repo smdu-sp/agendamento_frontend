@@ -1,12 +1,11 @@
 /** @format */
 
-import DataTable, { TableSkeleton } from '@/components/data-table';
+import DataTable from '@/components/data-table';
 import { Filtros } from '@/components/filtros';
 import Pagination from '@/components/pagination';
 import { auth } from '@/lib/auth/auth';
 import * as motivo from '@/services/motivos';
 import { IPaginadoMotivo, IMotivo } from '@/types/motivo';
-import { Suspense } from 'react';
 import { columns } from './_components/columns';
 import ModalUpdateAndCreate from './_components/modal-update-create';
 
@@ -15,11 +14,7 @@ export default async function MotivosSuspense({
 }: {
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-	return (
-		<Suspense fallback={<TableSkeleton />}>
-			<Motivos searchParams={searchParams} />
-		</Suspense>
-	);
+	return Motivos({ searchParams });
 }
 
 async function Motivos({

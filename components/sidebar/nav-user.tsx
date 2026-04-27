@@ -71,6 +71,9 @@ export async function NavUser() {
       if (permissaoUpper === "PORTARIA") {
         return { texto: "Portaria", variant: "secondary" };
       }
+      if (permissaoUpper === "DIRETOR") {
+        return { texto: "Diretor", variant: "outline" };
+      }
       return { texto: "Portaria", variant: "secondary" };
     }
 
@@ -94,6 +97,7 @@ export async function NavUser() {
       [IPermissao.PONTO_FOCAL]: { texto: "Ponto Focal", variant: "success" },
       [IPermissao.COORDENADOR]: { texto: "Coordenador", variant: "success" },
       [IPermissao.PORTARIA]: { texto: "Portaria", variant: "secondary" },
+      [IPermissao.DIRETOR]: { texto: "Diretor", variant: "outline" },
     };
 
     return permissoes[permissao] || { texto: "Portaria", variant: "secondary" };

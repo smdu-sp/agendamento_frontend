@@ -1,12 +1,10 @@
 /** @format */
 
-import { TableSkeleton } from '@/components/data-table';
 import { Filtros } from '@/components/filtros';
 import Pagination from '@/components/pagination';
 import { auth } from '@/lib/auth/auth';
 import * as coordenadoria from '@/services/coordenadorias';
 import { IPaginadoCoordenadoria, ICoordenadoria } from '@/types/coordenadoria';
-import { Suspense } from 'react';
 import CoordenadoriasTable from './_components/coordenadorias-table';
 import ModalUpdateAndCreate from './_components/modal-update-create';
 
@@ -15,11 +13,7 @@ export default async function CoordenadoriasSuspense({
 }: {
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-	return (
-		<Suspense fallback={<TableSkeleton />}>
-			<Coordenadorias searchParams={searchParams} />
-		</Suspense>
-	);
+	return Coordenadorias({ searchParams });
 }
 
 async function Coordenadorias({

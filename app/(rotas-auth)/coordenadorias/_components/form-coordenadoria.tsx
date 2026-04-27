@@ -54,39 +54,41 @@ export default function FormCoordenadoria({
 	});
 
 	async function onSubmit(values: z.infer<typeof formSchema>) {
-		startTransition(async () => {
-			if (isUpdating && coord?.id) {
-				const resp = await coordenadoria.atualizar(coord.id, {
-					sigla: values.sigla,
-					nome: values.nome,
-					email: values.email || undefined,
-					status: values.status,
-				});
+		startTransition(() => {
+			void (async () => {
+				if (isUpdating && coord?.id) {
+					const resp = await coordenadoria.atualizar(coord.id, {
+						sigla: values.sigla,
+						nome: values.nome,
+						email: values.email || undefined,
+						status: values.status,
+					});
 
-				if (resp.error) {
-					toast.error('Algo deu errado', { description: resp.error });
-				}
+					if (resp.error) {
+						toast.error('Algo deu errado', { description: resp.error });
+					}
 
-				if (resp.ok) {
-					toast.success('Coordenadoria Atualizada');
-					router.refresh();
+					if (resp.ok) {
+						toast.success('Coordenadoria Atualizada');
+						router.refresh();
+					}
+				} else {
+					const resp = await coordenadoria.criar({
+						sigla: values.sigla,
+						nome: values.nome,
+						email: values.email || undefined,
+						status: values.status ?? true,
+					});
+					if (resp.error) {
+						toast.error('Algo deu errado', { description: resp.error });
+					}
+					if (resp.ok) {
+						toast.success('Coordenadoria Criada');
+						router.refresh();
+						onClose?.();
+					}
 				}
-			} else {
-				const resp = await coordenadoria.criar({
-					sigla: values.sigla,
-					nome: values.nome,
-					email: values.email || undefined,
-					status: values.status ?? true,
-				});
-				if (resp.error) {
-					toast.error('Algo deu errado', { description: resp.error });
-				}
-				if (resp.ok) {
-					toast.success('Coordenadoria Criada');
-					router.refresh();
-					onClose?.();
-				}
-			}
+			})();
 		});
 	}
 

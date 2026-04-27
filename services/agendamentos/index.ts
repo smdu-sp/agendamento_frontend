@@ -6,6 +6,7 @@ export {
   enviarMensagemChamadoPreProjetosMunicipe,
   marcarChamadoPreProjetosMunicipeComoSolucionado,
   avaliarChamadoPreProjetosMunicipe,
+  cancelarAtendimentoChamadoPreProjetosMunicipe,
   obterChamadoPortalArthurSaboya,
   enviarMensagemChamadoPortalArthurSaboya,
   confirmarRespostaEnviadaPortalArthurSaboya,

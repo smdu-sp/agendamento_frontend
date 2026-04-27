@@ -68,35 +68,37 @@ export default function FormProfile({ user, id }: FormProfileProps) {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    startTransition(async () => {
-      const { nomeSocial } = values;
-      try {
-        const resp = await atualizar(id, { nomeSocial: nomeSocial });
+    startTransition(() => {
+      void (async () => {
+        const { nomeSocial } = values;
+        try {
+          const resp = await atualizar(id, { nomeSocial: nomeSocial });
 
-        if (!resp.ok) {
-          toast.error("Algo deu errado");
-        } else {
-          if (session?.usuario && resp.data) {
-            const dataResp = resp.data as IUsuario;
-            // Você precisará ajustar isso de acordo com a estrutura da sua sessão e da resposta da API
-            const updateSession = await update({
-              ...session,
-              usuario: {
-                ...session?.usuario,
-                nomeSocial: dataResp.nomeSocial,
-              },
-            });
-            console.log("Sessão atualizada:", updateSession); // Para depuração
+          if (!resp.ok) {
+            toast.error("Algo deu errado");
+          } else {
+            if (session?.usuario && resp.data) {
+              const dataResp = resp.data as IUsuario;
+              // Você precisará ajustar isso de acordo com a estrutura da sua sessão e da resposta da API
+              const updateSession = await update({
+                ...session,
+                usuario: {
+                  ...session?.usuario,
+                  nomeSocial: dataResp.nomeSocial,
+                },
+              });
+              console.log("Sessão atualizada:", updateSession); // Para depuração
+            }
+
+            toast.success("Usuário atualizado com sucesso");
           }
-
-          toast.success("Usuário atualizado com sucesso");
+        } catch (error) {
+          console.log(error);
+          toast.error("Algo deu errado");
+        } finally {
+          window.location.reload();
         }
-      } catch (error) {
-        console.log(error);
-        toast.error("Algo deu errado");
-      } finally {
-        window.location.reload();
-      }
+      })();
     });
   }
 

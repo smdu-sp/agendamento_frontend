@@ -57,42 +57,44 @@ export default function FormTipoAgendamento({
 			return;
 		}
 
-		startTransition(async () => {
-			if (isUpdating && tipoData?.id) {
-				const resp = await tipoAgendamentoService.atualizar(
-					tipoData.id,
-					{
-						texto: values.texto,
-						status: values.status,
-					},
-					session.access_token,
-				);
+		startTransition(() => {
+			void (async () => {
+				if (isUpdating && tipoData?.id) {
+					const resp = await tipoAgendamentoService.atualizar(
+						tipoData.id,
+						{
+							texto: values.texto,
+							status: values.status,
+						},
+						session.access_token,
+					);
 
-				if (resp.error) {
-					toast.error('Algo deu errado', { description: resp.error });
-				}
+					if (resp.error) {
+						toast.error('Algo deu errado', { description: resp.error });
+					}
 
-				if (resp.ok) {
-					toast.success('Tipo de agendamento atualizado');
-					router.refresh();
+					if (resp.ok) {
+						toast.success('Tipo de agendamento atualizado');
+						router.refresh();
+					}
+				} else {
+					const resp = await tipoAgendamentoService.criar(
+						{
+							texto: values.texto,
+							status: values.status ?? true,
+						},
+						session.access_token,
+					);
+					if (resp.error) {
+						toast.error('Algo deu errado', { description: resp.error });
+					}
+					if (resp.ok) {
+						toast.success('Tipo de agendamento criado');
+						router.refresh();
+						onClose?.();
+					}
 				}
-			} else {
-				const resp = await tipoAgendamentoService.criar(
-					{
-						texto: values.texto,
-						status: values.status ?? true,
-					},
-					session.access_token,
-				);
-				if (resp.error) {
-					toast.error('Algo deu errado', { description: resp.error });
-				}
-				if (resp.ok) {
-					toast.success('Tipo de agendamento criado');
-					router.refresh();
-					onClose?.();
-				}
-			}
+			})();
 		});
 	}
 

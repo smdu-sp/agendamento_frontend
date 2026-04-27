@@ -26,6 +26,7 @@ import * as usuario from "@/services/usuarios";
 import type { ITecnico } from "@/services/usuarios";
 import { ModeToggle } from "@/components/toggle-theme";
 import { mensagensPreProjetoParaChat } from "@/lib/pre-projeto-chamado-mensagens";
+import { abrirOutlookComposeAgendamentoTecnico } from "@/lib/outlook-agendamento-teams";
 import type { ISolicitacaoPreProjetoArthurSaboyaDetalhe } from "@/types/solicitacao-pre-projeto-arthur-saboya";
 import type { ICoordenadoria } from "@/types/coordenadoria";
 
@@ -40,7 +41,7 @@ function rotuloStatus(s: ISolicitacaoPreProjetoArthurSaboyaDetalhe["status"]) {
     case "AGUARDANDO_DATA":
       return "Aguardando data";
     case "AGENDAMENTO_CRIADO":
-      return "Enviado para coordenadoria";
+      return "Agendado";
     default:
       return s;
   }
@@ -282,12 +283,54 @@ export default function ChamadoPreProjetoPortalView({
     setAtribuirCoordAberto(true);
   };
 
-  const handleAtribuirTecnicoCoordenadoria = async () => {
+  const handleConfirmarEAgendar = async () => {
     if (!token || !chamado) return;
     if (!tecnicoCoordenadoriaId) {
       toast.error("Selecione o técnico da coordenadoria.");
       return;
     }
+
+    const tecnicoSelecionado = tecnicosCoordenadoria.find(
+      (t) => t.id === tecnicoCoordenadoriaId,
+    );
+    const emailTecnico = (tecnicoSelecionado?.email || "").trim();
+    if (!emailTecnico) {
+      toast.error("E-mail do técnico da coordenadoria não encontrado.");
+      return;
+    }
+
+    const emailCoordenadoria = (
+      listaCoord.find((c) => c.id === chamado.coordenadoriaId)?.email ||
+      chamado.emailContatoDivisao ||
+      ""
+    ).trim();
+    if (!emailCoordenadoria) {
+      toast.error("E-mail da coordenadoria não cadastrado.");
+      return;
+    }
+
+    const emailMunicipe = (chamado.email || "").trim();
+    if (!emailMunicipe) {
+      toast.error("E-mail do munícipe não cadastrado.");
+      return;
+    }
+    const emailTecnicoArthur = (chamado.tecnicoArthurEmail || "").trim();
+    if (!emailTecnicoArthur) {
+      toast.error("E-mail do técnico da Sala Arthur Saboya não encontrado.");
+      return;
+    }
+
+    const dataBase = chamado.dataAgendamento ? new Date(chamado.dataAgendamento) : null;
+    if (!dataBase || Number.isNaN(dataBase.getTime())) {
+      toast.error("Data/hora do agendamento não está definida.");
+      return;
+    }
+
+    const coordSigla = listaCoord.find((c) => c.id === chamado.coordenadoriaId)?.sigla ?? "";
+    const assunto = `Agendamento Técnico - ${coordSigla} - Protocolo: ${chamado.protocolo}`.trim();
+    const inicioIso = dataBase.toISOString();
+    const fimIso = new Date(dataBase.getTime() + 60 * 60 * 1000).toISOString();
+
     setSalvando(true);
     const res = await agendamento.atribuirTecnicoCoordenadoriaSolicitacaoPortalArthurSaboya(
       token,
@@ -296,10 +339,18 @@ export default function ChamadoPreProjetoPortalView({
     );
     setSalvando(false);
     if (!res.ok) {
-      toast.error(res.error ?? "Falha ao atribuir técnico da coordenadoria.");
+      toast.error(res.error ?? "Falha ao confirmar agendamento.");
       return;
     }
-    toast.success("Técnico da coordenadoria atribuído com sucesso.");
+
+    abrirOutlookComposeAgendamentoTecnico({
+      emailOrganizadorCoordenadoria: emailCoordenadoria,
+      assunto,
+      inicioIso,
+      fimIso,
+      emailsParticipantes: [emailMunicipe, emailTecnico, emailTecnicoArthur],
+    });
+    toast.success("Agendamento confirmado.");
     setAtribuirCoordAberto(false);
     void carregarChamado();
   };
@@ -324,10 +375,12 @@ export default function ChamadoPreProjetoPortalView({
       !!divisaoUsuario &&
       divisaoUsuario === divisaoArthur);
   const tecnicoArthurPodeEnviarMensagem =
-    permissaoUsuario === "TEC" &&
-    !!divisaoArthur &&
-    !!divisaoUsuario &&
-    divisaoUsuario === divisaoArthur;
+    permissaoUsuario === "DEV" ||
+    permissaoUsuario === "ADM" ||
+    (permissaoUsuario === "TEC" &&
+      !!divisaoArthur &&
+      !!divisaoUsuario &&
+      divisaoUsuario === divisaoArthur);
   const usuarioPodeAtribuirCoordenadoria =
     permissaoUsuario === "COORDENADOR" ||
     (permissaoUsuario === "PONTO_FOCAL" && !usuarioArthur) ||
@@ -475,12 +528,6 @@ export default function ChamadoPreProjetoPortalView({
                       <InfoItem label="Formação">{chamado.formacaoTexto}</InfoItem>
                       <InfoItem label="Natureza">{chamado.naturezaTexto}</InfoItem>
                     </dl>
-                    {chamado.emailContatoDivisao ? (
-                      <div className="rounded-[10px] border border-dashed border-[#5CC9BD] bg-[#EDF7F5] p-3 text-xs">
-                        <p className="font-semibold text-[#0f8578]">Contato institucional</p>
-                        <p className="mt-1 wrap-break-word text-[#64748B]">{chamado.emailContatoDivisao}</p>
-                      </div>
-                    ) : null}
                   </div>
                 ) : null}
               </div>
@@ -502,7 +549,7 @@ export default function ChamadoPreProjetoPortalView({
                 placeholderBloqueado={
                   chamado.status === "RESPONDIDO"
                     ? "Este chamado foi solucionado e não aceita novas mensagens."
-                    : "Somente o técnico da Sala Arthur Saboya e o munícipe podem enviar mensagens."
+                    : "Somente o técnico da Sala Arthur Saboya, equipe administrativa autorizada e o munícipe podem enviar mensagens."
                 }
                 mensagemBloqueado={
                   chamado.status === "RESPONDIDO"
@@ -680,10 +727,10 @@ export default function ChamadoPreProjetoPortalView({
             </Button>
             <Button
               type="button"
-              onClick={() => void handleAtribuirTecnicoCoordenadoria()}
+              onClick={() => void handleConfirmarEAgendar()}
               disabled={salvando}
             >
-              Confirmar atribuição
+              Confirmar e agendar
             </Button>
           </DialogFooter>
         </DialogContent>

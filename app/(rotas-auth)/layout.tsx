@@ -17,10 +17,11 @@ export default async function RotasAuth({
 }) {
 	const session = await auth();
 	if (!session) redirect('/login');
+	const sidebar = await AppSidebar({});
 	return (
 		<div className='relative w-full'>
 			<SidebarProvider>
-				<AppSidebar />
+				{sidebar}
 				<SidebarInset>
 					<AuthInsetHeader />
 					<div className='h-full w-full items-center gap-4 bg-muted/50 p-4 dark:bg-background sm:pt-0'>

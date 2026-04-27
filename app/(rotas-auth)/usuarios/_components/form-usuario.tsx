@@ -219,42 +219,44 @@ export default function FormUsuario({
   }
 
   async function onSubmitUser(values: z.infer<typeof formSchemaUsuario>) {
-    startTransition(async () => {
-      if (isUpdating && user?.id) {
-        const resp = await usuario.atualizar(user?.id, {
-          permissao: values.permissao as unknown as IPermissao,
-          divisaoId: values.divisaoId || undefined,
-        });
-
-        if (resp.error) {
-          toast.error("Algo deu errado", { description: resp.error });
-        }
-
-        if (resp.ok) {
-          toast.success("Usuário atualizado", {
-            description: "Os dados do usuário foram salvos com sucesso.",
+    startTransition(() => {
+      void (async () => {
+        if (isUpdating && user?.id) {
+          const resp = await usuario.atualizar(user?.id, {
+            permissao: values.permissao as unknown as IPermissao,
+            divisaoId: values.divisaoId || undefined,
           });
-          onClose?.();
-        }
-      } else {
-        const { email, login, nome, permissao, divisaoId } = values;
-        const resp = await usuario.criar({
-          email,
-          login,
-          nome,
-          permissao: permissao as unknown as IPermissao,
-          divisaoId: divisaoId || undefined,
-        });
-        if (resp.error) {
-          toast.error("Algo deu errado", { description: resp.error });
-        }
-        if (resp.ok) {
-          toast.success("Usuário criado", {
-            description: "O usuário foi cadastrado com sucesso.",
+
+          if (resp.error) {
+            toast.error("Algo deu errado", { description: resp.error });
+          }
+
+          if (resp.ok) {
+            toast.success("Usuário atualizado", {
+              description: "Os dados do usuário foram salvos com sucesso.",
+            });
+            onClose?.();
+          }
+        } else {
+          const { email, login, nome, permissao, divisaoId } = values;
+          const resp = await usuario.criar({
+            email,
+            login,
+            nome,
+            permissao: permissao as unknown as IPermissao,
+            divisaoId: divisaoId || undefined,
           });
-          onClose?.();
+          if (resp.error) {
+            toast.error("Algo deu errado", { description: resp.error });
+          }
+          if (resp.ok) {
+            toast.success("Usuário criado", {
+              description: "O usuário foi cadastrado com sucesso.",
+            });
+            onClose?.();
+          }
         }
-      }
+      })();
     });
   }
 

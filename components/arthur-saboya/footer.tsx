@@ -1,5 +1,5 @@
 import pmspLogo from "@/public/Logo_pmsp_h.png"
-import { Mail, MapPin, Phone } from "lucide-react"
+import { MapPin, Phone } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { openSans } from "@/lib/fonts"

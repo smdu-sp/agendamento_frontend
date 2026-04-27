@@ -27,13 +27,15 @@ export default function ModalDelete({ id, status }: { id: string; status: boolea
 	const vaiReativar = !isAtiva;
 
 	async function handleAction() {
-		startTransition(async () => {
-			const resp = await divisao.desativar(id);
-			if (resp.error) toast.error('Algo deu errado', { description: resp.error });
-			if (resp.ok) {
-				toast.success(vaiReativar ? 'Divisão Ativada' : 'Divisão Desativada');
-				router.refresh();
-			}
+		startTransition(() => {
+			void (async () => {
+				const resp = await divisao.desativar(id);
+				if (resp.error) toast.error('Algo deu errado', { description: resp.error });
+				if (resp.ok) {
+					toast.success(vaiReativar ? 'Divisão Ativada' : 'Divisão Desativada');
+					router.refresh();
+				}
+			})();
 		});
 	}
 

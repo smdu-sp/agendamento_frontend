@@ -92,52 +92,54 @@ export default function ImportarPlanilha() {
 	}, [session]);
 
 	async function onSubmit(values: z.infer<typeof formSchema>) {
-		startTransition(async () => {
-			try {
-				const formData = new FormData();
-				formData.append('arquivo', values.arquivo);
-				if (values.coordenadoriaId) {
-					formData.append('coordenadoriaId', values.coordenadoriaId);
-				}
+		startTransition(() => {
+			void (async () => {
+				try {
+					const formData = new FormData();
+					formData.append('arquivo', values.arquivo);
+					if (values.coordenadoriaId) {
+						formData.append('coordenadoriaId', values.coordenadoriaId);
+					}
 
-				const resp = await agendamento.importarPlanilha(formData);
+					const resp = await agendamento.importarPlanilha(formData);
 
-				if (resp.error) {
-					toast.error('Erro ao importar planilha', { 
-						description: resp.error,
+					if (resp.error) {
+						toast.error('Erro ao importar planilha', {
+							description: resp.error,
+							duration: 5000,
+						});
+						return;
+					}
+
+					if (resp.ok && resp.data) {
+						const resultado = resp.data as { importados: number; erros: number };
+
+						if (resultado.importados > 0) {
+							toast.success('Planilha importada com sucesso', {
+								description: `${resultado.importados} agendamento(s) importado(s) com sucesso.${resultado.erros > 0 ? ` ${resultado.erros} linha(s) com erro(s) foram ignoradas.` : ''}`,
+								duration: 5000,
+							});
+						} else {
+							toast.warning('Nenhum agendamento importado', {
+								description: resultado.erros > 0
+									? `${resultado.erros} erro(s) encontrado(s). Verifique o formato da planilha.`
+									: 'Nenhum dado válido encontrado na planilha.',
+								duration: 5000,
+							});
+						}
+
+						setOpen(false);
+						form.reset();
+						router.refresh();
+					}
+				} catch (error) {
+					console.error('Erro ao importar planilha:', error);
+					toast.error('Erro inesperado', {
+						description: 'Ocorreu um erro ao processar a importação. Tente novamente.',
 						duration: 5000,
 					});
-					return;
 				}
-
-				if (resp.ok && resp.data) {
-					const resultado = resp.data as { importados: number; erros: number };
-					
-					if (resultado.importados > 0) {
-						toast.success('Planilha importada com sucesso', {
-							description: `${resultado.importados} agendamento(s) importado(s) com sucesso.${resultado.erros > 0 ? ` ${resultado.erros} linha(s) com erro(s) foram ignoradas.` : ''}`,
-							duration: 5000,
-						});
-					} else {
-						toast.warning('Nenhum agendamento importado', {
-							description: resultado.erros > 0 
-								? `${resultado.erros} erro(s) encontrado(s). Verifique o formato da planilha.`
-								: 'Nenhum dado válido encontrado na planilha.',
-							duration: 5000,
-						});
-					}
-					
-					setOpen(false);
-					form.reset();
-					router.refresh();
-				}
-			} catch (error) {
-				console.error('Erro ao importar planilha:', error);
-				toast.error('Erro inesperado', {
-					description: 'Ocorreu um erro ao processar a importação. Tente novamente.',
-					duration: 5000,
-				});
-			}
+			})();
 		});
 	}
 

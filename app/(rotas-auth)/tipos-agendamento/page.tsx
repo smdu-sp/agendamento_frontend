@@ -1,12 +1,11 @@
 /** @format */
 
-import DataTable, { TableSkeleton } from '@/components/data-table';
+import DataTable from '@/components/data-table';
 import { Filtros } from '@/components/filtros';
 import Pagination from '@/components/pagination';
 import { auth } from '@/lib/auth/auth';
 import * as tipoAgendamento from '@/services/tipos-agendamento';
 import { IPaginadoTipoAgendamento, ITipoAgendamento } from '@/types/tipo-agendamento';
-import { Suspense } from 'react';
 import { columns } from './_components/columns';
 import ModalUpdateAndCreate from './_components/modal-update-create';
 
@@ -15,11 +14,7 @@ export default async function TiposAgendamentoSuspense({
 }: {
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-	return (
-		<Suspense fallback={<TableSkeleton />}>
-			<TiposAgendamento searchParams={searchParams} />
-		</Suspense>
-	);
+	return TiposAgendamento({ searchParams });
 }
 
 async function TiposAgendamento({

@@ -7,6 +7,7 @@ export interface ITecnico {
 	id: string;
 	nome: string;
 	login: string;
+	email: string;
 }
 
 export async function buscarTecnicosPorCoordenadoria(

@@ -38,15 +38,17 @@ export default function ModalDelete({
 			return;
 		}
 
-		startTransition(async () => {
-			const resp = await tipoAgendamentoService.desativar(id, session.access_token);
-			if (resp.error) {
-				toast.error('Algo deu errado', { description: resp.error });
-			}
-			if (resp.ok) {
-				toast.success(status ? 'Tipo de agendamento desativado' : 'Tipo de agendamento ativado');
-				router.refresh();
-			}
+		startTransition(() => {
+			void (async () => {
+				const resp = await tipoAgendamentoService.desativar(id, session.access_token);
+				if (resp.error) {
+					toast.error('Algo deu errado', { description: resp.error });
+				}
+				if (resp.ok) {
+					toast.success(status ? 'Tipo de agendamento desativado' : 'Tipo de agendamento ativado');
+					router.refresh();
+				}
+			})();
 		});
 	}
 

@@ -1,6 +1,5 @@
 /** @format */
 
-import { TableSkeleton } from '@/components/data-table';
 import { Filtros } from '@/components/filtros';
 import Pagination from '@/components/pagination';
 import { auth } from '@/lib/auth/auth';
@@ -8,7 +7,6 @@ import * as divisao from '@/services/divisoes';
 import * as coordenadoria from '@/services/coordenadorias';
 import { IPaginadoDivisao, IDivisao } from '@/types/divisao';
 import { ICoordenadoria } from '@/types/coordenadoria';
-import { Suspense } from 'react';
 import DivisoesTable from './_components/divisoes-table';
 import ModalUpdateAndCreate from './_components/modal-update-create';
 
@@ -17,11 +15,7 @@ export default async function DivisoesSuspense({
 }: {
 	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-	return (
-		<Suspense fallback={<TableSkeleton />}>
-			<Divisoes searchParams={searchParams} />
-		</Suspense>
-	);
+	return Divisoes({ searchParams });
 }
 
 async function Divisoes({

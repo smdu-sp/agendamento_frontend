@@ -43,7 +43,7 @@ export default function AtribuirTecnico({
   const [tecnicos, setTecnicos] = useState<ITecnico[]>([]);
   const [selectedTecnico, setSelectedTecnico] = useState<ITecnico | null>(
     tecnicoAtual
-      ? { id: tecnicoAtual.id, nome: tecnicoAtual.nome, login: "" }
+      ? { id: tecnicoAtual.id, nome: tecnicoAtual.nome, login: "", email: "" }
       : null,
   );
   const [isLoading, setIsLoading] = useState(false);

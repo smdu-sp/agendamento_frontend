@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ChevronRight, Search } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -35,7 +36,7 @@ function rotuloStatus(s: ISolicitacaoPreProjetoArthurSaboya["status"]) {
     case "AGUARDANDO_DATA":
       return "Aguardando data";
     case "AGENDAMENTO_CRIADO":
-      return "Enviado à coord.";
+      return "Agendado";
     default:
       return s;
   }
@@ -84,6 +85,7 @@ export default function ListaPedidosPreProjetos() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [concluindoId, setConcluindoId] = useState<string | null>(null);
 
   const carregarStats = useCallback(async () => {
     if (!token) return;
@@ -157,6 +159,37 @@ export default function ListaPedidosPreProjetos() {
     { k: "RESPONDIDO", label: "Solucionados", count: stats?.respondidos },
     { k: "AGENDAMENTO_CRIADO", label: "Enviados", count: stats?.enviados },
   ];
+
+  const permissaoUsuario = String((session?.usuario as { permissao?: string } | undefined)?.permissao ?? "");
+  const divisaoUsuario = (session?.usuario as { divisaoId?: string } | undefined)?.divisaoId?.trim();
+  const divisaoArthur = process.env.NEXT_PUBLIC_DIVISAO_ID_PRE_PROJETOS?.trim();
+  const isTecnicoCoordenadoria =
+    permissaoUsuario === "TEC" &&
+    (!!divisaoUsuario && (!divisaoArthur || divisaoUsuario !== divisaoArthur));
+  const isAdmArthur =
+    permissaoUsuario === "DEV" ||
+    (permissaoUsuario === "ADM" &&
+      !!divisaoArthur &&
+      !!divisaoUsuario &&
+      divisaoUsuario === divisaoArthur);
+  const podeConcluirNaTabela = isTecnicoCoordenadoria || isAdmArthur;
+
+  const handleConcluirAtendimento = async (protocolo: string) => {
+    if (!token) return;
+    setConcluindoId(protocolo);
+    const res = await agendamento.confirmarRespostaEnviadaPortalArthurSaboya(
+      token,
+      protocolo,
+    );
+    setConcluindoId(null);
+    if (!res.ok) {
+      toast.error(res.error ?? "Não foi possível concluir o atendimento.");
+      return;
+    }
+    toast.success("Atendimento concluído com sucesso.");
+    await carregar();
+    await carregarStats();
+  };
 
   return (
     <div className="space-y-5">
@@ -292,7 +325,7 @@ export default function ListaPedidosPreProjetos() {
 
       <div className="overflow-hidden rounded-[14px] border border-[#E5EAF2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
         <div className="overflow-x-auto">
-          <Table className="min-w-[1080px] text-[13px]">
+          <Table className="min-w-[980px] text-[13px]">
           <TableHeader>
             <TableRow className="border-[#E5EAF2] hover:bg-transparent">
               <TableHead className="h-11 w-[140px] min-w-[120px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B] first:pl-4 sm:first:pl-6">
@@ -300,9 +333,6 @@ export default function ListaPedidosPreProjetos() {
               </TableHead>
               <TableHead className="h-11 min-w-[180px] bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
                 Munícipe
-              </TableHead>
-              <TableHead className="h-11 min-w-[150px] bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
-                Natureza
               </TableHead>
               <TableHead className="h-11 w-[130px] min-w-[118px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
                 Status
@@ -314,10 +344,13 @@ export default function ListaPedidosPreProjetos() {
                 Data agendamento
               </TableHead>
               <TableHead className="h-11 min-w-[160px] bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
-                E-mail
-              </TableHead>
-              <TableHead className="h-11 min-w-[160px] bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
                 Coordenadoria
+              </TableHead>
+              <TableHead className="h-11 min-w-[170px] bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+                Técnico Arthur Saboya
+              </TableHead>
+              <TableHead className="h-11 min-w-[130px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+                Ação
               </TableHead>
               <TableHead className="h-11 w-10 bg-[#F8FAFC] px-0 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B] last:pr-4 sm:last:pr-6">
                 <span className="sr-only">Abrir</span>
@@ -353,11 +386,6 @@ export default function ListaPedidosPreProjetos() {
                     <div className="truncate font-medium text-[#0F172A]">{row.nome}</div>
                     <div className="truncate text-[11.5px] text-[#64748B]">{row.formacaoTexto}</div>
                   </TableCell>
-                  <TableCell className="max-w-[200px] px-3 py-2.5">
-                    <span className="inline-block max-w-full truncate rounded-full bg-[#F1F5F9] px-2.5 py-0.5 text-xs font-medium text-[#475569]">
-                      {row.naturezaTexto}
-                    </span>
-                  </TableCell>
                   <TableCell className="px-3 py-2.5">
                     <StatusChip status={row.status} />
                   </TableCell>
@@ -370,10 +398,32 @@ export default function ListaPedidosPreProjetos() {
                       : "—"}
                   </TableCell>
                   <TableCell className="max-w-[200px] truncate px-3 py-2.5 text-[#64748B]">
-                    {row.email}
-                  </TableCell>
-                  <TableCell className="max-w-[200px] truncate px-3 py-2.5 text-[#64748B]">
                     {row.coordenadoriaTexto?.trim() || "—"}
+                  </TableCell>
+                  <TableCell className="max-w-[220px] truncate px-3 py-2.5 text-[#64748B]">
+                    {row.tecnicoArthurNome?.trim() || "—"}
+                  </TableCell>
+                  <TableCell className="px-3 py-2.5">
+                    {podeConcluirNaTabela ? (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="h-8 rounded-md border-[#D7DFEA] px-2.5 text-xs"
+                        disabled={
+                          row.status !== "AGENDAMENTO_CRIADO" ||
+                          concluindoId === row.protocolo
+                        }
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void handleConcluirAtendimento(row.protocolo);
+                        }}
+                      >
+                        Concluir
+                      </Button>
+                    ) : (
+                      <span className="text-[#94A3B8]">—</span>
+                    )}
                   </TableCell>
                   <TableCell className="w-10 px-0 text-[#94A3B8] last:pr-4 sm:last:pr-6">
                     <ChevronRight className="mx-auto h-4 w-4 shrink-0" aria-hidden />

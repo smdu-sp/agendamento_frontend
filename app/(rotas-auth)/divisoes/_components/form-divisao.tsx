@@ -71,33 +71,35 @@ export default function FormDivisao({ isUpdating, divisao: div, onClose }: FormD
 	}, [session]);
 
 	async function onSubmit(values: z.infer<typeof formSchema>) {
-		startTransition(async () => {
-			if (isUpdating && div?.id) {
-				const resp = await divisao.atualizar(div.id, {
-					sigla: values.sigla,
-					nome: values.nome || undefined,
-					coordenadoriaId: values.coordenadoriaId || undefined,
-					status: values.status,
-				});
-				if (resp.error) toast.error('Algo deu errado', { description: resp.error });
-				if (resp.ok) {
-					toast.success('Divisão atualizada');
-					router.refresh();
+		startTransition(() => {
+			void (async () => {
+				if (isUpdating && div?.id) {
+					const resp = await divisao.atualizar(div.id, {
+						sigla: values.sigla,
+						nome: values.nome || undefined,
+						coordenadoriaId: values.coordenadoriaId || undefined,
+						status: values.status,
+					});
+					if (resp.error) toast.error('Algo deu errado', { description: resp.error });
+					if (resp.ok) {
+						toast.success('Divisão atualizada');
+						router.refresh();
+					}
+				} else {
+					const resp = await divisao.criar({
+						sigla: values.sigla,
+						nome: values.nome || undefined,
+						coordenadoriaId: values.coordenadoriaId || undefined,
+						status: values.status ?? true,
+					});
+					if (resp.error) toast.error('Algo deu errado', { description: resp.error });
+					if (resp.ok) {
+						toast.success('Divisão criada');
+						router.refresh();
+						onClose?.();
+					}
 				}
-			} else {
-				const resp = await divisao.criar({
-					sigla: values.sigla,
-					nome: values.nome || undefined,
-					coordenadoriaId: values.coordenadoriaId || undefined,
-					status: values.status ?? true,
-				});
-				if (resp.error) toast.error('Algo deu errado', { description: resp.error });
-				if (resp.ok) {
-					toast.success('Divisão criada');
-					router.refresh();
-					onClose?.();
-				}
-			}
+			})();
 		});
 	}
 

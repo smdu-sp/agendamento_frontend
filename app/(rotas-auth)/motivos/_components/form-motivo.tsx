@@ -57,35 +57,37 @@ export default function FormMotivo({
 			return;
 		}
 
-		startTransition(async () => {
-			if (isUpdating && motivoData?.id) {
-				const resp = await motivo.atualizar(motivoData.id, {
-					texto: values.texto,
-					status: values.status,
-				}, session.access_token);
+		startTransition(() => {
+			void (async () => {
+				if (isUpdating && motivoData?.id) {
+					const resp = await motivo.atualizar(motivoData.id, {
+						texto: values.texto,
+						status: values.status,
+					}, session.access_token);
 
-				if (resp.error) {
-					toast.error('Algo deu errado', { description: resp.error });
-				}
+					if (resp.error) {
+						toast.error('Algo deu errado', { description: resp.error });
+					}
 
-				if (resp.ok) {
-					toast.success('Motivo Atualizado');
-					router.refresh();
+					if (resp.ok) {
+						toast.success('Motivo Atualizado');
+						router.refresh();
+					}
+				} else {
+					const resp = await motivo.criar({
+						texto: values.texto,
+						status: values.status ?? true,
+					}, session.access_token);
+					if (resp.error) {
+						toast.error('Algo deu errado', { description: resp.error });
+					}
+					if (resp.ok) {
+						toast.success('Motivo Criado');
+						router.refresh();
+						onClose?.();
+					}
 				}
-			} else {
-				const resp = await motivo.criar({
-					texto: values.texto,
-					status: values.status ?? true,
-				}, session.access_token);
-				if (resp.error) {
-					toast.error('Algo deu errado', { description: resp.error });
-				}
-				if (resp.ok) {
-					toast.success('Motivo Criado');
-					router.refresh();
-					onClose?.();
-				}
-			}
+			})();
 		});
 	}
 

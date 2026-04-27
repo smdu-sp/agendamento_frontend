@@ -53,54 +53,56 @@ export default function ImportarAgendamentosOutlookForm() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    startTransition(async () => {
-      try {
-        const formData = new FormData();
-        formData.append("arquivo", values.arquivo);
+    startTransition(() => {
+      void (async () => {
+        try {
+          const formData = new FormData();
+          formData.append("arquivo", values.arquivo);
 
-        const resp = await agendamento.importarPlanilhaOutlook(formData);
+          const resp = await agendamento.importarPlanilhaOutlook(formData);
 
-        if (resp.error) {
-          toast.error("Erro ao importar planilha Outlook", {
-            description: resp.error,
-            duration: 5000,
-          });
-          return;
-        }
-
-        if (resp.ok && resp.data) {
-          const resultado = resp.data as {
-            importados: number;
-            erros: number;
-            duplicados?: number;
-          };
-
-          if (resultado.importados > 0) {
-            toast.success("Planilha Outlook importada com sucesso", {
-              description: `${resultado.importados} agendamento(s) importado(s).${resultado.erros > 0 ? ` ${resultado.erros} linha(s) com erro(s).` : ""}${resultado.duplicados ? ` ${resultado.duplicados} duplicado(s) ignorado(s).` : ""}`,
+          if (resp.error) {
+            toast.error("Erro ao importar planilha Outlook", {
+              description: resp.error,
               duration: 5000,
             });
-          } else {
-            toast.warning("Nenhum agendamento importado", {
-              description:
-                resultado.erros > 0
-                  ? `${resultado.erros} erro(s). Verifique o formato (linha 4 = cabeçalho, dados a partir da linha 5).`
-                  : "Nenhum dado válido encontrado na planilha.",
-              duration: 5000,
-            });
+            return;
           }
 
-          form.reset();
-          router.refresh();
+          if (resp.ok && resp.data) {
+            const resultado = resp.data as {
+              importados: number;
+              erros: number;
+              duplicados?: number;
+            };
+
+            if (resultado.importados > 0) {
+              toast.success("Planilha Outlook importada com sucesso", {
+                description: `${resultado.importados} agendamento(s) importado(s).${resultado.erros > 0 ? ` ${resultado.erros} linha(s) com erro(s).` : ""}${resultado.duplicados ? ` ${resultado.duplicados} duplicado(s) ignorado(s).` : ""}`,
+                duration: 5000,
+              });
+            } else {
+              toast.warning("Nenhum agendamento importado", {
+                description:
+                  resultado.erros > 0
+                    ? `${resultado.erros} erro(s). Verifique o formato (linha 4 = cabeçalho, dados a partir da linha 5).`
+                    : "Nenhum dado válido encontrado na planilha.",
+                duration: 5000,
+              });
+            }
+
+            form.reset();
+            router.refresh();
+          }
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : "Erro desconhecido";
+          toast.error("Erro inesperado", {
+            description: `Ocorreu um erro ao processar a importação: ${errorMessage}`,
+            duration: 5000,
+          });
         }
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Erro desconhecido";
-        toast.error("Erro inesperado", {
-          description: `Ocorreu um erro ao processar a importação: ${errorMessage}`,
-          duration: 5000,
-        });
-      }
+      })();
     });
   }
 

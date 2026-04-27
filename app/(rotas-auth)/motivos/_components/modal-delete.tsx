@@ -38,15 +38,17 @@ export default function ModalDelete({
 			return;
 		}
 
-		startTransition(async () => {
-			const resp = await motivo.desativar(id, session.access_token);
-			if (resp.error) {
-				toast.error('Algo deu errado', { description: resp.error });
-			}
-			if (resp.ok) {
-				toast.success(status ? 'Motivo Desativado' : 'Motivo Ativado');
-				router.refresh();
-			}
+		startTransition(() => {
+			void (async () => {
+				const resp = await motivo.desativar(id, session.access_token);
+				if (resp.error) {
+					toast.error('Algo deu errado', { description: resp.error });
+				}
+				if (resp.ok) {
+					toast.success(status ? 'Motivo Desativado' : 'Motivo Ativado');
+					router.refresh();
+				}
+			})();
 		});
 	}
 
