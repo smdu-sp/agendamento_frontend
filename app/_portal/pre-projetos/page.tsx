@@ -42,16 +42,11 @@ const NATUREZAS_DUVIDA = [
 
 const initialForm = { nome: "", email: "", formacao: "", formacaoOutro: "", naturezaDuvida: "", naturezaOutro: "", descricao: "" }
 
-function protocoloExibicao(id: string): string {
-  const hex = id.replace(/-/g, "")
-  return `PP-${hex.slice(0, 8).toUpperCase()}`
-}
-
 export default function PreProjetosPage() {
   const [autenticado, setAutenticado] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [formData, setFormData] = useState(initialForm)
-  /** Protocolo retornado pela API (fallback: derivado do id, compatível com respostas antigas). */
+  /** Protocolo retornado pela API. */
   const [protocoloExibido, setProtocoloExibido] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -125,7 +120,7 @@ export default function PreProjetosPage() {
       const id = data?.id ? String(data.id) : null
       if (!id) throw new Error("Resposta da API sem identificador.")
       setProtocoloExibido(
-        data?.protocolo?.trim() || protocoloExibicao(id),
+        data?.protocolo?.trim() || null,
       )
       setSubmitted(true)
     } catch (err) {

@@ -1,5 +1,4 @@
 import pmspLogo from "@/public/Logo_pmsp_h.png"
-import { MapPin, Phone } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { openSans } from "@/lib/fonts"
@@ -44,35 +43,12 @@ export function ArthurSaboyaFooter() {
             </nav>
           </div>
 
-          {/* Contato */}
-          <div className="space-y-4">
-            <h3 className={`${openSans.className} text-[16px] font-semibold text-[#0E171E]`}>Contato</h3>
-            <div className="flex flex-col gap-3 text-sm text-[#4C575F]">
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 shrink-0" />
-                <span>(11) 5466-1950</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 shrink-0" />
-                <span>(11) 5466-1930</span>
-              </div>              
-              <div className="flex items-start gap-2">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>
-                  R. São Bento, 405 - Centro
-                  <br />
-                  CEP: 01011-100
-                </span>
-              </div>
-            </div>
-          </div>
-
           {/* Horário */}
           <div className="space-y-4">
             <h3 className={`${openSans.className} text-[16px] font-semibold text-[#0E171E]`}>Horário de Atendimento</h3>
             <div className="space-y-1 text-sm text-[#4C575F]">
               <p>Segunda e Sexta-feira</p>
-              <p className="font-medium text-[#0E171E]">09h00 às 17h00</p>
+              <p className="font-medium text-[#0E171E]">13:00 às 16:30</p>
               <p className="mt-3">Sábados, Domingos e Feriados</p>
               <p className="font-medium text-[#0E171E]">Fechado</p>
             </div>

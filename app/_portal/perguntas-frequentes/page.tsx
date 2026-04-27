@@ -10,7 +10,6 @@ import { openSans } from "@/lib/fonts"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 const BASE = "/portal"
-const SMUL_AGENDAMENTO_URL = "https://smulagendamento.prefeitura.sp.gov.br/PaginasPublicas/frmPaginaInicial.aspx"
 const FAZENDA_IPTU_URL = "https://prefeitura.sp.gov.br/web/fazenda/servicos/iptu/"
 const SIMPROC_URL = "https://simprocservicos.prefeitura.sp.gov.br/Forms/consultarProcessos.aspx"
 
@@ -255,37 +254,6 @@ const FAQS: FaqItem[] = [
         <P>
           É importante descrever o ocorrido e, se possível, incluir capturas de tela do erro e o número do
           protocolo/processo em questão.
-        </P>
-      </Answer>
-    ),
-  },
-  {
-    id: "q13",
-    pergunta: "13. Como posso tirar dúvidas sobre qual solicitação devo fazer?",
-    resposta: (
-      <Answer>
-        <P>
-          A SMUL dispõe de uma equipe de atendimento para esclarecer dúvidas técnicas referentes à legislação
-          edilícia da cidade de São Paulo e seus serviços.
-        </P>
-        <P>
-          Dúvidas técnicas de pré-projeto e sobre legislação edilícia e urbanística
-          <br />
-          Rua São Bento, 405 - 8º andar, sala 82
-          <br />
-          Segunda a sexta-feira, a partir das 13h, mediante agendamento prévio.
-        </P>
-        <P>
-          Para atendimento técnico, o agendamento deverá ser solicitado através de plataforma digital:{" "}
-          <a
-            href={SMUL_AGENDAMENTO_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="break-all font-medium text-primary underline underline-offset-2 hover:no-underline"
-          >
-            {SMUL_AGENDAMENTO_URL}
-          </a>
-          .
         </P>
       </Answer>
     ),
