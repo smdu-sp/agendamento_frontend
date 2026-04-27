@@ -78,7 +78,7 @@ export default function ListaPedidosPreProjetos() {
   const token = session?.access_token;
   const [buscaInput, setBuscaInput] = useState("");
   const [busca, setBusca] = useState("");
-  const [filtroStatus, setFiltroStatus] = useState<FiltroStatus>("");
+  const [filtroStatus, setFiltroStatus] = useState<FiltroStatus>("SOLICITADO");
   const [pagina, setPagina] = useState(1);
   const [total, setTotal] = useState(0);
   const [itens, setItens] = useState<ISolicitacaoPreProjetoArthurSaboya[]>([]);
@@ -153,8 +153,8 @@ export default function ListaPedidosPreProjetos() {
   }
 
   const FILTROS: { k: FiltroStatus; label: string; count: number | undefined }[] = [
-    { k: "", label: "Todos", count: stats?.total },
     { k: "SOLICITADO", label: "Solicitados", count: stats?.solicitados },
+    { k: "", label: "Todos", count: stats?.total },
     { k: "AGUARDANDO_DATA", label: "Aguardando data", count: stats?.aguardando },
     { k: "RESPONDIDO", label: "Solucionados", count: stats?.respondidos },
     { k: "AGENDAMENTO_CRIADO", label: "Enviados", count: stats?.enviados },
@@ -211,7 +211,7 @@ export default function ListaPedidosPreProjetos() {
             label: "Aguardando data",
             value: stats?.aguardando,
             accent: "#E56E14",
-            trend: "Munícipe deve informar data",
+            trend: "Aguardando agendamento",
           },
           {
             label: "Solucionados",
