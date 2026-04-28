@@ -128,6 +128,7 @@ async function Home({
     <AppPageShell
       title={titulo}
       breadcrumbs={[{ label: "Agendamentos" }]}
+      hidePageTitle
       actions={
         (session.usuario?.permissao as unknown as IPermissao === IPermissao.ADM ||
           session.usuario?.permissao as unknown as IPermissao === IPermissao.DEV) && (

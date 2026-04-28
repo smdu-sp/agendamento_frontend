@@ -112,6 +112,7 @@ export default function ChamadoPreProjetoPortalView({
   const [atribuirCoordAberto, setAtribuirCoordAberto] = useState(false);
   const [tecnicosCoordenadoria, setTecnicosCoordenadoria] = useState<ITecnico[]>([]);
   const [tecnicoCoordenadoriaId, setTecnicoCoordenadoriaId] = useState("");
+  const [coordenadoriaUsuarioId, setCoordenadoriaUsuarioId] = useState("");
   const [salvando, setSalvando] = useState(false);
 
   const mensagensChat = useMemo(
@@ -163,6 +164,20 @@ export default function ChamadoPreProjetoPortalView({
       }
     })();
   }, [token, status, chamado?.divisaoId]);
+
+  useEffect(() => {
+    if (!token || status === "loading") return;
+    const permissao = String((session?.usuario as { permissao?: string } | undefined)?.permissao ?? "");
+    if (permissao !== "PONTO_FOCAL" && permissao !== "COORDENADOR") return;
+    const userId = (session?.usuario as { sub?: string } | undefined)?.sub;
+    if (!userId) return;
+    void (async () => {
+      const r = await usuario.buscarPorId(userId, token);
+      if (!r.ok || !r.data || Array.isArray(r.data) || !("id" in r.data)) return;
+      const coordId = r.data.divisao?.coordenadoriaId?.trim();
+      if (coordId) setCoordenadoriaUsuarioId(coordId);
+    })();
+  }, [token, status, session?.usuario]);
 
   useEffect(() => {
     if (!token || status === "loading" || !atribuirCoordAberto) return;
@@ -367,25 +382,40 @@ export default function ChamadoPreProjetoPortalView({
   const permissaoUsuario = String((session?.usuario as { permissao?: string } | undefined)?.permissao ?? "");
   const divisaoUsuario = (session?.usuario as { divisaoId?: string } | undefined)?.divisaoId?.trim();
   const divisaoArthur = process.env.NEXT_PUBLIC_DIVISAO_ID_PRE_PROJETOS?.trim();
+  const isTecAs =
+    permissaoUsuario === "ARTHUR_SABOYA" ||
+    permissaoUsuario === "TEC_AS" ||
+    (permissaoUsuario === "TEC" &&
+      !!divisaoArthur &&
+      !!divisaoUsuario &&
+      divisaoUsuario === divisaoArthur);
   const usuarioArthur =
+    isTecAs ||
     permissaoUsuario === "DEV" ||
     permissaoUsuario === "ADM" ||
     (permissaoUsuario === "PONTO_FOCAL" &&
       !!divisaoArthur &&
       !!divisaoUsuario &&
       divisaoUsuario === divisaoArthur);
-  const tecnicoArthurPodeEnviarMensagem =
-    permissaoUsuario === "DEV" ||
-    permissaoUsuario === "ADM" ||
-    (permissaoUsuario === "TEC" &&
-      !!divisaoArthur &&
-      !!divisaoUsuario &&
-      divisaoUsuario === divisaoArthur);
+  const tecnicoArthurPodeEnviarMensagem = isTecAs || permissaoUsuario === "DEV" || permissaoUsuario === "ADM";
   const usuarioPodeAtribuirCoordenadoria =
     permissaoUsuario === "COORDENADOR" ||
     (permissaoUsuario === "PONTO_FOCAL" && !usuarioArthur) ||
     permissaoUsuario === "ADM" ||
     permissaoUsuario === "DEV";
+  const coordRestrito =
+    (permissaoUsuario === "PONTO_FOCAL" || permissaoUsuario === "COORDENADOR") &&
+    !!coordenadoriaUsuarioId &&
+    !!chamado?.coordenadoriaId &&
+    coordenadoriaUsuarioId !== chamado.coordenadoriaId;
+
+  if (coordRestrito) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center text-sm text-[#64748B]">
+        Você não tem permissão para visualizar este chamado.
+      </div>
+    );
+  }
 
   return (
     <div className="-mx-4 flex min-h-[calc(100dvh-4.5rem)] flex-col bg-[#F6F8FB] text-[#0F172A] antialiased [-webkit-font-smoothing:antialiased]">

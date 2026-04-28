@@ -87,6 +87,10 @@ async function Usuarios({
       value: "TEC",
     },
     {
+      label: "Técnico Arthur Saboya",
+      value: "ARTHUR_SABOYA",
+    },
+    {
       label: "Ponto Focal",
       value: "PONTO_FOCAL",
     },

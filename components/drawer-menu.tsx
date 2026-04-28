@@ -58,7 +58,7 @@ export function DrawerMenu() {
 
     {
       icone: CalendarSearch,
-      titulo: "Agendamentos",
+      titulo: "Agendamentos Digitais",
       url: "/agendamentos",
     },
     {

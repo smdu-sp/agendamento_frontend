@@ -14,9 +14,16 @@ interface AppPageShellProps {
   children: React.ReactNode;
   breadcrumbs?: BreadcrumbItem[];
   actions?: React.ReactNode;
+  hidePageTitle?: boolean;
 }
 
-export function AppPageShell({ title, children, breadcrumbs = [], actions }: AppPageShellProps) {
+export function AppPageShell({
+  title,
+  children,
+  breadcrumbs = [],
+  actions,
+  hidePageTitle = false,
+}: AppPageShellProps) {
   const trilha = breadcrumbs.length > 0 ? breadcrumbs : [{ label: title }];
 
   return (
@@ -55,9 +62,11 @@ export function AppPageShell({ title, children, breadcrumbs = [], actions }: App
       </header>
 
       <div className="mx-auto flex min-h-0 w-full max-w-[1400px] flex-1 flex-col px-4 pb-8 pt-5 sm:px-7 sm:pb-10">
-        <div className="mb-5">
-          <h1 className="text-[22px] font-bold tracking-tight text-[#0F172A]">{title}</h1>
-        </div>
+        {!hidePageTitle ? (
+          <div className="mb-5">
+            <h1 className="text-[22px] font-bold tracking-tight text-[#0F172A]">{title}</h1>
+          </div>
+        ) : null}
         {children}
       </div>
     </div>

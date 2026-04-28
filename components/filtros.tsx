@@ -5,7 +5,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarIcon, Check, ChevronsUpDown, RefreshCw, X } from 'lucide-react';
+import { CalendarIcon, Check, ChevronsUpDown, RefreshCw, Search, X } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useEffect, useState, useTransition } from 'react';
 import { DateRange } from 'react-day-picker';
@@ -108,16 +108,16 @@ export function Filtros({ camposFiltraveis }: FiltrosProps) {
 	function RenderTexto(campo: CampoFiltravel) {
 		return (
 			<div
-				className='flex w-full flex-col gap-1.5 md:w-64'
+				className='relative min-w-0 flex-1'
 				key={campo.tag}>
-				<p className='text-[11px] font-semibold uppercase tracking-[0.08em] text-[#64748B]'>{campo.nome}</p>
+				<Search className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94A3B8]' />
 				<Input
 					value={filtros[campo.tag]}
 					onChange={(e) =>
 						setFiltros((prev) => ({ ...prev, [campo.tag]: e.target.value }))
 					}
-					className='h-10 rounded-lg border-[#D7DFEA] bg-white text-[13px] text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:border-[#0A328D]/40 focus-visible:ring-[#0A328D]/15'
-					placeholder={campo.placeholder}
+					className='h-10 rounded-lg border-[#D7DFEA] bg-white pl-9 text-[13px] text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:border-[#0A328D]/40 focus-visible:ring-[#0A328D]/15'
+					placeholder={campo.placeholder || campo.nome}
 				/>
 			</div>
 		);
@@ -135,9 +135,8 @@ export function Filtros({ camposFiltraveis }: FiltrosProps) {
 
 		return (
 			<div
-				className='flex w-full flex-col gap-1.5 md:w-64'
+				className='min-w-[180px]'
 				key={campo.tag}>
-				<p className='text-[11px] font-semibold uppercase tracking-[0.08em] text-[#64748B]'>{campo.nome}</p>
 				<Select
 					onValueChange={(value) =>
 						setFiltros((prev) => ({
@@ -146,8 +145,8 @@ export function Filtros({ camposFiltraveis }: FiltrosProps) {
 						}))
 					}
 					value={valorSelect}>
-					<SelectTrigger className='h-10 w-full rounded-lg border-[#D7DFEA] bg-white text-[13px] text-[#0F172A] md:w-64'>
-						<SelectValue placeholder={campo.placeholder} />
+					<SelectTrigger className='h-10 rounded-lg border-[#D7DFEA] bg-white text-[13px] text-[#0F172A]'>
+						<SelectValue placeholder={campo.placeholder || campo.nome} />
 					</SelectTrigger>
 					<SelectContent position='popper' className='z-50'>
 						<SelectItem
@@ -175,19 +174,18 @@ export function Filtros({ camposFiltraveis }: FiltrosProps) {
 		const [open, setOpen] = useState(false);
 		const [value, setValue] = useState(campo.default || '');
 		const valores = campo.valores as CampoSelect[] || [];
-		return <div className='flex flex-col w-full md:w-60' key={campo.tag}>
-			<p className='text-[11px] font-semibold uppercase tracking-[0.08em] text-[#64748B]'>{campo.nome}</p>
+		return <div className='min-w-[180px]' key={campo.tag}>
 			<Popover open={open} onOpenChange={setOpen}>
 				<PopoverTrigger asChild>
 					<Button
 					variant="outline"
 					role="combobox"
 					aria-expanded={open}
-					className="h-10 w-full justify-between rounded-lg border-[#D7DFEA] bg-white text-[13px] text-[#0F172A] md:w-64"
+					className="h-10 min-w-[180px] justify-between rounded-lg border-[#D7DFEA] bg-white text-[13px] text-[#0F172A]"
 					>
 					{value
 						? valores.find((opcao) => opcao.label === value)?.label
-						: campo.placeholder }
+						: campo.placeholder || campo.nome }
 					<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 					</Button>
 				</PopoverTrigger>
@@ -248,17 +246,14 @@ export function Filtros({ camposFiltraveis }: FiltrosProps) {
 		}, [searchParams]);
 
 		return (
-			<div
-				className={'flex w-full flex-col gap-1.5 md:w-[300px]'}
-				key={campo.tag}>
-				<p className='text-[11px] font-semibold uppercase tracking-[0.08em] text-[#64748B]'>{campo.nome}</p>
+			<div className='min-w-[220px]' key={campo.tag}>
 				<Popover>
 					<PopoverTrigger asChild>
 						<Button
 							id='date'
 							variant={'outline'}
 							className={cn(
-								'h-10 w-full justify-start rounded-lg border-[#D7DFEA] bg-white text-left text-[13px] font-normal text-[#0F172A] md:w-[300px]',
+								'h-10 w-full justify-start rounded-lg border-[#D7DFEA] bg-white text-left text-[13px] font-normal text-[#0F172A]',
 								!date && 'text-muted-foreground',
 							)}>
 							{date && date.from ? (
@@ -299,8 +294,10 @@ export function Filtros({ camposFiltraveis }: FiltrosProps) {
 	}
 
 	return (
-		<div className='mb-1 flex flex-wrap items-end gap-2.5 gap-y-3'>
-			{renderFiltros()}
+		<div className='mb-3.5 flex flex-wrap items-end gap-2.5 gap-y-3'>
+			<div className='flex min-w-[min(100%,240px)] flex-1 flex-wrap items-center gap-2'>
+				{renderFiltros()}
+			</div>
 			<div className='isolate flex shrink-0 gap-2'>
 				<Button
 					variant='outline'
@@ -309,7 +306,7 @@ export function Filtros({ camposFiltraveis }: FiltrosProps) {
 					onClick={() => startTransition(() => atualizaFiltros())}
 					title='Aplicar filtros'>
 					<RefreshCw className={cn('h-4 w-4', isPending && 'animate-spin')} />
-					Aplicar
+					Buscar
 				</Button>
 				<Button
 					variant='outline'

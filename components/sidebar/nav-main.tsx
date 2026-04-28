@@ -18,6 +18,7 @@ import {
   HelpCircle,
   ClipboardList,
   Files,
+  CalendarSearch,
 } from "lucide-react";
 
 import {
@@ -67,6 +68,11 @@ export async function NavMain() {
       icone: House,
       titulo: "Página Inicial",
       url: "/",
+    },
+    {
+      icone: CalendarSearch,
+      titulo: "Agendamentos Digitais",
+      url: "/agendamentos",
     },
     {
       icone: Files,
@@ -191,6 +197,14 @@ export async function NavMain() {
                   </SidebarMenuItem>
                 ),
               )}
+              {usuario && usuarioPodeAcessarPedidosPreProjetosArthurSaboya(usuario) && (
+                <SidebarMenuItem className="z-50">
+                  <Link href="/pedidos-pre-projetos-arthur-saboya">
+                    <ClipboardList />
+                    <span>Pedidos Arthur Saboya</span>
+                  </Link>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </>
         )}
@@ -214,14 +228,6 @@ export async function NavMain() {
                     <span>Dashboard</span>
                   </Link>
                 </SidebarMenuItem>
-                {usuarioPodeAcessarPedidosPreProjetosArthurSaboya(usuario) && (
-                  <SidebarMenuItem className="z-50">
-                    <Link href="/pedidos-pre-projetos-arthur-saboya">
-                      <ClipboardList />
-                      <span>Pedidos Arthur Saboya</span>
-                    </Link>
-                  </SidebarMenuItem>
-                )}
                 {!["DIRETOR"].includes(usuario.permissao.toString()) && (
                   <SidebarMenuItem className="z-50">
                     <Link href="/usuarios">

@@ -30,6 +30,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { useEffectivePermissao } from "@/providers/ImpersonationProvider";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useTransition, useEffect, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -42,6 +43,7 @@ const formSchemaUsuario = z.object({
   permissao: z.enum([
     "DEV",
     "TEC",
+    "ARTHUR_SABOYA",
     "ADM",
     "USR",
     "PONTO_FOCAL",
@@ -67,6 +69,7 @@ export default function FormUsuario({
   user,
   onClose,
 }: FormUsuarioProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isSearching, setIsSearching] = useState(false);
   const [todasDivisoes, setTodasDivisoes] = useState<IDivisao[]>([]);
@@ -91,6 +94,7 @@ export default function FormUsuario({
         (user?.permissao as unknown as
           | "DEV"
           | "TEC"
+          | "ARTHUR_SABOYA"
           | "ADM"
           | "USR"
           | "PONTO_FOCAL"
@@ -100,6 +104,31 @@ export default function FormUsuario({
       divisaoId: user?.divisaoId || "",
     },
   });
+  const permissaoSelecionada = formUsuario.watch("permissao");
+  const normalizarSigla = (valor?: string) =>
+    String(valor || "")
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "");
+
+  // Divisão fixa para permissão Técnico Arthur Saboya (coordenadoria CAP)
+  const divisaoArthurSaboyaId = useMemo(() => {
+    const porCap = todasDivisoes.find((div) => {
+      const siglaCoord = normalizarSigla(div.coordenadoria?.sigla);
+      const siglaDiv = normalizarSigla(div.sigla);
+      return (
+        siglaCoord === "CAP" &&
+        (siglaDiv === "ARTHURSABOYA" || siglaDiv === "ATHURSABOYA")
+      );
+    });
+    if (porCap?.id) return porCap.id;
+
+    const fallback = todasDivisoes.find((div) => {
+      const siglaDiv = normalizarSigla(div.sigla);
+      return siglaDiv === "ARTHURSABOYA" || siglaDiv === "ATHURSABOYA";
+    });
+    return fallback?.id;
+  }, [todasDivisoes]);
 
   // Divisões filtradas pela coordenadoria selecionada
   const coordenadoriasDisponiveis = useMemo(() => {
@@ -148,6 +177,14 @@ export default function FormUsuario({
     }
     carregar();
   }, [session]);
+
+  useEffect(() => {
+    if (permissaoSelecionada === "ARTHUR_SABOYA") {
+      const divisaoArthur = todasDivisoes.find((d) => d.id === divisaoArthurSaboyaId);
+      setCoordenadoriaId(divisaoArthur?.coordenadoriaId || "");
+      formUsuario.setValue("divisaoId", divisaoArthurSaboyaId || "");
+    }
+  }, [permissaoSelecionada, formUsuario, divisaoArthurSaboyaId, todasDivisoes]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -222,9 +259,26 @@ export default function FormUsuario({
     startTransition(() => {
       void (async () => {
         if (isUpdating && user?.id) {
+          if (values.permissao === "ARTHUR_SABOYA" && !divisaoArthurSaboyaId) {
+            toast.error("Divisão padrão não encontrada", {
+              description:
+                "Não foi possível localizar a divisão ATHURSABOYA na coordenadoria CAP.",
+            });
+            return;
+          }
+          const deveEnviarDivisao =
+            values.permissao === "PONTO_FOCAL" ||
+            values.permissao === "TEC" ||
+            values.permissao === "COORDENADOR" ||
+            values.permissao === "DIRETOR" ||
+            values.permissao === "ARTHUR_SABOYA";
           const resp = await usuario.atualizar(user?.id, {
             permissao: values.permissao as unknown as IPermissao,
-            divisaoId: values.divisaoId || undefined,
+            divisaoId: deveEnviarDivisao
+              ? values.permissao === "ARTHUR_SABOYA"
+                ? divisaoArthurSaboyaId
+                : values.divisaoId || undefined
+              : undefined,
           });
 
           if (resp.error) {
@@ -236,15 +290,33 @@ export default function FormUsuario({
               description: "Os dados do usuário foram salvos com sucesso.",
             });
             onClose?.();
+            router.refresh();
           }
         } else {
+          if (values.permissao === "ARTHUR_SABOYA" && !divisaoArthurSaboyaId) {
+            toast.error("Divisão padrão não encontrada", {
+              description:
+                "Não foi possível localizar a divisão ATHURSABOYA na coordenadoria CAP.",
+            });
+            return;
+          }
           const { email, login, nome, permissao, divisaoId } = values;
+          const deveEnviarDivisao =
+            permissao === "PONTO_FOCAL" ||
+            permissao === "TEC" ||
+            permissao === "COORDENADOR" ||
+            permissao === "DIRETOR" ||
+            permissao === "ARTHUR_SABOYA";
           const resp = await usuario.criar({
             email,
             login,
             nome,
             permissao: permissao as unknown as IPermissao,
-            divisaoId: divisaoId || undefined,
+            divisaoId: deveEnviarDivisao
+              ? permissao === "ARTHUR_SABOYA"
+                ? divisaoArthurSaboyaId
+                : divisaoId || undefined
+              : undefined,
           });
           if (resp.error) {
             toast.error("Algo deu errado", { description: resp.error });
@@ -254,6 +326,7 @@ export default function FormUsuario({
               description: "O usuário foi cadastrado com sucesso.",
             });
             onClose?.();
+            router.refresh();
           }
         }
       })();
@@ -377,16 +450,17 @@ export default function FormUsuario({
                     <SelectItem value="PONTO_FOCAL">Ponto Focal</SelectItem>
                     <SelectItem value="DIRETOR">Diretor</SelectItem>
                     <SelectItem value="TEC">Técnico</SelectItem>
+                    <SelectItem value="ARTHUR_SABOYA">Técnico Arthur Saboya</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
               </FormItem>
             )}
           />
-          {(formUsuario.watch("permissao") === "PONTO_FOCAL" ||
-            formUsuario.watch("permissao") === "TEC" ||
-            formUsuario.watch("permissao") === "COORDENADOR" ||
-            formUsuario.watch("permissao") === "DIRETOR") && (
+          {(permissaoSelecionada === "PONTO_FOCAL" ||
+            permissaoSelecionada === "TEC" ||
+            permissaoSelecionada === "COORDENADOR" ||
+            permissaoSelecionada === "DIRETOR") && (
             <>
               {/* Seletor de coordenadoria — filtra as divisões abaixo */}
               <FormItem>

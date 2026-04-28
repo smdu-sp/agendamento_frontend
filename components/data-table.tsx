@@ -34,7 +34,7 @@ export default function DataTable<TData, TValue>({
 	});
 	return (
 		<div className='overflow-hidden rounded-[14px] border border-[#E5EAF2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]'>
-			<Table className='min-w-[780px] text-[13px]'>
+			<Table className='min-w-[780px] text-[14px]'>
 				<TableHeader>
 					{table.getHeaderGroups().map((headerGroup) => (
 						<TableRow
@@ -43,7 +43,7 @@ export default function DataTable<TData, TValue>({
 								{headerGroup.headers.map((header) => {
 									return (
 										<TableHead
-											className='h-11 whitespace-nowrap bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]'
+											className='h-11 whitespace-nowrap bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]'
 											key={header.id}>
 											{header.isPlaceholder
 												? null
@@ -67,7 +67,7 @@ export default function DataTable<TData, TValue>({
 								{row.getVisibleCells().map((cell) => (
 									<TableCell
 										key={cell.id}
-										className='whitespace-nowrap px-3 py-2.5 text-[12.5px] text-[#0F172A]'>
+										className='whitespace-nowrap px-3 py-2.5 text-[13.5px] text-[#0F172A]'>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
 								))}

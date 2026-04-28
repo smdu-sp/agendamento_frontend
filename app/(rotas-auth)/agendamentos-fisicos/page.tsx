@@ -109,6 +109,7 @@ export default async function AgendamentosFisicosPage({
     <AppPageShell
       title="Agendamentos Físicos"
       breadcrumbs={[{ label: "Agendamentos Físicos" }]}
+      hidePageTitle
       actions={
         (session.usuario?.permissao as unknown as IPermissao === IPermissao.ADM ||
           session.usuario?.permissao as unknown as IPermissao === IPermissao.DEV) && (

@@ -20,6 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import * as agendamento from "@/services/agendamentos";
+import * as usuario from "@/services/usuarios";
 import type { ISolicitacaoPreProjetoArthurSaboya } from "@/types/solicitacao-pre-projeto-arthur-saboya";
 
 const LIMITE = 15;
@@ -86,6 +87,7 @@ export default function ListaPedidosPreProjetos() {
   const [erro, setErro] = useState<string | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [concluindoId, setConcluindoId] = useState<string | null>(null);
+  const [coordenadoriaUsuarioId, setCoordenadoriaUsuarioId] = useState<string>("");
 
   const carregarStats = useCallback(async () => {
     if (!token) return;
@@ -142,6 +144,20 @@ export default function ListaPedidosPreProjetos() {
     void carregarStats();
   }, [status, token, carregarStats]);
 
+  useEffect(() => {
+    if (status === "loading" || !token) return;
+    const permissao = String((session?.usuario as { permissao?: string } | undefined)?.permissao ?? "");
+    if (permissao !== "PONTO_FOCAL" && permissao !== "COORDENADOR") return;
+    const userId = (session?.usuario as { sub?: string } | undefined)?.sub;
+    if (!userId) return;
+    void (async () => {
+      const r = await usuario.buscarPorId(userId, token);
+      if (!r.ok || !r.data || Array.isArray(r.data) || !("id" in r.data)) return;
+      const coordId = r.data.divisao?.coordenadoriaId?.trim();
+      if (coordId) setCoordenadoriaUsuarioId(coordId);
+    })();
+  }, [status, token, session?.usuario]);
+
   const totalPaginas = Math.max(1, Math.ceil(total / LIMITE));
 
   if (status === "loading" || !token) {
@@ -166,13 +182,27 @@ export default function ListaPedidosPreProjetos() {
   const isTecnicoCoordenadoria =
     permissaoUsuario === "TEC" &&
     (!!divisaoUsuario && (!divisaoArthur || divisaoUsuario !== divisaoArthur));
+  const isTecAs =
+    permissaoUsuario === "ARTHUR_SABOYA" ||
+    permissaoUsuario === "TEC_AS" ||
+    (permissaoUsuario === "TEC" &&
+      !!divisaoArthur &&
+      !!divisaoUsuario &&
+      divisaoUsuario === divisaoArthur);
+  const isPontoFocalOuCoordenador =
+    permissaoUsuario === "PONTO_FOCAL" || permissaoUsuario === "COORDENADOR";
   const isAdmArthur =
     permissaoUsuario === "DEV" ||
     (permissaoUsuario === "ADM" &&
       !!divisaoArthur &&
       !!divisaoUsuario &&
       divisaoUsuario === divisaoArthur);
-  const podeConcluirNaTabela = isTecnicoCoordenadoria || isAdmArthur;
+  const podeConcluirNaTabela = isTecAs || isTecnicoCoordenadoria || isAdmArthur;
+
+  const itensFiltrados =
+    isPontoFocalOuCoordenador && coordenadoriaUsuarioId
+      ? itens.filter((row) => (row.coordenadoriaId || "").trim() === coordenadoriaUsuarioId)
+      : itens;
 
   const handleConcluirAtendimento = async (protocolo: string) => {
     if (!token) return;
@@ -325,34 +355,34 @@ export default function ListaPedidosPreProjetos() {
 
       <div className="overflow-hidden rounded-[14px] border border-[#E5EAF2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
         <div className="overflow-x-auto">
-          <Table className="min-w-[980px] text-[13px]">
+          <Table className="min-w-[980px] text-[14px]">
           <TableHeader>
             <TableRow className="border-[#E5EAF2] hover:bg-transparent">
-              <TableHead className="h-11 w-[140px] min-w-[120px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B] first:pl-4 sm:first:pl-6">
+              <TableHead className="h-11 w-[140px] min-w-[120px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B] first:pl-4 sm:first:pl-6">
                 Protocolo
               </TableHead>
-              <TableHead className="h-11 min-w-[180px] bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+              <TableHead className="h-11 min-w-[180px] bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]">
                 Munícipe
               </TableHead>
-              <TableHead className="h-11 w-[130px] min-w-[118px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+              <TableHead className="h-11 w-[130px] min-w-[118px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]">
                 Status
               </TableHead>
-              <TableHead className="h-11 w-[150px] min-w-[130px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+              <TableHead className="h-11 w-[150px] min-w-[130px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]">
                 Abertura
               </TableHead>
-              <TableHead className="h-11 w-[170px] min-w-[150px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+              <TableHead className="h-11 w-[170px] min-w-[150px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]">
                 Data agendamento
               </TableHead>
-              <TableHead className="h-11 min-w-[160px] bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+              <TableHead className="h-11 min-w-[160px] bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]">
                 Coordenadoria
               </TableHead>
-              <TableHead className="h-11 min-w-[170px] bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+              <TableHead className="h-11 min-w-[170px] bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]">
                 Técnico Arthur Saboya
               </TableHead>
-              <TableHead className="h-11 min-w-[130px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+              <TableHead className="h-11 min-w-[130px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]">
                 Ação
               </TableHead>
-              <TableHead className="h-11 w-10 bg-[#F8FAFC] px-0 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B] last:pr-4 sm:last:pr-6">
+              <TableHead className="h-11 w-10 bg-[#F8FAFC] px-0 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B] last:pr-4 sm:last:pr-6">
                 <span className="sr-only">Abrir</span>
               </TableHead>
             </TableRow>
@@ -364,14 +394,14 @@ export default function ListaPedidosPreProjetos() {
                   Carregando…
                 </TableCell>
               </TableRow>
-            ) : itens.length === 0 ? (
+            ) : itensFiltrados.length === 0 ? (
               <TableRow className="border-[#E5EAF2] hover:bg-transparent">
                 <TableCell colSpan={9} className="py-10 text-center text-[#64748B]">
                   Nenhum pedido encontrado.
                 </TableCell>
               </TableRow>
             ) : (
-              itens.map((row) => (
+              itensFiltrados.map((row) => (
                 <TableRow
                   key={row.id}
                   className="cursor-pointer border-[#E5EAF2] hover:bg-[#F8FAFC]"
@@ -379,7 +409,7 @@ export default function ListaPedidosPreProjetos() {
                     router.push(`${PATH_CHAMADO}/${encodeURIComponent(row.protocolo)}`)
                   }
                 >
-                  <TableCell className="px-3 py-2.5 font-mono text-[12.5px] font-medium text-[#0F172A] first:pl-4 sm:first:pl-6">
+                  <TableCell className="px-3 py-2.5 font-mono text-[13.5px] font-medium text-[#0F172A] first:pl-4 sm:first:pl-6">
                     {row.protocolo}
                   </TableCell>
                   <TableCell className="max-w-[240px] px-3 py-2.5">
@@ -389,10 +419,10 @@ export default function ListaPedidosPreProjetos() {
                   <TableCell className="px-3 py-2.5">
                     <StatusChip status={row.status} />
                   </TableCell>
-                  <TableCell className="whitespace-nowrap px-3 py-2.5 text-[12.5px] text-[#64748B]">
+                  <TableCell className="whitespace-nowrap px-3 py-2.5 text-[13.5px] text-[#64748B]">
                     {format(new Date(row.criadoEm), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap px-3 py-2.5 text-[12.5px] text-[#64748B]">
+                  <TableCell className="whitespace-nowrap px-3 py-2.5 text-[13.5px] text-[#64748B]">
                     {row.dataAgendamento
                       ? format(new Date(row.dataAgendamento), "dd/MM/yyyy HH:mm", { locale: ptBR })
                       : "—"}
