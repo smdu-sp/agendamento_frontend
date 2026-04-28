@@ -2,6 +2,7 @@
 
 import { auth } from "@/lib/auth/auth";
 import { redirect } from "next/navigation";
+import { AppPageShell } from "@/components/layout/app-page-shell";
 import DashboardContent from "./_components/dashboard-content";
 
 export const metadata = {
@@ -24,7 +25,7 @@ export default async function DashboardPage() {
 
   if (!podeVerDashboard) {
     return (
-      <div className="w-full relative px-0 md:px-8 pb-10 md:pb-0 flex items-center justify-center min-h-[50vh]">
+      <div className="flex min-h-[50vh] items-center justify-center">
         <p className="text-xl text-muted-foreground text-center">
           Você não tem permissão para acessar o dashboard.
         </p>
@@ -33,9 +34,8 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="w-full relative px-0 md:px-8 pb-10 md:pb-0">
-      <h1 className="text-xl md:text-4xl font-bold mb-6">Dashboard</h1>
+    <AppPageShell title="Dashboard" breadcrumbs={[{ label: "Dashboard" }]}>
       <DashboardContent />
-    </div>
+    </AppPageShell>
   );
 }

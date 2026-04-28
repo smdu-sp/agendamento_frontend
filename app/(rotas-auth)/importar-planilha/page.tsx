@@ -3,6 +3,7 @@
 import { auth } from '@/lib/auth/auth';
 import { redirect } from 'next/navigation';
 import { IPermissao } from '@/types/usuario';
+import { AppPageShell } from '@/components/layout/app-page-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import ImportarPlanilhaForm from './_components/importar-planilha-form';
 import * as agendamento from '@/services/agendamentos';
@@ -33,8 +34,10 @@ export default async function ImportarPlanilhaPage() {
 		: null;
 
 	return (
-		<div className=' w-full relative px-0 md:px-8 pb-10 md:pb-0'>
-			<h1 className='text-xl md:text-4xl font-bold mb-5'>Importar Planilha de Agendamentos</h1>
+		<AppPageShell
+			title='Importar Planilha de Agendamentos'
+			breadcrumbs={[{ label: 'Importar planilha' }]}
+		>
 			{ultimaImportacao && dataUltima && (
 				<div className='mb-5 p-4 rounded-lg border bg-muted/40 text-sm text-muted-foreground space-y-0.5'>
 					<p>
@@ -66,6 +69,6 @@ export default async function ImportarPlanilhaPage() {
 					</CardContent>
 				</Card>
 			</div>
-		</div>
+		</AppPageShell>
 	);
 }

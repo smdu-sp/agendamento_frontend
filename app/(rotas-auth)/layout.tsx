@@ -1,6 +1,5 @@
 /** @format */
 
-import { AuthInsetHeader } from '@/components/auth-inset-header';
 import { DrawerMenu } from '@/components/drawer-menu';
 import { AppSidebar } from '@/components/sidebar/app-sidebar';
 import {
@@ -23,7 +22,6 @@ export default async function RotasAuth({
 			<SidebarProvider>
 				{sidebar}
 				<SidebarInset>
-					<AuthInsetHeader />
 					<div className='h-full w-full items-center gap-4 bg-muted/50 p-4 dark:bg-background sm:pt-0'>
 						{children}
 					</div>

@@ -96,6 +96,7 @@ interface ListaAgendamentosProps {
   dataInicio: string;
   dataFim: string;
   ultimaImportacao?: { dataHora: string; total: number; usuarioNome?: string | null } | null;
+  tipoProcessoFixo?: "DIGITAL" | "FISICO";
 }
 
 export default function ListaAgendamentos({
@@ -107,6 +108,7 @@ export default function ListaAgendamentos({
   status,
   dataInicio,
   ultimaImportacao,
+  tipoProcessoFixo,
 }: ListaAgendamentosProps) {
   const { data: session } = useSession();
   const router = useRouter();
@@ -177,6 +179,7 @@ export default function ListaAgendamentos({
   const tipoProcesso = searchParams.get("tipoProcesso") || "";
 
   const handleTipoProcessoChange = (valor: string) => {
+    if (tipoProcessoFixo) return;
     atualizarUrl({ tipoProcesso: valor, pagina: 1 });
   };
 
@@ -209,7 +212,7 @@ export default function ListaAgendamentos({
     atualizarUrl({
       busca: "",
       status: "",
-      tipoProcesso: "",
+      tipoProcesso: tipoProcessoFixo ?? "",
       dataInicio: "",
       dataFim: "",
       pagina: 1,
@@ -474,63 +477,64 @@ export default function ListaAgendamentos({
             </Badge>
           </div>
 
-          {/* Filtro de tipo de processo */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            <Badge
-              variant={tipoProcesso === "" ? "default" : "outline"}
-              className={cn(
-                "cursor-pointer transition-colors select-none",
-                tipoProcesso === "" && "bg-primary text-primary-foreground",
-              )}
-              onClick={() => handleTipoProcessoChange("")}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  handleTipoProcessoChange("");
-                }
-              }}
-            >
-              Todos os processos
-            </Badge>
-            <Badge
-              variant={tipoProcesso === "DIGITAL" ? "default" : "outline"}
-              className={cn(
-                "cursor-pointer transition-colors select-none",
-                tipoProcesso === "DIGITAL" && "bg-primary text-primary-foreground",
-              )}
-              onClick={() => handleTipoProcessoChange("DIGITAL")}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  handleTipoProcessoChange("DIGITAL");
-                }
-              }}
-            >
-              Digitais
-            </Badge>
-            <Badge
-              variant={tipoProcesso === "FISICO" ? "default" : "outline"}
-              className={cn(
-                "cursor-pointer transition-colors select-none",
-                tipoProcesso === "FISICO" && "bg-primary text-primary-foreground",
-              )}
-              onClick={() => handleTipoProcessoChange("FISICO")}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  handleTipoProcessoChange("FISICO");
-                }
-              }}
-            >
-              Físicos
-            </Badge>
-          </div>
+          {!tipoProcessoFixo && (
+            <div className="flex flex-wrap gap-2 mb-6">
+              <Badge
+                variant={tipoProcesso === "" ? "default" : "outline"}
+                className={cn(
+                  "cursor-pointer transition-colors select-none",
+                  tipoProcesso === "" && "bg-primary text-primary-foreground",
+                )}
+                onClick={() => handleTipoProcessoChange("")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleTipoProcessoChange("");
+                  }
+                }}
+              >
+                Todos os processos
+              </Badge>
+              <Badge
+                variant={tipoProcesso === "DIGITAL" ? "default" : "outline"}
+                className={cn(
+                  "cursor-pointer transition-colors select-none",
+                  tipoProcesso === "DIGITAL" && "bg-primary text-primary-foreground",
+                )}
+                onClick={() => handleTipoProcessoChange("DIGITAL")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleTipoProcessoChange("DIGITAL");
+                  }
+                }}
+              >
+                Digitais
+              </Badge>
+              <Badge
+                variant={tipoProcesso === "FISICO" ? "default" : "outline"}
+                className={cn(
+                  "cursor-pointer transition-colors select-none",
+                  tipoProcesso === "FISICO" && "bg-primary text-primary-foreground",
+                )}
+                onClick={() => handleTipoProcessoChange("FISICO")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleTipoProcessoChange("FISICO");
+                  }
+                }}
+              >
+                Físicos
+              </Badge>
+            </div>
+          )}
 
           {agendamentos.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">
@@ -538,19 +542,21 @@ export default function ListaAgendamentos({
             </p>
           ) : (
             <>
-              <div className="rounded-md border">
-                <Table>
+              <div className="overflow-hidden rounded-[14px] border border-[#E5EAF2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+                <Table className="min-w-[1100px] text-[12px]">
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Data e Hora de início</TableHead>
-                      <TableHead>Munícipe</TableHead>
-                      <TableHead>CPF</TableHead>
-                      <TableHead>Processo</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Divisão</TableHead>
-                      <TableHead>Técnico</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Ações</TableHead>
+                    <TableRow className="border-[#E5EAF2] hover:bg-transparent">
+                      <TableHead className="h-11 whitespace-nowrap bg-[#F8FAFC] px-3 text-[9.5px] font-semibold uppercase tracking-widest text-[#64748B]">Data e Hora de início</TableHead>
+                      <TableHead className="h-11 whitespace-nowrap bg-[#F8FAFC] px-3 text-[9.5px] font-semibold uppercase tracking-widest text-[#64748B]">Munícipe</TableHead>
+                      <TableHead className="h-11 whitespace-nowrap bg-[#F8FAFC] px-3 text-[9.5px] font-semibold uppercase tracking-widest text-[#64748B]">CPF</TableHead>
+                      <TableHead className="h-11 whitespace-nowrap bg-[#F8FAFC] px-3 text-[9.5px] font-semibold uppercase tracking-widest text-[#64748B]">Processo</TableHead>
+                      {!tipoProcessoFixo && (
+                        <TableHead className="h-11 whitespace-nowrap bg-[#F8FAFC] px-3 text-[9.5px] font-semibold uppercase tracking-widest text-[#64748B]">Tipo</TableHead>
+                      )}
+                      <TableHead className="h-11 whitespace-nowrap bg-[#F8FAFC] px-3 text-[9.5px] font-semibold uppercase tracking-widest text-[#64748B]">Divisão</TableHead>
+                      <TableHead className="h-11 whitespace-nowrap bg-[#F8FAFC] px-3 text-[9.5px] font-semibold uppercase tracking-widest text-[#64748B]">Técnico</TableHead>
+                      <TableHead className="h-11 whitespace-nowrap bg-[#F8FAFC] px-3 text-[9.5px] font-semibold uppercase tracking-widest text-[#64748B]">Status</TableHead>
+                      <TableHead className="h-11 whitespace-nowrap bg-[#F8FAFC] px-3 text-[9.5px] font-semibold uppercase tracking-widest text-[#64748B]">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -627,25 +633,27 @@ export default function ListaAgendamentos({
                       return (
                         <TableRow
                           key={agend.id}
-                          className={rowClassName}
+                          className={`${rowClassName} border-[#E5EAF2] hover:bg-[#F8FAFC]`}
                         >
-                          <TableCell>
+                          <TableCell className="whitespace-nowrap px-3 py-2.5 text-[11.5px]">
                             <span className="text-sm text-muted-foreground">
                               {formatarDataHora(agend.dataHora)}
                             </span>
                           </TableCell>
-                          <TableCell>{agend.municipe || "-"}</TableCell>
-                          <TableCell>
+                          <TableCell className="px-3 py-2.5 text-[11.5px]">{agend.municipe || "-"}</TableCell>
+                          <TableCell className="px-3 py-2.5 text-[11.5px]">
                             <span className="text-sm font-mono">
                               {agend.cpf}
                             </span>
                           </TableCell>
-                          <TableCell>{agend.processo || "-"}</TableCell>
-                          <TableCell>
-                            {getTipoProcesso(agend.processo)}
-                          </TableCell>
-                          <TableCell>{agend.tecnico?.divisao?.sigla || "-"}</TableCell>
-                          <TableCell>
+                          <TableCell className="px-3 py-2.5 text-[11.5px]">{agend.processo || "-"}</TableCell>
+                          {!tipoProcessoFixo && (
+                            <TableCell className="px-3 py-2.5 text-[11.5px]">
+                              {getTipoProcesso(agend.processo)}
+                            </TableCell>
+                          )}
+                          <TableCell className="px-3 py-2.5 text-[11.5px]">{agend.tecnico?.divisao?.sigla || "-"}</TableCell>
+                          <TableCell className="px-3 py-2.5 text-[11.5px]">
                             {podeAtribuir ? (
                               <div className="flex flex-col gap-1">
                                 <AtribuirTecnico
@@ -676,7 +684,7 @@ export default function ListaAgendamentos({
                               </div>
                             )}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="px-3 py-2.5 text-[11.5px]">
                             <Badge
                               variant={
                                 agend.status === StatusAgendamento.CONCLUIDO ||
@@ -706,7 +714,7 @@ export default function ListaAgendamentos({
                                         : "Agendado"}
                             </Badge>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="px-3 py-2.5 text-[11.5px]">
                             {podeConfirmar ? (
                               <Button
                                 size="sm"

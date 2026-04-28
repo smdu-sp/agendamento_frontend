@@ -7,8 +7,8 @@ import { IPermissao } from "@/types/usuario";
 import * as agendamento from "@/services/agendamentos";
 import { IAgendamento } from "@/types/agendamento";
 import { AppPageShell } from "@/components/layout/app-page-shell";
-import ImportarPlanilha from "./_components/importar-planilha";
-import ListaAgendamentos from "./_components/lista-agendamentos";
+import ImportarPlanilha from "../_components/importar-planilha";
+import ListaAgendamentos from "../_components/lista-agendamentos";
 
 function hojeStr(): string {
   const d = new Date();
@@ -16,15 +16,7 @@ function hojeStr(): string {
   return `${d.getFullYear()}-${s(d.getMonth() + 1)}-${s(d.getDate())}`;
 }
 
-export default async function HomeSuspense({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-  return Home({ searchParams });
-}
-
-async function Home({
+export default async function AgendamentosFisicosPage({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -47,7 +39,6 @@ async function Home({
   }
 
   const sp = await searchParams;
-  /** Só paginação/“total” na URL não devem zerar o filtro de data padrão (hoje). */
   const chavesQueNaoResetamData = new Set(["pagina", "limite", "total"]);
   const temParametroRelevante = Object.keys(sp).some(
     (k) => !chavesQueNaoResetamData.has(k),
@@ -63,7 +54,7 @@ async function Home({
   const limite = Number(sp.limite) || 10;
   const busca = (sp.busca as string) ?? "";
   const status = (sp.status as string) ?? "";
-  const tipoProcesso = "DIGITAL";
+  const tipoProcesso = "FISICO";
 
   const rawInicio = (sp.dataInicio as string) || "";
   const rawFim = (sp.dataFim as string) || "";
@@ -85,8 +76,8 @@ async function Home({
 
   let dados: IAgendamento[] = [];
   let total = 0;
-
   let ultimaImportacao: { dataHora: string; total: number } | null = null;
+
   if (session.access_token) {
     const cookieStore = await cookies();
     const impersonatePermissao =
@@ -114,20 +105,10 @@ async function Home({
     if (resUltima.ok && resUltima.data) ultimaImportacao = resUltima.data;
   }
 
-  let titulo = "Agendamentos";
-  if (permissao as unknown as IPermissao === IPermissao.TEC) {
-    titulo = "Meus Agendamentos";
-  } else if (
-    permissao as unknown as IPermissao === IPermissao.PONTO_FOCAL ||
-    permissao as unknown as IPermissao === IPermissao.COORDENADOR
-  ) {
-    titulo = "Agendamentos da Coordenadoria";
-  }
-
   return (
     <AppPageShell
-      title={titulo}
-      breadcrumbs={[{ label: "Agendamentos" }]}
+      title="Agendamentos Físicos"
+      breadcrumbs={[{ label: "Agendamentos Físicos" }]}
       actions={
         (session.usuario?.permissao as unknown as IPermissao === IPermissao.ADM ||
           session.usuario?.permissao as unknown as IPermissao === IPermissao.DEV) && (
@@ -145,7 +126,7 @@ async function Home({
         dataInicio={dataInicio}
         dataFim={dataFim}
         ultimaImportacao={ultimaImportacao}
-        tipoProcessoFixo="DIGITAL"
+        tipoProcessoFixo="FISICO"
       />
     </AppPageShell>
   );

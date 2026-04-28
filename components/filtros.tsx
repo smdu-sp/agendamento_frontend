@@ -108,15 +108,15 @@ export function Filtros({ camposFiltraveis }: FiltrosProps) {
 	function RenderTexto(campo: CampoFiltravel) {
 		return (
 			<div
-				className='flex flex-col w-full md:w-60'
+				className='flex w-full flex-col gap-1.5 md:w-64'
 				key={campo.tag}>
-				<p>{campo.nome}</p>
+				<p className='text-[11px] font-semibold uppercase tracking-[0.08em] text-[#64748B]'>{campo.nome}</p>
 				<Input
 					value={filtros[campo.tag]}
 					onChange={(e) =>
 						setFiltros((prev) => ({ ...prev, [campo.tag]: e.target.value }))
 					}
-					className='bg-background'
+					className='h-10 rounded-lg border-[#D7DFEA] bg-white text-[13px] text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:border-[#0A328D]/40 focus-visible:ring-[#0A328D]/15'
 					placeholder={campo.placeholder}
 				/>
 			</div>
@@ -135,9 +135,9 @@ export function Filtros({ camposFiltraveis }: FiltrosProps) {
 
 		return (
 			<div
-				className='flex flex-col w-full md:w-60'
+				className='flex w-full flex-col gap-1.5 md:w-64'
 				key={campo.tag}>
-				<p>{campo.nome}</p>
+				<p className='text-[11px] font-semibold uppercase tracking-[0.08em] text-[#64748B]'>{campo.nome}</p>
 				<Select
 					onValueChange={(value) =>
 						setFiltros((prev) => ({
@@ -146,7 +146,7 @@ export function Filtros({ camposFiltraveis }: FiltrosProps) {
 						}))
 					}
 					value={valorSelect}>
-					<SelectTrigger className='w-full md:w-60 text-nowrap bg-background'>
+					<SelectTrigger className='h-10 w-full rounded-lg border-[#D7DFEA] bg-white text-[13px] text-[#0F172A] md:w-64'>
 						<SelectValue placeholder={campo.placeholder} />
 					</SelectTrigger>
 					<SelectContent position='popper' className='z-50'>
@@ -176,14 +176,14 @@ export function Filtros({ camposFiltraveis }: FiltrosProps) {
 		const [value, setValue] = useState(campo.default || '');
 		const valores = campo.valores as CampoSelect[] || [];
 		return <div className='flex flex-col w-full md:w-60' key={campo.tag}>
-			<p>{campo.nome}</p>
+			<p className='text-[11px] font-semibold uppercase tracking-[0.08em] text-[#64748B]'>{campo.nome}</p>
 			<Popover open={open} onOpenChange={setOpen}>
 				<PopoverTrigger asChild>
 					<Button
 					variant="outline"
 					role="combobox"
 					aria-expanded={open}
-					className="w-[200px] justify-between"
+					className="h-10 w-full justify-between rounded-lg border-[#D7DFEA] bg-white text-[13px] text-[#0F172A] md:w-64"
 					>
 					{value
 						? valores.find((opcao) => opcao.label === value)?.label
@@ -191,7 +191,7 @@ export function Filtros({ camposFiltraveis }: FiltrosProps) {
 					<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
 					</Button>
 				</PopoverTrigger>
-				<PopoverContent className="w-[200px] p-0">
+				<PopoverContent className="w-[260px] p-0">
 					<Command>
 						<CommandInput placeholder="Buscar opção" />
 						<CommandList>
@@ -249,16 +249,16 @@ export function Filtros({ camposFiltraveis }: FiltrosProps) {
 
 		return (
 			<div
-				className={'flex flex-col grid gap-2'}
+				className={'flex w-full flex-col gap-1.5 md:w-[300px]'}
 				key={campo.tag}>
-				<p>{campo.nome}</p>
+				<p className='text-[11px] font-semibold uppercase tracking-[0.08em] text-[#64748B]'>{campo.nome}</p>
 				<Popover>
 					<PopoverTrigger asChild>
 						<Button
 							id='date'
 							variant={'outline'}
 							className={cn(
-								'w-full md:w-[300px] justify-start text-left font-normal',
+								'h-10 w-full justify-start rounded-lg border-[#D7DFEA] bg-white text-left text-[13px] font-normal text-[#0F172A] md:w-[300px]',
 								!date && 'text-muted-foreground',
 							)}>
 							{date && date.from ? (
@@ -299,19 +299,26 @@ export function Filtros({ camposFiltraveis }: FiltrosProps) {
 	}
 
 	return (
-		<div className='flex flex-col md:flex-row md:items-end gap-5 md:w-fit justify-start'>
+		<div className='mb-1 flex flex-wrap items-end gap-2.5 gap-y-3'>
 			{renderFiltros()}
-			<div className="isolate flex -space-x-px">
-				<Button className='rounded-r-none w-full md:w-fit' disabled={isPending} onClick={() => startTransition(() => atualizaFiltros())} title='Aplicar filtros'>
-					<RefreshCw className={isPending ? 'animate-spin' : ''} />
+			<div className='isolate flex shrink-0 gap-2'>
+				<Button
+					variant='outline'
+					className='h-10 gap-2 rounded-lg border-[#D7DFEA] bg-transparent px-4 text-xs font-semibold text-[#334155] hover:bg-[#F8FAFC] sm:text-[13px]'
+					disabled={isPending}
+					onClick={() => startTransition(() => atualizaFiltros())}
+					title='Aplicar filtros'>
+					<RefreshCw className={cn('h-4 w-4', isPending && 'animate-spin')} />
+					Aplicar
 				</Button>
 				<Button
-					variant={'destructive'}
+					variant='outline'
 					disabled={isPending}
-					className='rounded-l-none w-full md:w-fit'
+					className='h-10 gap-2 rounded-lg border-[#D7DFEA] bg-transparent px-4 text-xs font-semibold text-[#334155] hover:bg-[#F8FAFC] sm:text-[13px]'
 					onClick={() => startTransition(() => limpaFiltros())}
 					title='Limpar filtros'>
-					<X />
+					<X className='h-4 w-4' />
+					Limpar
 				</Button>
 			</div>
 		</div>

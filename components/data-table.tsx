@@ -33,18 +33,17 @@ export default function DataTable<TData, TValue>({
 		getCoreRowModel: getCoreRowModel(),
 	});
 	return (
-	
-			<div className='rounded-md'>
-				<Table className='bg-background dark:bg-muted/50 border'>
-					<TableHeader className='bg-primary hover:bg-primary'>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow
-								className='hover:bg-primary'
-								key={headerGroup.id}>
+		<div className='overflow-hidden rounded-[14px] border border-[#E5EAF2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]'>
+			<Table className='min-w-[780px] text-[13px]'>
+				<TableHeader>
+					{table.getHeaderGroups().map((headerGroup) => (
+						<TableRow
+							className='border-[#E5EAF2] hover:bg-transparent'
+							key={headerGroup.id}>
 								{headerGroup.headers.map((header) => {
 									return (
 										<TableHead
-											className='text-white text-xs text-nowrap'
+											className='h-11 whitespace-nowrap bg-[#F8FAFC] px-3 text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]'
 											key={header.id}>
 											{header.isPlaceholder
 												? null
@@ -57,39 +56,35 @@ export default function DataTable<TData, TValue>({
 								})}
 							</TableRow>
 						))}
-					</TableHeader>
-					<TableBody>
-						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<TableRow
-									className='px-4'
-									key={row.id}
-									data-state={row.getIsSelected() && 'selected'}>
-									{row.getVisibleCells().map((cell) => (
-										<TableCell
-											key={cell.id}
-											className='text-sm px-4 text-nowrap font-light'>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext(),
-											)}
-										</TableCell>
-									))}
-								</TableRow>
-							))
-						) : (
-							<TableRow>
-								<TableCell
-									colSpan={columns.length}
-									className='h-24 text-center'>
-									Sem resultados.
-								</TableCell>
+				</TableHeader>
+				<TableBody>
+					{table.getRowModel().rows?.length ? (
+						table.getRowModel().rows.map((row) => (
+							<TableRow
+								className='border-[#E5EAF2] hover:bg-[#F8FAFC]'
+								key={row.id}
+								data-state={row.getIsSelected() && 'selected'}>
+								{row.getVisibleCells().map((cell) => (
+									<TableCell
+										key={cell.id}
+										className='whitespace-nowrap px-3 py-2.5 text-[12.5px] text-[#0F172A]'>
+										{flexRender(cell.column.columnDef.cell, cell.getContext())}
+									</TableCell>
+								))}
 							</TableRow>
-						)}
-					</TableBody>
-				</Table>
-			</div>
-		
+						))
+					) : (
+						<TableRow className='border-[#E5EAF2] hover:bg-transparent'>
+							<TableCell
+								colSpan={columns.length}
+								className='py-10 text-center text-[#64748B]'>
+								Sem resultados.
+							</TableCell>
+						</TableRow>
+					)}
+				</TableBody>
+			</Table>
+		</div>
 	);
 }
 

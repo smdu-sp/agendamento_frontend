@@ -1,6 +1,7 @@
 /** @format */
 
 import { AvatarUploader } from '@/components/avatar-uploader';
+import { AppPageShell } from '@/components/layout/app-page-shell';
 import { Badge } from '@/components/ui/badge';
 import {
 	Card,
@@ -32,10 +33,8 @@ export default async function Perfil() {
 	const userData = user as Partial<IUsuario>;
 
 	return (
-		<div className='mx-auto px-0 md:px-8 pb-10 w-full'>
-			<h1 className='text-xl md:text-4xl font-bold mt-5'>Perfil</h1>
-
-			<div className='grid grid-cols-1 md:grid-cols-3 gap-8 my-5'>
+		<AppPageShell title='Perfil' breadcrumbs={[{ label: 'Perfil' }]}>
+			<div className='grid grid-cols-1 gap-8 my-5 md:grid-cols-3'>
 				{/* Avatar section */}
 				<Card className='md:col-span-1 h-full '>
 					<CardHeader>
@@ -105,6 +104,6 @@ export default async function Perfil() {
 						)}
 				</CardContent>
 			</Card>
-		</div>
+		</AppPageShell>
 	);
 }

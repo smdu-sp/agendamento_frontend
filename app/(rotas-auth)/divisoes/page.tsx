@@ -2,6 +2,7 @@
 
 import { Filtros } from '@/components/filtros';
 import Pagination from '@/components/pagination';
+import { AppPageShell } from '@/components/layout/app-page-shell';
 import { auth } from '@/lib/auth/auth';
 import * as divisao from '@/services/divisoes';
 import * as coordenadoria from '@/services/coordenadorias';
@@ -71,9 +72,8 @@ async function Divisoes({
 	}));
 
 	return (
-		<div className='w-full px-0 md:px-8 relative pb-20 md:pb-14 h-full md:container mx-auto'>
-			<h1 className='text-xl md:text-4xl font-bold'>Divisões</h1>
-			<div className='flex flex-col max-w-sm mx-auto md:max-w-full gap-3 my-5 w-full'>
+		<AppPageShell title='Divisões' breadcrumbs={[{ label: 'Divisões' }]}>
+			<div className='relative flex w-full flex-col gap-3 pb-20'>
 				<Filtros
 					camposFiltraveis={[
 						{
@@ -103,10 +103,10 @@ async function Divisoes({
 				)}
 			</div>
 			{podeCriar && (
-				<div className='absolute bottom-10 md:bottom-5 right-2 md:right-8 hover:scale-110'>
+				<div className='absolute bottom-6 right-1 z-10 hover:scale-110 sm:right-2'>
 					<ModalUpdateAndCreate isUpdating={false} />
 				</div>
 			)}
-		</div>
+		</AppPageShell>
 	);
 }

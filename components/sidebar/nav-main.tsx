@@ -17,6 +17,7 @@ import {
   Search,
   HelpCircle,
   ClipboardList,
+  Files,
 } from "lucide-react";
 
 import {
@@ -66,6 +67,11 @@ export async function NavMain() {
       icone: House,
       titulo: "Página Inicial",
       url: "/",
+    },
+    {
+      icone: Files,
+      titulo: "Agendamentos Físicos",
+      url: "/agendamentos-fisicos",
     },
   ];
 
