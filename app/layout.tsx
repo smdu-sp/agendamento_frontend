@@ -5,6 +5,7 @@ import { AuthProvider } from '@/providers/AuthProvider';
 import { ImpersonationProvider } from '@/providers/ImpersonationProvider';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
+import { DevClock } from '@/components/dev-clock';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
@@ -40,6 +41,7 @@ export default function RootLayout({
 							disableTransitionOnChange>
 								{children}
 								<Toaster richColors />
+								<DevClock />
 							</ThemeProvider>
 						</QueryProvider>
 					</ImpersonationProvider>
