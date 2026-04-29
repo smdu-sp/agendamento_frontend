@@ -7,7 +7,7 @@ import * as agendamento from "@/services/agendamentos";
 import { IAgendamento } from "@/types/agendamento";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, Search } from "lucide-react";
+import { CalendarIcon, Eye, Search } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -45,6 +45,7 @@ import { toast } from "sonner";
 import { useEffectivePermissao } from "@/providers/ImpersonationProvider";
 import { abrirOutlookComposeAgendamentoTecnico } from "@/lib/outlook-agendamento-teams";
 import { formatarDataHoraSaoPaulo } from "@/lib/date-time";
+import Link from "@/components/link";
 
 /** Converte valor da API (ISO em UTC) para `Date` do instante correto; formata no fuso do navegador. */
 const paraDateAgendamento = (data: Date | string): Date =>
@@ -522,13 +523,6 @@ export default function ListaAgendamentos({
                     <TableRow
                       key={agend.id}
                       className={`${rowClassName} cursor-pointer border-[#E5EAF2] hover:bg-[#F8FAFC]`}
-                      onClick={() =>
-                        router.push(
-                          tipoProcessoFixo === "FISICO"
-                            ? `/agendamentos-fisicos/${agend.id}`
-                            : `/agendamentos/${agend.id}`,
-                        )
-                      }
                     >
                       <TableCell className="whitespace-nowrap px-3 py-2.5 text-[13.5px] text-[#0F172A] first:pl-4 sm:first:pl-6">
                         {formatarDataHora(agend.dataHora)}
@@ -647,6 +641,9 @@ export default function ListaAgendamentos({
                               -
                             </span>
                           )}
+                        <Link href={`/agendamentos/${agend.id}`} className="ml-2 text-sm text-blue-600 hover:underline">
+                          <Eye className="h-4 w-4" />
+                        </Link>
                       </TableCell>
                     </TableRow>
                   );
