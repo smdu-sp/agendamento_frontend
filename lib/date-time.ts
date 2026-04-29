@@ -7,7 +7,15 @@ export function formatarDataHoraSaoPaulo(
   incluirAs: boolean = false,
 ): string {
   if (!valor) return "—";
-  const data = valor instanceof Date ? valor : new Date(valor);
+  let data: Date;
+  if (valor instanceof Date) {
+    data = valor;
+  } else {
+    // Remove qualquer indicador de fuso e substitui por -03:00 (BRT fixo, sem DST desde 2019),
+    // garantindo que a string seja interpretada como horário de São Paulo mesmo em servidores UTC.
+    const semFuso = valor.replace('Z', '').replace(/[+-]\d{2}:\d{2}$/, '');
+    data = new Date(semFuso + '-03:00');
+  }
   if (Number.isNaN(data.getTime())) return "—";
 
   const partes = new Intl.DateTimeFormat("pt-BR", {

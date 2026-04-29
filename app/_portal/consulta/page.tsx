@@ -23,8 +23,7 @@ import {
 } from "@/lib/municipe-sessao"
 import * as agendamento from "@/services/agendamentos"
 import type { ISolicitacaoPreProjetoArthurSaboya } from "@/types/solicitacao-pre-projeto-arthur-saboya"
-import { format } from "date-fns"
-import { ptBR } from "date-fns/locale"
+import { formatarDataHoraSaoPaulo } from "@/lib/date-time"
 
 const BASE = "/portal"
 const CONSULTA_BASE = "/consulta"
@@ -177,9 +176,7 @@ export default function ConsultaPage() {
                             itens.map((row) => (
                               <TableRow key={row.id}>
                                 <TableCell className="whitespace-nowrap text-sm">
-                                  {format(new Date(row.criadoEm), "dd/MM/yyyy HH:mm", {
-                                    locale: ptBR,
-                                  })}
+                                  {formatarDataHoraSaoPaulo(row.criadoEm)}
                                 </TableCell>
                                 <TableCell className="font-mono text-sm">{row.protocolo}</TableCell>
                                 <TableCell className="text-sm">{rotuloStatus(row.status)}</TableCell>
