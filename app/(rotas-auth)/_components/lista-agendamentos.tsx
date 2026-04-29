@@ -44,13 +44,14 @@ import {
 import { toast } from "sonner";
 import { useEffectivePermissao } from "@/providers/ImpersonationProvider";
 import { abrirOutlookComposeAgendamentoTecnico } from "@/lib/outlook-agendamento-teams";
+import { formatarDataHoraSaoPaulo } from "@/lib/date-time";
 
 /** Converte valor da API (ISO em UTC) para `Date` do instante correto; formata no fuso do navegador. */
 const paraDateAgendamento = (data: Date | string): Date =>
   typeof data === "string" ? new Date(data) : data;
 
 const formatarDataHora = (data: Date | string): string => {
-  return format(paraDateAgendamento(data), "dd/MM/yyyy 'às' HH:mm");
+  return formatarDataHoraSaoPaulo(paraDateAgendamento(data), true);
 };
 
 function montarAssuntoEIntervaloIsoOutlook(agend: IAgendamento) {
@@ -271,7 +272,7 @@ export default function ListaAgendamentos({
       {ultimaImportacao?.dataHora && (
         <p className="text-xs text-[#64748B]">
           Última importação:{" "}
-          {format(new Date(ultimaImportacao.dataHora), "dd/MM/yyyy 'às' HH:mm")}
+                            {formatarDataHoraSaoPaulo(ultimaImportacao.dataHora, true)}
           {ultimaImportacao.usuarioNome
             ? ` por ${ultimaImportacao.usuarioNome}`
             : ""}

@@ -5,8 +5,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { ChevronRight, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -22,6 +20,7 @@ import {
 import * as agendamento from "@/services/agendamentos";
 import * as usuario from "@/services/usuarios";
 import type { ISolicitacaoPreProjetoArthurSaboya } from "@/types/solicitacao-pre-projeto-arthur-saboya";
+import { formatarDataHoraSaoPaulo } from "@/lib/date-time";
 
 const LIMITE = 15;
 const PATH_CHAMADO = "/pedidos-pre-projetos-arthur-saboya";
@@ -420,11 +419,11 @@ export default function ListaPedidosPreProjetos() {
                     <StatusChip status={row.status} />
                   </TableCell>
                   <TableCell className="whitespace-nowrap px-3 py-2.5 text-[13.5px] text-[#64748B]">
-                    {format(new Date(row.criadoEm), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                    {formatarDataHoraSaoPaulo(row.criadoEm)}
                   </TableCell>
                   <TableCell className="whitespace-nowrap px-3 py-2.5 text-[13.5px] text-[#64748B]">
                     {row.dataAgendamento
-                      ? format(new Date(row.dataAgendamento), "dd/MM/yyyy HH:mm", { locale: ptBR })
+                      ? formatarDataHoraSaoPaulo(row.dataAgendamento)
                       : "—"}
                   </TableCell>
                   <TableCell className="max-w-[200px] truncate px-3 py-2.5 text-[#64748B]">

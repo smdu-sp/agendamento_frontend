@@ -6,8 +6,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { ArrowLeft, CheckCircle2, ChevronRight, Mail, Send } from "lucide-react";
 import { toast } from "sonner";
 import { PreProjetoChamadoChat } from "@/components/arthur-saboya/pre-projeto-chamado-chat";
@@ -27,6 +25,7 @@ import type { ITecnico } from "@/services/usuarios";
 import { ModeToggle } from "@/components/toggle-theme";
 import { mensagensPreProjetoParaChat } from "@/lib/pre-projeto-chamado-mensagens";
 import { abrirOutlookComposeAgendamentoTecnico } from "@/lib/outlook-agendamento-teams";
+import { formatarDataHoraSaoPaulo } from "@/lib/date-time";
 import type { ISolicitacaoPreProjetoArthurSaboyaDetalhe } from "@/types/solicitacao-pre-projeto-arthur-saboya";
 import type { ICoordenadoria } from "@/types/coordenadoria";
 
@@ -553,7 +552,7 @@ export default function ChamadoPreProjetoPortalView({
                         </span>
                       </InfoItem>
                       <InfoItem label="Abertura">
-                        {format(new Date(chamado.criadoEm), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        {formatarDataHoraSaoPaulo(chamado.criadoEm, true)}
                       </InfoItem>
                       <InfoItem label="Formação">{chamado.formacaoTexto}</InfoItem>
                       <InfoItem label="Natureza">{chamado.naturezaTexto}</InfoItem>

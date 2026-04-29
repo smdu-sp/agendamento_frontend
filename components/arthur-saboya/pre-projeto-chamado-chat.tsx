@@ -1,12 +1,11 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { format } from "date-fns"
-import { ptBR } from "date-fns/locale"
 import { CheckCircle2, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
+import { formatarDataHoraSaoPaulo } from "@/lib/date-time"
 import type {
   AutorMensagemPreProjetoArthurSaboya,
   IMensagemPreProjetoArthurSaboya,
@@ -152,7 +151,7 @@ export function PreProjetoChamadoChat({
                     {" "}
                     {m.corpo}
                     {" · "}
-                    {format(new Date(m.criadoEm), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                    {formatarDataHoraSaoPaulo(m.criadoEm)}
                   </span>
                   <span className="h-px flex-1 bg-[#E5EAF2]" />
                 </div>
@@ -166,7 +165,7 @@ export function PreProjetoChamadoChat({
                     <CheckCircle2 className="h-3 w-3 shrink-0" />
                     {m.corpo}
                     {" · "}
-                    {format(new Date(m.criadoEm), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                    {formatarDataHoraSaoPaulo(m.criadoEm)}
                   </span>
                   <span className="h-px flex-1 bg-border" />
                 </div>
@@ -209,7 +208,7 @@ export function PreProjetoChamadoChat({
                   >
                     <span className="font-semibold text-[#334155]">{nome}</span>
                     <span>·</span>
-                    <span>{format(new Date(m.criadoEm), "dd/MM/yyyy HH:mm", { locale: ptBR })}</span>
+                    <span>{formatarDataHoraSaoPaulo(m.criadoEm)}</span>
                   </div>
                   <div
                     className={cn(

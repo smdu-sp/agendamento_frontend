@@ -1,14 +1,12 @@
 /** @format */
 
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { IAgendamento } from "@/types/agendamento";
+import { formatarDataHoraSaoPaulo } from "@/lib/date-time";
 
 function formatarData(data?: Date | string | null) {
-  if (!data) return "—";
-  return format(new Date(data), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+  return formatarDataHoraSaoPaulo(data, true);
 }
 
 function statusLabel(status: string) {
