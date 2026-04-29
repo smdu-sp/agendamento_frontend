@@ -104,10 +104,6 @@ export default function ListaAgendamentos({
   ultimaImportacao,
   tipoProcessoFixo,
 }: ListaAgendamentosProps) {
-  if (agendamentos.length > 0) {
-    const p = agendamentos[0];
-    console.log('[lista-agendamentos] 1º registro - dataHora bruta:', p.dataHora, '| dataFim bruta:', p.dataFim);
-  }
   const { data: session } = useSession();
   const router = useRouter();
   const pathname = usePathname();
