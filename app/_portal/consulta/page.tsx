@@ -65,6 +65,9 @@ export default function ConsultaPage() {
     }
     setItens(res.data.data)
     setTotal(res.data.total)
+    if (res.data.data.length > 0) {
+      console.log('[consulta] 1º registro - criadoEm bruto:', res.data.data[0].criadoEm)
+    }
     setCarregando(false)
   }, [])
 

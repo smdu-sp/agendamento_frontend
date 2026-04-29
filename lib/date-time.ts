@@ -1,5 +1,3 @@
-const SAO_PAULO_TZ = "America/Sao_Paulo";
-
 type DateInput = Date | string | null | undefined;
 
 export function formatarDataHoraSaoPaulo(
@@ -7,32 +5,21 @@ export function formatarDataHoraSaoPaulo(
   incluirAs: boolean = false,
 ): string {
   if (!valor) return "—";
-  let data: Date;
-  if (valor instanceof Date) {
-    data = valor;
-  } else {
-    // Remove qualquer indicador de fuso e substitui por -03:00 (BRT fixo, sem DST desde 2019),
-    // garantindo que a string seja interpretada como horário de São Paulo mesmo em servidores UTC.
-    const semFuso = valor.replace('Z', '').replace(/[+-]\d{2}:\d{2}$/, '');
-    data = new Date(semFuso + '-03:00');
+
+  const sep = incluirAs ? " às " : " ";
+
+  if (typeof valor === "string") {
+    // Extrai as partes diretamente da string ISO sem criar Date,
+    // evitando qualquer conversão de fuso em servidor ou navegador.
+    // Ex: "2026-04-29T14:30:00.000Z" → "29/04/2026 às 14:30"
+    const m = valor.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    if (m) return `${m[3]}/${m[2]}/${m[1]}${sep}${m[4]}:${m[5]}`;
+    return "—";
   }
-  if (Number.isNaN(data.getTime())) return "—";
 
-  const partes = new Intl.DateTimeFormat("pt-BR", {
-    timeZone: SAO_PAULO_TZ,
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).formatToParts(data);
-
-  const dia = partes.find((p) => p.type === "day")?.value ?? "00";
-  const mes = partes.find((p) => p.type === "month")?.value ?? "00";
-  const ano = partes.find((p) => p.type === "year")?.value ?? "0000";
-  const hora = partes.find((p) => p.type === "hour")?.value ?? "00";
-  const minuto = partes.find((p) => p.type === "minute")?.value ?? "00";
-  const separador = incluirAs ? " às " : " ";
-  return `${dia}/${mes}/${ano}${separador}${hora}:${minuto}`;
+  // Para objetos Date (criados localmente, ex: seletor de calendário)
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const d = valor instanceof Date ? valor : new Date(String(valor));
+  if (Number.isNaN(d.getTime())) return "—";
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}${sep}${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }

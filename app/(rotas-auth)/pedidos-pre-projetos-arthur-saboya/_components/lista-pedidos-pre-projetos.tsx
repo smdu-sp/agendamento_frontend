@@ -126,6 +126,10 @@ export default function ListaPedidosPreProjetos() {
     }
     setItens(res.data.data);
     setTotal(res.data.total);
+    if (res.data.data.length > 0) {
+      const p = res.data.data[0];
+      console.log('[lista-pedidos] 1º registro - criadoEm bruto:', p.criadoEm, '| dataAgendamento bruto:', p.dataAgendamento);
+    }
     setCarregando(false);
   }, [token, pagina, busca, filtroStatus]);
 
