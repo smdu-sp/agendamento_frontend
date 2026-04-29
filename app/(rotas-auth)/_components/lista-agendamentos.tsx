@@ -596,7 +596,7 @@ export default function ListaAgendamentos({
                                     : "Agendado"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="px-3 py-2.5 text-[13.5px]">
+                      <TableCell className="px-3 py-2.5 text-[13.5px] flex flex-row gap-2">
                         {podeConfirmar ? (
                           <Button
                             size="sm"
