@@ -51,7 +51,7 @@ const paraDateAgendamento = (data: Date | string): Date =>
   typeof data === "string" ? new Date(data) : data;
 
 const formatarDataHora = (data: Date | string): string => {
-  return formatarDataHoraSaoPaulo(paraDateAgendamento(data), true);
+  return formatarDataHoraSaoPaulo(data, true);
 };
 
 function montarAssuntoEIntervaloIsoOutlook(agend: IAgendamento) {
