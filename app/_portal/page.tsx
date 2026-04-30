@@ -129,7 +129,7 @@ export default function PortalHomePage() {
             <div className="mb-12 text-center">
               <h2 className="text-3xl font-bold text-gray-800">Informações Importantes</h2>
             </div>
-            <div className="mx-auto grid max-w-[1444px] gap-6 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="mx-auto grid max-w-[1444px] justify-items-center gap-6 sm:grid-cols-2 xl:grid-cols-4">
               {infoCards.map((card) => {
                 const content = (
                   <div
@@ -163,11 +163,17 @@ export default function PortalHomePage() {
                 )
 
                 return card.href ? (
-                  <Link key={card.title} href={card.href} className="block transition-transform hover:scale-[1.01]">
+                  <Link
+                    key={card.title}
+                    href={card.href}
+                    className="block w-full max-w-[343px] transition-transform hover:scale-[1.01]"
+                  >
                     {content}
                   </Link>
                 ) : (
-                  <div key={card.title}>{content}</div>
+                  <div key={card.title} className="w-full max-w-[343px]">
+                    {content}
+                  </div>
                 )
               })}
             </div>
