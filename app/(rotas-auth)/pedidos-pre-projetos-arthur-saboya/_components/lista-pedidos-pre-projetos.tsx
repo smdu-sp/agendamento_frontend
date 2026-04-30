@@ -176,8 +176,11 @@ export default function ListaPedidosPreProjetos() {
   ];
 
   const permissaoUsuario = String((session?.usuario as { permissao?: string } | undefined)?.permissao ?? "");
+  const permissaoReal = String((session?.usuario as { permissaoReal?: string } | undefined)?.permissaoReal ?? "");
   const divisaoUsuario = (session?.usuario as { divisaoId?: string } | undefined)?.divisaoId?.trim();
   const divisaoArthur = process.env.NEXT_PUBLIC_DIVISAO_ID_PRE_PROJETOS?.trim();
+  const isDevRealOuEfetivo = permissaoUsuario === "DEV" || permissaoReal === "DEV";
+  const isAdmRealOuEfetivo = permissaoUsuario === "ADM" || permissaoReal === "ADM";
   const isTecnicoCoordenadoria =
     permissaoUsuario === "TEC" &&
     (!!divisaoUsuario && (!divisaoArthur || divisaoUsuario !== divisaoArthur));
@@ -191,15 +194,15 @@ export default function ListaPedidosPreProjetos() {
   const isPontoFocalOuCoordenador =
     permissaoUsuario === "PONTO_FOCAL" || permissaoUsuario === "COORDENADOR";
   const isAdmArthur =
-    permissaoUsuario === "DEV" ||
-    (permissaoUsuario === "ADM" &&
+    isDevRealOuEfetivo ||
+    (isAdmRealOuEfetivo &&
       !!divisaoArthur &&
       !!divisaoUsuario &&
       divisaoUsuario === divisaoArthur);
   const podeConcluirNaTabela = isTecAs || isTecnicoCoordenadoria || isAdmArthur;
 
   const itensFiltrados =
-    isPontoFocalOuCoordenador && coordenadoriaUsuarioId
+    !isDevRealOuEfetivo && isPontoFocalOuCoordenador && coordenadoriaUsuarioId
       ? itens.filter((row) => (row.coordenadoriaId || "").trim() === coordenadoriaUsuarioId)
       : itens;
 

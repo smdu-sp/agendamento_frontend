@@ -74,6 +74,18 @@ const HORARIOS_MEIA_HORA = Array.from(
   return `${hora}:${minuto}`;
 });
 
+function formatarParaInputDataHora(valor?: string | Date | null) {
+  if (!valor) return "";
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return "";
+  const yyyy = String(data.getFullYear());
+  const mm = String(data.getMonth() + 1).padStart(2, "0");
+  const dd = String(data.getDate()).padStart(2, "0");
+  const hh = String(data.getHours()).padStart(2, "0");
+  const mi = String(data.getMinutes()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+}
+
 function StatusChip({ status }: { status: ISolicitacaoPreProjetoArthurSaboyaDetalhe["status"] }) {
   const cfg = CHIP_CONFIGS[status] ?? { bg: "#F1F5F9", text: "#475569", dot: "#94A3B8" };
   return (
@@ -96,6 +108,7 @@ export default function ChamadoPreProjetoPortalView({
   const router = useRouter();
   const { data: session, status } = useSession();
   const token = session?.access_token;
+  const divisaoArthurPadrao = process.env.NEXT_PUBLIC_DIVISAO_ID_PRE_PROJETOS?.trim();
 
   const [chamado, setChamado] = useState<ISolicitacaoPreProjetoArthurSaboyaDetalhe | null>(null);
   const [carregando, setCarregando] = useState(true);
@@ -165,20 +178,19 @@ export default function ChamadoPreProjetoPortalView({
     })();
   }, [token, status]);
 
-  useEffect(() => {
+  const carregarTecnicosArthur = useCallback(async () => {
     if (!token || status === "loading") return;
-    void (async () => {
-      const divisaoArthur = chamado?.divisaoId?.trim();
-      const r = divisaoArthur
-        ? await usuario.buscarTecnicosPorDivisao(divisaoArthur, token)
-        : await usuario.buscarTecnicosArthurSaboya(token);
-      if (r.ok && Array.isArray(r.data)) {
-        setTecnicosArthur(r.data as ITecnico[]);
-      } else {
-        setTecnicosArthur([]);
-      }
-    })();
-  }, [token, status, chamado?.divisaoId]);
+    const rArthur = await usuario.buscarTecnicosArthurSaboya(token);
+    if (rArthur.ok && Array.isArray(rArthur.data)) {
+      setTecnicosArthur(rArthur.data as ITecnico[]);
+      return;
+    }
+    setTecnicosArthur([]);
+  }, [token, status]);
+
+  useEffect(() => {
+    void carregarTecnicosArthur();
+  }, [carregarTecnicosArthur]);
 
   useEffect(() => {
     if (!token || status === "loading") return;
@@ -244,9 +256,12 @@ export default function ChamadoPreProjetoPortalView({
 
   const abrirAgendar = () => {
     if (!chamado) return;
-    setDataHoraAgendamento("");
+    if (tecnicosArthur.length === 0) {
+      void carregarTecnicosArthur();
+    }
+    setDataHoraAgendamento(formatarParaInputDataHora(chamado.dataAgendamento));
     setCoordenadoriaAgendamento(chamado.coordenadoriaId ?? "");
-    setTecnicoArthurIdAgendamento("");
+    setTecnicoArthurIdAgendamento(chamado.tecnicoArthurId ?? "");
     setAgendarAberto(true);
   };
 
@@ -300,10 +315,14 @@ export default function ChamadoPreProjetoPortalView({
     );
     setSalvando(false);
     if (!res.ok) {
-      toast.error(res.error ?? "Falha ao encaminhar para a coordenadoria.");
+      toast.error(res.error ?? "Falha ao atualizar técnico da Sala Arthur Saboya.");
       return;
     }
-    toast.success("Solicitação enviada para a coordenadoria.");
+    toast.success(
+      chamado.status === "AGENDAMENTO_CRIADO"
+        ? "Técnico da Sala Arthur Saboya atualizado."
+        : "Solicitação enviada para a coordenadoria.",
+    );
     setAgendarAberto(false);
     void carregarChamado();
   };
@@ -395,8 +414,11 @@ export default function ChamadoPreProjetoPortalView({
 
   const protocoloExibicao = chamado?.protocolo ?? referenciaChamado;
   const permissaoUsuario = String((session?.usuario as { permissao?: string } | undefined)?.permissao ?? "");
+  const permissaoReal = String((session?.usuario as { permissaoReal?: string } | undefined)?.permissaoReal ?? "");
   const divisaoUsuario = (session?.usuario as { divisaoId?: string } | undefined)?.divisaoId?.trim();
-  const divisaoArthur = process.env.NEXT_PUBLIC_DIVISAO_ID_PRE_PROJETOS?.trim();
+  const divisaoArthur = divisaoArthurPadrao;
+  const isDevRealOuEfetivo = permissaoUsuario === "DEV" || permissaoReal === "DEV";
+  const isAdmRealOuEfetivo = permissaoUsuario === "ADM" || permissaoReal === "ADM";
   const isTecAs =
     permissaoUsuario === "ARTHUR_SABOYA" ||
     permissaoUsuario === "TEC_AS" ||
@@ -406,19 +428,20 @@ export default function ChamadoPreProjetoPortalView({
       divisaoUsuario === divisaoArthur);
   const usuarioArthur =
     isTecAs ||
-    permissaoUsuario === "DEV" ||
-    permissaoUsuario === "ADM" ||
+    isDevRealOuEfetivo ||
+    isAdmRealOuEfetivo ||
     (permissaoUsuario === "PONTO_FOCAL" &&
       !!divisaoArthur &&
       !!divisaoUsuario &&
       divisaoUsuario === divisaoArthur);
-  const tecnicoArthurPodeEnviarMensagem = isTecAs || permissaoUsuario === "DEV" || permissaoUsuario === "ADM";
+  const tecnicoArthurPodeEnviarMensagem = isTecAs || isDevRealOuEfetivo || isAdmRealOuEfetivo;
   const usuarioPodeAtribuirCoordenadoria =
     permissaoUsuario === "COORDENADOR" ||
     (permissaoUsuario === "PONTO_FOCAL" && !usuarioArthur) ||
     permissaoUsuario === "ADM" ||
     permissaoUsuario === "DEV";
   const coordRestrito =
+    !isDevRealOuEfetivo &&
     (permissaoUsuario === "PONTO_FOCAL" || permissaoUsuario === "COORDENADOR") &&
     !!coordenadoriaUsuarioId &&
     !!chamado?.coordenadoriaId &&
@@ -498,14 +521,15 @@ export default function ChamadoPreProjetoPortalView({
                     size="sm"
                     className="h-9 gap-2 rounded-lg border border-transparent bg-[#E56E14] px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-[#c95d0e] disabled:opacity-55 sm:px-3 sm:text-[13px]"
                     disabled={
-                      !!chamado.agendamentoId ||
-                      !["SOLICITADO", "AGUARDANDO_DATA"].includes(chamado.status) ||
+                      !["SOLICITADO", "AGUARDANDO_DATA", "AGENDAMENTO_CRIADO"].includes(chamado.status) ||
                       salvando
                     }
                     onClick={abrirAgendar}
                   >
                     <Send className="h-3.5 w-3.5" />
-                    Enviar à coordenadoria
+                    {chamado.status === "AGENDAMENTO_CRIADO"
+                      ? "Trocar técnico da Sala Arthur"
+                      : "Enviar à coordenadoria"}
                   </Button>
                 </>
               ) : null}
@@ -640,7 +664,11 @@ export default function ChamadoPreProjetoPortalView({
       <Dialog open={agendarAberto} onOpenChange={setAgendarAberto}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Enviar para a coordenadoria</DialogTitle>
+            <DialogTitle>
+              {chamado?.status === "AGENDAMENTO_CRIADO"
+                ? "Trocar técnico da Sala Arthur Saboya"
+                : "Enviar para a coordenadoria"}
+            </DialogTitle>
           </DialogHeader>
           {chamado ? (
             <div className="space-y-3 text-sm">
@@ -724,7 +752,7 @@ export default function ChamadoPreProjetoPortalView({
               Cancelar
             </Button>
             <Button type="button" onClick={() => void handleCriarAgendamento()} disabled={salvando}>
-              Enviar
+              {chamado?.status === "AGENDAMENTO_CRIADO" ? "Salvar troca" : "Enviar"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -30,6 +30,15 @@ function iniciais(nome: string | null | undefined, fallback = "?") {
     .join("")
 }
 
+function renderTextoComNegrito(texto: string) {
+  const partes = String(texto ?? "").split(/(\[b\][\s\S]*?\[\/b\])/g)
+  return partes.map((parte, index) => {
+    const match = parte.match(/^\[b\]([\s\S]*?)\[\/b\]$/)
+    if (!match) return <span key={index}>{parte}</span>
+    return <strong key={index}>{match[1]}</strong>
+  })
+}
+
 export function PreProjetoChamadoChat({
   mensagens,
   onEnviar,
@@ -153,7 +162,7 @@ export function PreProjetoChamadoChat({
                     <span className="inline-flex items-center gap-1.5">
                       <CheckCircle2 className="h-3 w-3 shrink-0" />
                     </span>{" "}
-                    <span className="wrap-break-word">{m.corpo}</span>
+                    <span className="wrap-break-word">{renderTextoComNegrito(m.corpo)}</span>
                     {" · "}
                     {formatarDataHoraSaoPaulo(m.criadoEm)}
                   </span>
@@ -167,7 +176,7 @@ export function PreProjetoChamadoChat({
                     style={{ borderColor: "#5CC9BD", backgroundColor: "#EDF7F5", color: "#0f8578" }}
                   >
                     <CheckCircle2 className="h-3 w-3 shrink-0" />
-                    {m.corpo}
+                    {renderTextoComNegrito(m.corpo)}
                     {" · "}
                     {formatarDataHoraSaoPaulo(m.criadoEm)}
                   </span>
@@ -236,7 +245,7 @@ export function PreProjetoChamadoChat({
                           : { backgroundColor: "#F1F5F9", color: "#0F172A" }
                     }
                   >
-                    <p className="whitespace-pre-wrap">{m.corpo}</p>
+                    <p className="whitespace-pre-wrap">{renderTextoComNegrito(m.corpo)}</p>
                   </div>
                 </div>
               </div>
