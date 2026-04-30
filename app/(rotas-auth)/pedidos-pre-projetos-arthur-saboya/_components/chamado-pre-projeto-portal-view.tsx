@@ -83,7 +83,11 @@ function formatarParaInputDataHora(valor?: string | Date | null) {
   const dd = String(data.getDate()).padStart(2, "0");
   const hh = String(data.getHours()).padStart(2, "0");
   const mi = String(data.getMinutes()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+  const horaOriginal = `${hh}:${mi}`;
+  const horaNormalizada = HORARIOS_MEIA_HORA.includes(horaOriginal)
+    ? horaOriginal
+    : `${hh}:${Number(mi) >= 30 ? "30" : "00"}`;
+  return `${yyyy}-${mm}-${dd}T${horaNormalizada}`;
 }
 
 function StatusChip({ status }: { status: ISolicitacaoPreProjetoArthurSaboyaDetalhe["status"] }) {
