@@ -47,7 +47,7 @@ function InfoItem({ label, children }: { label: string; children: React.ReactNod
   return (
     <div className="space-y-0.5">
       <dt className="text-[10.5px] font-semibold uppercase tracking-widest text-[#64748B]">{label}</dt>
-      <dd className="text-[13.5px] font-medium leading-snug text-[#0F172A]">{children}</dd>
+      <dd className="break-words text-[13.5px] font-medium leading-snug text-[#0F172A]">{children}</dd>
     </div>
   )
 }
@@ -273,7 +273,9 @@ export default function ConsultaChamadoDetalhePage() {
               Meus chamados
             </Link>
             <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
-            <span className="font-mono font-semibold tracking-tight text-white">{protocoloExibicao}</span>
+            <span className="min-w-0 break-all font-mono text-[12px] font-semibold tracking-tight text-white sm:text-[13px]">
+              {protocoloExibicao}
+            </span>
           </nav>
 
           <button
@@ -285,13 +287,13 @@ export default function ConsultaChamadoDetalhePage() {
             Voltar à lista
           </button>
 
-          <div className="flex min-w-0 flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-bold text-white md:text-3xl">
+          <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+            <h1 className="min-w-0 break-words text-xl font-bold text-white sm:text-2xl md:text-3xl">
               {chamado ? `Chamado ${chamado.protocolo}` : "Chamado"}
             </h1>
             {chamado ? <StatusChip status={chamado.status} /> : null}
           </div>
-          <p className="mt-1 text-white/90">Pré-projetos — Sala Arthur Saboya</p>
+          <p className="mt-1 text-sm text-white/90 sm:text-base">Pré-projetos — Sala Arthur Saboya</p>
         </div>
       </ArthurSaboyaPageBackgroundBanner>
 
@@ -307,27 +309,30 @@ export default function ConsultaChamadoDetalhePage() {
           ) : null}
 
           {chamado ? (
-            <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+            <div className="mb-4 flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
-                className="h-9 gap-2 rounded-lg border-[#d9e2ef] px-3 text-xs font-semibold text-[#334155] hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-55 sm:text-[13px]"
+                className="inline-flex h-auto min-h-9 w-full items-center justify-center gap-2 whitespace-normal rounded-lg border-[#d9e2ef] px-3 py-2 text-center text-xs font-semibold text-[#334155] hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-55 sm:w-auto sm:text-[13px]"
                 disabled={chamado.status !== "AGENDAMENTO_CRIADO" || cancelandoAtendimento}
                 onClick={() => setConfirmarCancelamentoAberto(true)}
               >
-                <Ban className="h-3.5 w-3.5" />
+                <Ban className="h-3.5 w-3.5 shrink-0" />
                 Cancelar atendimento
               </Button>
               <Button
                 type="button"
                 size="sm"
-                className="h-9 gap-2 rounded-lg bg-[#0A328D] px-3 text-xs font-semibold text-white hover:bg-[#082a76] disabled:cursor-not-allowed disabled:opacity-55 sm:text-[13px]"
+                className="inline-flex h-auto min-h-9 w-full items-center justify-center gap-2 whitespace-normal rounded-lg bg-[#0A328D] px-3 py-2 text-center text-xs font-semibold text-white hover:bg-[#082a76] disabled:cursor-not-allowed disabled:opacity-55 sm:w-auto sm:text-[13px]"
                 disabled={chamado.status === "RESPONDIDO" || salvandoSolucao}
                 onClick={() => setConfirmarSolucaoAberto(true)}
               >
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                Marcar atendimento como solucionado
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                <span className="max-w-[20rem] leading-snug sm:max-w-none">
+                  <span className="sm:hidden">Marcar como solucionado</span>
+                  <span className="hidden sm:inline">Marcar atendimento como solucionado</span>
+                </span>
               </Button>
             </div>
           ) : null}
@@ -351,9 +356,9 @@ export default function ConsultaChamadoDetalhePage() {
                             .join("")}
                         </div>
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-[#0F172A]">{chamado.nome}</p>
-                          <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-[#64748B]">
-                            <Mail className="h-3 w-3 shrink-0 opacity-80" />
+                          <p className="break-words text-sm font-semibold text-[#0F172A]">{chamado.nome}</p>
+                          <p className="mt-0.5 flex items-start gap-1.5 break-all text-xs text-[#64748B]">
+                            <Mail className="mt-0.5 h-3 w-3 shrink-0 opacity-80" />
                             {chamado.email}
                           </p>
                         </div>
@@ -393,7 +398,7 @@ export default function ConsultaChamadoDetalhePage() {
               </div>
             </aside>
 
-            <section className="flex min-h-[min(52vh,520px)] min-w-0 flex-col gap-3 lg:min-h-0 lg:flex-1">
+            <section className="flex min-h-[min(40vh,380px)] min-w-0 flex-col gap-3 sm:min-h-[min(48vh,480px)] lg:min-h-0 lg:flex-1">
               {carregando ? (
                 <div className="flex flex-1 items-center justify-center rounded-[14px] border border-dashed border-[#E5EAF2] bg-white/60 p-8 text-sm text-[#64748B]">
                   Carregando conversa…
@@ -415,11 +420,13 @@ export default function ConsultaChamadoDetalhePage() {
                 </div>
               )}
               {chamado?.status === "RESPONDIDO" ? (
-                <div className="rounded-[10px] border border-[#5CC9BD] bg-[#EDF7F5] px-4 py-3 text-[15px] text-[#0f6b62]">
-                  <p className="inline-flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 shrink-0" />
-                    Este chamado foi marcado como <strong>solucionado</strong>. Para novas dúvidas o munícipe
-                    deve abrir um novo pedido.
+                <div className="rounded-[10px] border border-[#5CC9BD] bg-[#EDF7F5] px-4 py-3 text-sm leading-relaxed text-[#0f6b62] sm:text-[15px]">
+                  <p className="flex gap-2">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>
+                      Este chamado foi marcado como <strong>solucionado</strong>. Para novas dúvidas o
+                      munícipe deve abrir um novo pedido.
+                    </span>
                   </p>
                 </div>
               ) : null}

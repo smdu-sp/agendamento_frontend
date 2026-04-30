@@ -84,16 +84,20 @@ export default function ConsultaPage() {
     <div className="flex min-h-screen flex-col">
       <ArthurSaboyaHeader />
       <ArthurSaboyaPageBackgroundBanner>
-        <Link href={BASE} className="mb-4 inline-flex items-center gap-2 text-sm text-white/90 transition-colors hover:text-white">
-          <ArrowLeft className="h-4 w-4" />Voltar ao Início
+        <Link
+          href={BASE}
+          className="mb-3 inline-flex items-center gap-2 text-sm text-white/90 transition-colors hover:text-white sm:mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 shrink-0" />
+          Voltar ao Início
         </Link>
-        <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#E56E14]">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#E56E14]">
             <Search className="h-7 w-7 text-white" />
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-white">Consultar agendamentos</h1>
-            <p className="text-white/90">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold text-white sm:text-3xl">Consultar agendamentos</h1>
+            <p className="mt-1 max-w-2xl text-sm leading-snug text-white/90 sm:text-base">
               Pré-projetos (Arthur Saboya): seus chamados e andamentos no estilo de helpdesk
             </p>
           </div>
@@ -124,18 +128,20 @@ export default function ConsultaPage() {
               ) : null}
               {autenticado ? (
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MessageSquare className="h-5 w-5 text-[#E56E14]" />
-                      Meus chamados — pré-projetos
+                  <CardHeader className="space-y-2">
+                    <CardTitle className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
+                      <span className="inline-flex items-center gap-2">
+                        <MessageSquare className="h-5 w-5 shrink-0 text-[#E56E14]" />
+                        <span className="leading-tight">Meus chamados — pré-projetos</span>
+                      </span>
                     </CardTitle>
-                    <CardDescription>
-                      Clique em uma linha para abrir o chamado e conversar com a equipe (andamentos em
-                      formato de chat).
+                    <CardDescription className="text-pretty leading-relaxed">
+                      Clique em um chamado para abrir e conversar com a equipe (andamentos em formato de
+                      chat).
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="mb-4 flex justify-end">
+                    <div className="mb-4 flex justify-stretch sm:justify-end">
                       <Button asChild className="w-full sm:w-auto">
                         <Link href="/pre-projetos">Abrir nova solicitação</Link>
                       </Button>
@@ -148,7 +154,55 @@ export default function ConsultaPage() {
                         {erro}
                       </div>
                     ) : null}
-                    <div className="rounded-md border">
+
+                    {/* Mobile: cards */}
+                    <div className="flex flex-col gap-3 md:hidden">
+                      {carregando ? (
+                        <div className="rounded-lg border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+                          Carregando…
+                        </div>
+                      ) : itens.length === 0 ? (
+                        <div className="rounded-lg border border-dashed bg-muted/20 px-4 py-6 text-sm leading-relaxed text-muted-foreground">
+                          Nenhum chamado encontrado. Abra um pré-projeto em “Pré-projetos” com o mesmo
+                          e-mail da sua conta.
+                        </div>
+                      ) : (
+                        itens.map((row) => (
+                          <Link
+                            key={row.id}
+                            href={`${CONSULTA_BASE}/${row.id}`}
+                            className="block rounded-xl border border-border bg-card p-4 shadow-sm transition-colors hover:border-[#E56E14]/35 hover:bg-muted/30"
+                          >
+                            <div className="flex flex-col gap-3">
+                              <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+                                <div>
+                                  <p className="text-xs font-medium text-muted-foreground">Abertura</p>
+                                  <p className="mt-0.5 font-medium text-foreground">
+                                    {formatarDataHoraSaoPaulo(row.criadoEm)}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-medium text-muted-foreground">Status</p>
+                                  <p className="mt-0.5 font-medium text-foreground">{rotuloStatus(row.status)}</p>
+                                </div>
+                                <div className="sm:col-span-2">
+                                  <p className="text-xs font-medium text-muted-foreground">Protocolo</p>
+                                  <p className="mt-0.5 break-all font-mono text-sm text-foreground">
+                                    {row.protocolo}
+                                  </p>
+                                </div>
+                              </div>
+                              <span className="inline-flex w-full items-center justify-center rounded-md bg-secondary px-3 py-2 text-center text-sm font-medium text-secondary-foreground sm:w-auto sm:self-end">
+                                Visualizar
+                              </span>
+                            </div>
+                          </Link>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Desktop: tabela */}
+                    <div className="hidden rounded-md border md:block">
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -178,7 +232,9 @@ export default function ConsultaPage() {
                                 <TableCell className="whitespace-nowrap text-sm">
                                   {formatarDataHoraSaoPaulo(row.criadoEm)}
                                 </TableCell>
-                                <TableCell className="font-mono text-sm">{row.protocolo}</TableCell>
+                                <TableCell className="max-w-[12rem] break-all font-mono text-sm">
+                                  {row.protocolo}
+                                </TableCell>
                                 <TableCell className="text-sm">{rotuloStatus(row.status)}</TableCell>
                                 <TableCell className="text-right">
                                   <Button asChild size="sm" variant="secondary">
