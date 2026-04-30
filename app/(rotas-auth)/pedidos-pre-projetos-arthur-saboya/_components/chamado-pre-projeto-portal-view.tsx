@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -24,6 +24,7 @@ import * as usuario from "@/services/usuarios";
 import type { ITecnico } from "@/services/usuarios";
 import { ModeToggle } from "@/components/toggle-theme";
 import { mensagensPreProjetoParaChat } from "@/lib/pre-projeto-chamado-mensagens";
+import { conectarChatPreProjetoTempoReal } from "@/lib/pre-projeto-chat-realtime";
 import { abrirOutlookComposeAgendamentoTecnico } from "@/lib/outlook-agendamento-teams";
 import { formatarDataHoraSaoPaulo } from "@/lib/date-time";
 import type { ISolicitacaoPreProjetoArthurSaboyaDetalhe } from "@/types/solicitacao-pre-projeto-arthur-saboya";
@@ -113,6 +114,7 @@ export default function ChamadoPreProjetoPortalView({
   const [tecnicoCoordenadoriaId, setTecnicoCoordenadoriaId] = useState("");
   const [coordenadoriaUsuarioId, setCoordenadoriaUsuarioId] = useState("");
   const [salvando, setSalvando] = useState(false);
+  const carregandoRealtimeRef = useRef(false);
 
   const mensagensChat = useMemo(
     () => (chamado ? mensagensPreProjetoParaChat(chamado) : []),
@@ -138,6 +140,20 @@ export default function ChamadoPreProjetoPortalView({
     if (status === "loading" || !token) return;
     void carregarChamado();
   }, [status, token, carregarChamado]);
+
+  useEffect(() => {
+    if (status === "loading" || !token || !referenciaChamado) return;
+    const socket = conectarChatPreProjetoTempoReal(referenciaChamado, () => {
+      if (carregandoRealtimeRef.current) return;
+      carregandoRealtimeRef.current = true;
+      void carregarChamado().finally(() => {
+        carregandoRealtimeRef.current = false;
+      });
+    });
+    return () => {
+      socket?.disconnect();
+    };
+  }, [status, token, referenciaChamado, carregarChamado]);
 
   useEffect(() => {
     if (!token || status === "loading") return;

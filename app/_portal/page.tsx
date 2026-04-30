@@ -79,10 +79,8 @@ export default function PortalHomePage() {
                 icon={Lightbulb}
                 href="/pre-projetos"
                 variant="teal"
-                features={[
-                  "Orientação de viabilidade",
+                features={[                  
                   "Orientações técnicas iniciais",
-                  "Análise prévia de documentação",
                   "Esclarecimento de dúvidas",
                 ]}
               />

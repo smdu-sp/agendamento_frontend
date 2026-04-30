@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ArrowLeft, Ban, CheckCircle2, ChevronRight, Mail, Star } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
@@ -18,6 +18,7 @@ import {
   municipeEstaLogado,
   obterTokenMunicipe,
 } from "@/lib/municipe-sessao"
+import { conectarChatPreProjetoTempoReal } from "@/lib/pre-projeto-chat-realtime"
 import { mensagensPreProjetoParaChat } from "@/lib/pre-projeto-chamado-mensagens"
 import * as agendamento from "@/services/agendamentos"
 import type { ISolicitacaoPreProjetoArthurSaboyaDetalhe } from "@/types/solicitacao-pre-projeto-arthur-saboya"
@@ -89,6 +90,7 @@ export default function ConsultaChamadoDetalhePage() {
   const [notaAvaliacao, setNotaAvaliacao] = useState(0)
   const [comentarioAvaliacao, setComentarioAvaliacao] = useState("")
   const [enviandoAvaliacao, setEnviandoAvaliacao] = useState(false)
+  const carregandoRealtimeRef = useRef(false)
 
   const mensagensChat = useMemo(
     () => (chamado ? mensagensPreProjetoParaChat(chamado) : []),
@@ -128,6 +130,20 @@ export default function ConsultaChamadoDetalhePage() {
       return
     }
     void carregar()
+  }, [autenticado, id, carregar])
+
+  useEffect(() => {
+    if (!autenticado || !id) return
+    const socket = conectarChatPreProjetoTempoReal(id, () => {
+      if (carregandoRealtimeRef.current) return
+      carregandoRealtimeRef.current = true
+      void carregar().finally(() => {
+        carregandoRealtimeRef.current = false
+      })
+    })
+    return () => {
+      socket?.disconnect()
+    }
   }, [autenticado, id, carregar])
 
   useEffect(() => {
