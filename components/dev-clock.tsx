@@ -58,7 +58,7 @@ export function DevClock() {
 
     async function fetchNextjs() {
       try {
-        const r = await fetch("/api/debug/time", { cache: "no-store" });
+        const r = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/api/debug/time`, { cache: "no-store" });
         if (r.ok) setNextjs(await r.json());
       } catch {}
     }
