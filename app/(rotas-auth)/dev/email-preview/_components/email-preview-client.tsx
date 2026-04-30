@@ -164,7 +164,7 @@ const TEMPLATES: TemplateDefinition[] = [
       saudacao: "Olá, João Silva.",
       paragrafos: [
         "Recebemos sua solicitação de pré-projeto com o protocolo <strong>AS-202604001</strong>.",
-        "Nossa equipe irá analisar o chamado e entrar em contato assim que houver novidades.",
+        "Nossa equipe irá analisar o chamado e entrará em contato em breve.",
         "Você pode acompanhar o andamento pelo portal a qualquer momento.",
       ],
       botao: { texto: "Acompanhar minha solicitação", url: `${BASE_URL}/portal/consulta` },
