@@ -26,6 +26,7 @@ type EventoEmailTipo =
   | "agendamento-confirmado"
   | "tecnico-atribuido"
   | "cancelamento"
+  | "chamado-encerrado"
   | "redefinicao-senha";
 
 const CORES: Record<EventoEmailTipo, string> = {
@@ -35,6 +36,7 @@ const CORES: Record<EventoEmailTipo, string> = {
   "agendamento-confirmado": "#EA580C",
   "tecnico-atribuido": "#4F46E5",
   "cancelamento": "#DC2626",
+  "chamado-encerrado": "#0F766E",
   "redefinicao-senha": "#4B5563",
 };
 
@@ -117,7 +119,8 @@ function buildEmailHtml(opts: {
 // ─── Dados de exemplo por template ───────────────────────────────────────────
 
 interface TemplateDefinition {
-  id: EventoEmailTipo;
+  id: string;
+  evento: EventoEmailTipo;
   label: string;
   assunto: string;
   para: string;
@@ -132,6 +135,7 @@ const BASE_URL  = "http://localhost:3001/agendamento";
 const TEMPLATES: TemplateDefinition[] = [
   {
     id: "cadastro",
+    evento: "cadastro",
     label: "Cadastro confirmado",
     assunto: "Cadastro confirmado — Portal de Agendamentos",
     para: "joao.silva@exemplo.com",
@@ -149,6 +153,7 @@ const TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: "novo-chamado",
+    evento: "novo-chamado",
     label: "Novo chamado de pré-projeto",
     assunto: "Solicitação recebida — AS-202604001",
     para: "joao.silva@exemplo.com",
@@ -167,6 +172,7 @@ const TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: "nova-mensagem",
+    evento: "nova-mensagem",
     label: "Nova mensagem na solicitação",
     assunto: "Nova mensagem — AS-202604001",
     para: "joao.silva@exemplo.com",
@@ -184,6 +190,7 @@ const TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: "agendamento-confirmado",
+    evento: "agendamento-confirmado",
     label: "Agendamento confirmado (munícipe)",
     assunto: "Atendimento agendado — AS-202604001",
     para: "joao.silva@exemplo.com",
@@ -204,6 +211,7 @@ const TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: "tecnico-atribuido",
+    evento: "tecnico-atribuido",
     label: "Técnico atribuído (Arthur Saboya)",
     assunto: "Atendimento atribuído — AS-202604001",
     para: "tecnico.responsavel@prefeitura.sp.gov.br",
@@ -222,6 +230,7 @@ const TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: "cancelamento",
+    evento: "cancelamento",
     label: "Cancelamento de atendimento",
     assunto: "[Arthur Saboya] Cancelamento de atendimento — AS-202604001",
     para: "saboya_atendimento@PREFEITURA.SP.GOV.BR",
@@ -240,7 +249,44 @@ const TEMPLATES: TemplateDefinition[] = [
     }),
   },
   {
+    id: "chamado-encerrado-municipe",
+    evento: "chamado-encerrado",
+    label: "Chamado encerrado (pelo munícipe)",
+    assunto: "Chamado encerrado — AS-202604001",
+    para: "joao.silva@exemplo.com",
+    bcc: true,
+    html: buildEmailHtml({
+      evento: "chamado-encerrado",
+      titulo: "Chamado encerrado",
+      saudacao: "Olá, João Silva.",
+      paragrafos: [
+        "Seu chamado <strong>AS-202604001</strong> foi encerrado conforme sua confirmação de resolução.",
+        "Caso precise de novo atendimento, você pode abrir uma nova solicitação no portal.",
+      ],
+      botao: { texto: "Ver histórico do chamado", url: `${BASE_URL}/portal/consulta/abc-123-uuid` },
+    }),
+  },
+  {
+    id: "chamado-encerrado-equipe",
+    evento: "chamado-encerrado",
+    label: "Chamado encerrado (pela equipe)",
+    assunto: "Chamado encerrado — AS-202604001",
+    para: "joao.silva@exemplo.com",
+    bcc: true,
+    html: buildEmailHtml({
+      evento: "chamado-encerrado",
+      titulo: "Chamado encerrado",
+      saudacao: "Olá, João Silva.",
+      paragrafos: [
+        "Seu chamado <strong>AS-202604001</strong> foi encerrado pela equipe da Sala Arthur Saboya.",
+        "Se necessário, você pode abrir uma nova solicitação no portal.",
+      ],
+      botao: { texto: "Ver histórico do chamado", url: `${BASE_URL}/portal/consulta/abc-123-uuid` },
+    }),
+  },
+  {
     id: "redefinicao-senha",
+    evento: "redefinicao-senha",
     label: "Redefinição de senha",
     assunto: "Redefinição de senha — Portal de Agendamentos",
     para: "joao.silva@exemplo.com",
@@ -266,7 +312,7 @@ const TEMPLATES: TemplateDefinition[] = [
 
 export function EmailPreviewClient() {
   const { data: session } = useSession();
-  const [selected, setSelected] = useState<EventoEmailTipo>("cadastro");
+  const [selected, setSelected] = useState<string>("cadastro");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [destinatario, setDestinatario] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -321,7 +367,7 @@ export function EmailPreviewClient() {
                 >
                   <span
                     className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
-                    style={{ background: CORES[t.id] }}
+                      style={{ background: CORES[t.evento] }}
                   />
                   <span className="leading-snug">{t.label}</span>
                 </button>
