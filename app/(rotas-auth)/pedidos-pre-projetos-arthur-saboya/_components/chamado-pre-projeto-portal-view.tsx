@@ -442,6 +442,8 @@ export default function ChamadoPreProjetoPortalView({
       `Agendamento Técnico - ${coordSigla} - Protocolo: ${chamado.protocolo}`.trim();
     const inicioIso = dataBase.toISOString();
     const fimIso = new Date(dataBase.getTime() + 60 * 60 * 1000).toISOString();
+    const composeWindow =
+      typeof window !== "undefined" ? window.open("", "_blank") : null;
 
     setSalvando(true);
     const res =
@@ -452,6 +454,9 @@ export default function ChamadoPreProjetoPortalView({
       );
     setSalvando(false);
     if (!res.ok) {
+      if (composeWindow && !composeWindow.closed) {
+        composeWindow.close();
+      }
       toast.error(res.error ?? "Falha ao confirmar agendamento.");
       return;
     }
@@ -462,6 +467,7 @@ export default function ChamadoPreProjetoPortalView({
       inicioIso,
       fimIso,
       emailsParticipantes: [emailMunicipe, emailTecnico, emailTecnicoArthur],
+      targetWindow: composeWindow,
     });
     toast.success("Agendamento confirmado.");
     setAtribuirCoordAberto(false);

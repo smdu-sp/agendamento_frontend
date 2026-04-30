@@ -33,6 +33,11 @@ export type AbrirOutlookComposeAgendamentoParams = {
   fimIso: string;
   /** Munícipe + técnico(s); duplicatas removidas. */
   emailsParticipantes: string[];
+  /**
+   * Janela já aberta por gesto do usuário (evita bloqueio de popup
+   * quando o compose é disparado após operações assíncronas).
+   */
+  targetWindow?: Window | null;
 };
 
 /**
@@ -67,10 +72,14 @@ export function abrirOutlookComposeAgendamentoTecnico(
     online: "true",
   });
   if (to) paramsUrl.set("to", to);
+  paramsUrl.set("from", org);
 
-  const emailEncoded = encodeURIComponent(org);
-  const url = `https://outlook.office.com/calendar/${emailEncoded}/deeplink/compose?${paramsUrl.toString()}`;
+  const url = `https://outlook.office.com/calendar/0/deeplink/compose?${paramsUrl.toString()}`;
   if (typeof window !== "undefined") {
+    if (params.targetWindow && !params.targetWindow.closed) {
+      params.targetWindow.location.href = url;
+      return;
+    }
     window.open(url, "_blank", "noopener,noreferrer");
   }
 }
