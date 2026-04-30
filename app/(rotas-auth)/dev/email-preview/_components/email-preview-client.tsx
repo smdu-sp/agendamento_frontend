@@ -389,7 +389,7 @@ export function EmailPreviewClient() {
           <div className="space-y-3 py-2">
             <p className="text-sm text-muted-foreground">
               Será enviado o modelo{" "}
-              <span className="font-medium text-foreground">"{template.label}"</span> com
+              <span className="font-medium text-foreground">&ldquo;{template.label}&rdquo;</span> com
               assunto <span className="font-medium text-foreground">[TESTE]</span> para o
               endereço abaixo.
             </p>
