@@ -59,7 +59,7 @@ export default function PortalHomePage() {
               </h2>
               <p className="text-gray-500">Selecione entre as opções abaixo:</p>
             </div>
-            <div className="mx-auto grid max-w-[1024px] gap-8 md:grid-cols-2">
+            <div className="mx-auto grid max-w-[1024px] gap-6 sm:gap-8 md:grid-cols-2">
               <ArthurSaboyaServiceCard
                 title="Processos em Trâmite"
                 description="Para processos que já possuem número de protocolo e estão em análise na Prefeitura."

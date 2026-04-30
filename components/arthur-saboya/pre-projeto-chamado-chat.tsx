@@ -81,22 +81,24 @@ export function PreProjetoChamadoChat({
       {/* Header — alinhado ao .card-head do protótipo */}
       <div
         className={cn(
-          "flex shrink-0 items-center justify-between border-b border-[#E5EAF2]",
-          painel ? "px-5 py-4" : "border-border px-5 py-4",
+          "flex shrink-0 flex-col gap-2 border-b border-[#E5EAF2] sm:flex-row sm:items-start sm:justify-between sm:gap-3",
+          painel ? "px-4 py-3 sm:px-5 sm:py-4" : "border-border px-4 py-3 sm:px-5 sm:py-4",
         )}
       >
-        <div>
+        <div className="min-w-0 flex-1">
           <h3
             className={cn(
               "font-semibold text-[#0F172A]",
-              painel ? "m-0 text-[14px] leading-tight" : "text-sm",
+              painel ? "m-0 text-[13px] leading-tight sm:text-[14px]" : "text-sm",
             )}
           >
             {titulo}
           </h3>
           <p
             className={cn(
-              painel ? "mt-0.5 text-[12.5px] font-normal leading-snug text-[#64748B]" : "text-xs text-muted-foreground",
+              painel
+                ? "mt-0.5 text-[12px] font-normal leading-snug text-[#64748B] sm:text-[12.5px]"
+                : "text-xs text-muted-foreground",
             )}
           >
             Histórico completo do chamado — respostas e alterações de status.
@@ -105,7 +107,7 @@ export function PreProjetoChamadoChat({
         {mensagens.length > 0 && (
           <span
             className={cn(
-              "shrink-0 text-[#64748B]",
+              "shrink-0 self-start text-[#64748B] sm:self-auto",
               painel ? "text-xs" : "text-xs text-muted-foreground",
             )}
           >
@@ -119,7 +121,7 @@ export function PreProjetoChamadoChat({
         className={cn(
           "overflow-y-auto",
           painel
-            ? "flex min-h-0 flex-1 flex-col gap-[18px] p-5"
+            ? "flex min-h-0 flex-1 flex-col gap-3 p-4 sm:gap-[18px] sm:p-5"
             : "max-h-[min(420px,50vh)] space-y-4 px-5 py-4",
         )}
       >
@@ -139,21 +141,23 @@ export function PreProjetoChamadoChat({
 
             if (isCentro) {
               return painel ? (
-                <div key={m.id} className="flex items-center gap-2.5 py-1 text-xs text-[#64748B]">
-                  <span className="h-px flex-1 bg-[#E5EAF2]" />
+                <div
+                  key={m.id}
+                  className="flex flex-col items-stretch gap-2 py-1 text-xs text-[#64748B] sm:flex-row sm:items-center sm:gap-2.5"
+                >
+                  <span className="hidden h-px bg-[#E5EAF2] sm:block sm:flex-1" />
                   <span
-                    className="max-w-[min(100%,520px)] rounded-[10px] border border-dashed px-3 py-2 text-center text-[12.5px] italic leading-snug"
+                    className="mx-auto max-w-full rounded-[10px] border border-dashed px-3 py-2 text-center text-[11.5px] italic leading-snug sm:max-w-[min(100%,520px)] sm:text-[12.5px]"
                     style={{ borderColor: "#5CC9BD", backgroundColor: "#EDF7F5", color: "#0f6b62" }}
                   >
                     <span className="inline-flex items-center gap-1.5">
                       <CheckCircle2 className="h-3 w-3 shrink-0" />
-                    </span>
-                    {" "}
-                    {m.corpo}
+                    </span>{" "}
+                    <span className="wrap-break-word">{m.corpo}</span>
                     {" · "}
                     {formatarDataHoraSaoPaulo(m.criadoEm)}
                   </span>
-                  <span className="h-px flex-1 bg-[#E5EAF2]" />
+                  <span className="hidden h-px bg-[#E5EAF2] sm:block sm:flex-1" />
                 </div>
               ) : (
                 <div key={m.id} className="flex items-center gap-3">
@@ -180,9 +184,9 @@ export function PreProjetoChamadoChat({
               <div
                 key={m.id}
                 className={cn(
-                  "flex gap-3",
+                  "flex gap-2.5 sm:gap-3",
                   isOutgoing ? "ml-auto flex-row-reverse" : "flex-row",
-                  painel ? "max-w-[78%] items-start" : "max-w-[80%] items-end gap-2.5",
+                  painel ? "max-w-[min(92%,20rem)] items-start sm:max-w-[78%]" : "max-w-[80%] items-end gap-2.5",
                 )}
               >
                 <div
@@ -202,7 +206,7 @@ export function PreProjetoChamadoChat({
                 <div className="min-w-0 flex-1">
                   <div
                     className={cn(
-                      "mb-1 flex items-center gap-2 text-[11.5px] text-[#64748B]",
+                      "mb-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11.5px] text-[#64748B]",
                       isOutgoing ? "justify-end" : "justify-start",
                     )}
                   >
@@ -245,7 +249,7 @@ export function PreProjetoChamadoChat({
       {/* Composer — .composer do protótipo */}
       <div
         className={cn(
-          "shrink-0 border-t px-5 py-4",
+          "shrink-0 border-t px-4 py-3 sm:px-5 sm:py-4",
           painel ? "border-[#E5EAF2] bg-[#F8FAFC]" : "border-border bg-muted/20",
         )}
       >
@@ -270,18 +274,18 @@ export function PreProjetoChamadoChat({
         />
         <div
           className={cn(
-            "flex flex-wrap items-center justify-between gap-2.5",
+            "flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between",
             painel ? "mt-2.5" : "gap-3",
           )}
         >
-          <span className="text-xs text-[#64748B]">
+          <span className="order-2 text-center text-[11px] text-[#64748B] sm:order-1 sm:text-left sm:text-xs">
             {bloqueado ? mensagemBloqueado : "Ctrl/⌘ + Enter para enviar"}
           </span>
           <Button
             type="button"
             className={cn(
-              "gap-2 rounded-lg border border-transparent bg-[#E56E14] px-[14px] py-2 text-[13px] font-semibold text-white hover:bg-[#c95d0e]",
-              painel && "h-9",
+              "order-1 w-full gap-2 rounded-lg border border-transparent bg-[#E56E14] px-[14px] py-2 text-[13px] font-semibold text-white hover:bg-[#c95d0e] sm:order-2 sm:w-auto",
+              painel && "sm:h-9",
             )}
             disabled={enviando || bloqueado || !texto.trim()}
             onClick={() => void submit()}

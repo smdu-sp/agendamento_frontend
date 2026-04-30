@@ -20,11 +20,15 @@ type FaqItem = {
 }
 
 function Answer({ children }: { children: ReactNode }) {
-  return <div className="space-y-3 leading-relaxed text-muted-foreground">{children}</div>
+  return (
+    <div className="space-y-3 text-sm leading-relaxed wrap-break-word text-muted-foreground sm:text-base">
+      {children}
+    </div>
+  )
 }
 
 function P({ children }: { children: ReactNode }) {
-  return <p>{children}</p>
+  return <p className="hyphens-auto">{children}</p>
 }
 
 const FAQS: FaqItem[] = [
@@ -267,13 +271,13 @@ export default function PerguntasFrequentesPage() {
       <ArthurSaboyaPageBackgroundBanner>
         <Link
           href={BASE}
-          className="mb-4 inline-flex items-center gap-2 text-sm text-white/90 transition-colors hover:text-white"
+          className="mb-3 inline-flex items-center gap-2 text-sm text-white/90 transition-colors hover:text-white sm:mb-4"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4 shrink-0" />
           Voltar ao Início
         </Link>
-        <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#E56E14]">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#E56E14]">
             <Image
               src={iconFaq}
               alt=""
@@ -282,24 +286,28 @@ export default function PerguntasFrequentesPage() {
               className="h-7 w-7 object-contain"
             />
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-white">Perguntas e respostas</h1>
-            <p className="text-white/90">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold text-white sm:text-3xl">Perguntas e respostas</h1>
+            <p className="mt-1 max-w-2xl text-sm leading-snug text-white/90 sm:text-base">
               Dúvidas frequentes sobre a SMUL, processos e serviços relacionados
             </p>
           </div>
         </div>
       </ArthurSaboyaPageBackgroundBanner>
       <main className="flex-1">
-        <section className="bg-[#D1EBE8]/20 py-12">
-          <div className="container mx-auto max-w-3xl px-4">
-            <Accordion type="single" collapsible className="w-full">
+        <section className="bg-[#D1EBE8]/20 py-8 sm:py-12">
+          <div className="container mx-auto max-w-3xl px-3 sm:px-4">
+            <Accordion type="single" collapsible className="w-full min-w-0">
               {FAQS.map((faq) => (
                 <AccordionItem key={faq.id} value={faq.id}>
-                  <AccordionTrigger className={`${openSans.className} text-left text-[16px] font-normal text-[#0E171E] hover:no-underline`}>
-                    {faq.pergunta}
+                  <AccordionTrigger
+                    className={`${openSans.className} wrap-break-word text-left text-[15px] font-normal leading-snug text-[#0E171E] hover:no-underline sm:text-[16px]`}
+                  >
+                    <span className="min-w-0 flex-1 pr-1">{faq.pergunta}</span>
                   </AccordionTrigger>
-                  <AccordionContent>{faq.resposta}</AccordionContent>
+                  <AccordionContent className="text-[#4C575F] [&_a]:break-all">
+                    {faq.resposta}
+                  </AccordionContent>
                 </AccordionItem>
               ))}
             </Accordion>

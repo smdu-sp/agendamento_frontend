@@ -16,18 +16,28 @@ export function ArthurSaboyaPageBackgroundBanner({
 }: ArthurSaboyaPageBackgroundBannerProps) {
   return (
     <div className="w-full overflow-hidden bg-[#001a70]">
-      <div className="relative mx-auto w-full max-w-[1900px]">
+      <div
+        className={`relative mx-auto w-full max-w-[1900px] ${children ? "min-h-[200px]" : "h-[200px]"}`}
+      >
         <Image
           src={bannerFundo}
           alt=""
           aria-hidden
-          className="h-[200px] w-full object-cover"
+          className={
+            children
+              ? "absolute inset-0 h-full min-h-[200px] w-full object-cover"
+              : "h-[200px] w-full object-cover"
+          }
           priority={false}
         />
-        <div className="absolute inset-0 bg-[#001a70]/45" />
+        <div
+          className={
+            children ? "absolute inset-0 min-h-[200px] bg-[#001a70]/45" : "absolute inset-0 bg-[#001a70]/45"
+          }
+        />
         {children ? (
-          <div className="absolute inset-0 flex items-center">
-            <div className="container mx-auto px-4">{children}</div>
+          <div className="relative z-10 min-h-[200px] px-4 py-5 sm:py-6">
+            <div className="container mx-auto max-w-full">{children}</div>
           </div>
         ) : title ? (
           <div className="absolute inset-0 flex items-center justify-center px-4 text-center">
