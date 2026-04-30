@@ -395,12 +395,6 @@ export default function ConsultaChamadoDetalhePage() {
                           <InfoItem label="Formação">{chamado.formacaoTexto}</InfoItem>
                           <InfoItem label="Natureza">{chamado.naturezaTexto}</InfoItem>
                         </dl>
-                        {chamado.emailContatoDivisao ? (
-                          <div className="rounded-[10px] border border-dashed border-[#5CC9BD] bg-[#EDF7F5] p-3 text-xs">
-                            <p className="font-semibold text-[#0f8578]">Contato institucional</p>
-                            <p className="mt-1 wrap-break-word text-[#64748B]">{chamado.emailContatoDivisao}</p>
-                          </div>
-                        ) : null}
                       </div>
                     </div>
                   </>
