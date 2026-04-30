@@ -19,6 +19,7 @@ import {
   ClipboardList,
   Files,
   CalendarSearch,
+  Mail,
 } from "lucide-react";
 
 import {
@@ -309,6 +310,15 @@ export async function NavMain() {
                   </Link>
                 </SidebarMenuItem>
               ))}
+            </SidebarMenu>
+            <SidebarGroupLabel>Ferramentas DEV</SidebarGroupLabel>
+            <SidebarMenu>
+              <SidebarMenuItem className="z-50">
+                <Link href="/dev/email-preview">
+                  <Mail />
+                  <span>Preview de E-mails</span>
+                </Link>
+              </SidebarMenuItem>
             </SidebarMenu>
           </>
         )}
