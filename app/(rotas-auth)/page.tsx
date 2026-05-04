@@ -63,7 +63,7 @@ async function Home({
   const limite = Number(sp.limite) || 10;
   const busca = (sp.busca as string) ?? "";
   const status = (sp.status as string) ?? "";
-  const tipoProcesso = "DIGITAL";
+  const tipoProcesso = (sp.tipoProcesso as string) ?? "";
 
   const rawInicio = (sp.dataInicio as string) || "";
   const rawFim = (sp.dataFim as string) || "";
@@ -146,7 +146,6 @@ async function Home({
         dataInicio={dataInicio}
         dataFim={dataFim}
         ultimaImportacao={ultimaImportacao}
-        tipoProcessoFixo="DIGITAL"
       />
     </AppPageShell>
   );

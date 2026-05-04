@@ -8,7 +8,6 @@ import {
   ChevronsUp,
   House,
   LayoutDashboard,
-  Files,
   LucideProps,
   Users,
   X,
@@ -58,13 +57,8 @@ export function DrawerMenu() {
 
     {
       icone: CalendarSearch,
-      titulo: "Agendamentos Digitais",
+      titulo: "Agendamentos",
       url: "/agendamentos",
-    },
-    {
-      icone: Files,
-      titulo: "Agendamentos Físicos",
-      url: "/agendamentos-fisicos",
     },
   ];
 

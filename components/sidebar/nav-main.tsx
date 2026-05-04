@@ -17,7 +17,6 @@ import {
   Search,
   HelpCircle,
   ClipboardList,
-  Files,
   CalendarSearch,
   Mail,
 } from "lucide-react";
@@ -72,13 +71,8 @@ export async function NavMain() {
     },
     {
       icone: CalendarSearch,
-      titulo: "Agendamentos Digitais",
+      titulo: "Agendamentos",
       url: "/agendamentos",
-    },
-    {
-      icone: Files,
-      titulo: "Agendamentos Físicos",
-      url: "/agendamentos-fisicos",
     },
   ];
 

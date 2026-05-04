@@ -621,7 +621,7 @@ export default function ListaAgendamentos({
                           </Button>
                         ) : null}
 
-                        {tipoProcessoFixo !== "FISICO" && (isPontoFocal || isCoordenador || isAdm || isDev) && (
+                        {(isPontoFocal || isCoordenador || isAdm || isDev) && (
                           <Button
                             size="sm"
                             variant="outline"

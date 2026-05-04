@@ -25,7 +25,6 @@ const BASE = "/portal"
 const FORMACOES = [
   { value: "engenheiro-civil", label: "Engenheiro Civil" },
   { value: "arquiteto", label: "Arquiteto" },
-  { value: "tecnologo", label: "Tecnólogo" },
   { value: "outra", label: "Outra" },
 ] as const
 
