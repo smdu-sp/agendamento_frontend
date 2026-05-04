@@ -44,7 +44,10 @@ import {
 import { toast } from "sonner";
 import { useEffectivePermissao } from "@/providers/ImpersonationProvider";
 import { abrirOutlookComposeAgendamentoTecnico } from "@/lib/outlook-agendamento-teams";
-import { formatarDataHoraSaoPaulo } from "@/lib/date-time";
+import {
+  formatarDataHoraSaoPaulo,
+  instanteUtcRealDesdeDataHoraApi,
+} from "@/lib/date-time";
 import Link from "@/components/link";
 
 /** Converte valor da API (ISO em UTC) para `Date` do instante correto; formata no fuso do navegador. */
@@ -64,10 +67,12 @@ function montarAssuntoEIntervaloIsoOutlook(agend: IAgendamento) {
   const fim = agend.dataFim
     ? paraDateAgendamento(agend.dataFim)
     : new Date(inicio.getTime() + 60 * 60 * 1000);
+  const inicioUtc = instanteUtcRealDesdeDataHoraApi(inicio);
+  const fimUtc = instanteUtcRealDesdeDataHoraApi(fim);
   return {
     assunto,
-    inicioIso: inicio.toISOString(),
-    fimIso: fim.toISOString(),
+    inicioIso: inicioUtc.toISOString(),
+    fimIso: fimUtc.toISOString(),
   };
 }
 

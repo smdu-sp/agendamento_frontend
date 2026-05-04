@@ -1,5 +1,27 @@
 type DateInput = Date | string | null | undefined;
 
+/**
+ * A API de agendamentos grava data/hora **civil de São Paulo** nos componentes
+ * UTC do `Date` (ver `instanteCivilSaoPauloSemDeslocamento` no backend). O
+ * compose do Outlook Web trata `startdt`/`enddt` como instante UTC absoluto; sem
+ * esta conversão o horário aparece 3 h adiantado no fuso de Brasília.
+ */
+export function instanteUtcRealDesdeDataHoraApi(entrada: Date | string): Date {
+  const d = typeof entrada === "string" ? new Date(entrada) : entrada;
+  if (Number.isNaN(d.getTime())) return d;
+  return new Date(
+    Date.UTC(
+      d.getUTCFullYear(),
+      d.getUTCMonth(),
+      d.getUTCDate(),
+      d.getUTCHours() + 3,
+      d.getUTCMinutes(),
+      d.getUTCSeconds(),
+      d.getUTCMilliseconds(),
+    ),
+  );
+}
+
 export function formatarDataHoraSaoPaulo(
   valor: DateInput,
   incluirAs: boolean = false,
