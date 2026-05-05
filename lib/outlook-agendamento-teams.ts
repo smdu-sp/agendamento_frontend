@@ -74,7 +74,8 @@ export function abrirOutlookComposeAgendamentoTecnico(
   if (to) paramsUrl.set("to", to);
   paramsUrl.set("from", org);
 
-  const url = `https://outlook.office.com/calendar/0/deeplink/compose?${paramsUrl.toString()}`;
+  const emailEncoded = encodeURIComponent(org);
+  const url = `https://outlook.office.com/calendar/${emailEncoded}/deeplink/compose?${paramsUrl.toString()}`;
   if (typeof window !== "undefined") {
     if (params.targetWindow && !params.targetWindow.closed) {
       params.targetWindow.location.href = url;
