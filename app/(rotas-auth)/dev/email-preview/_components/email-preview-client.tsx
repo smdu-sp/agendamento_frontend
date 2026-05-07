@@ -130,7 +130,7 @@ interface TemplateDefinition {
 
 const MOCK_FROM = "SMUL - Saboya Atendimento <saboya_atendimento@PREFEITURA.SP.GOV.BR>";
 const MOCK_BCC  = "saboya_atendimento@PREFEITURA.SP.GOV.BR";
-const BASE_URL  = "http://localhost:3001/agendamento";
+const BASE_URL  = "https://smulweb.prefeitura.sp.gov.br/agendamento";
 
 const TEMPLATES: TemplateDefinition[] = [
   {
