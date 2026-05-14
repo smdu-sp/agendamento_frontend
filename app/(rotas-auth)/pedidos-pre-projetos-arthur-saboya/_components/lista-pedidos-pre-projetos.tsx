@@ -21,6 +21,7 @@ import * as agendamento from "@/services/agendamentos";
 import * as usuario from "@/services/usuarios";
 import type { ISolicitacaoPreProjetoArthurSaboya } from "@/types/solicitacao-pre-projeto-arthur-saboya";
 import { formatarDataHoraSaoPaulo } from "@/lib/date-time";
+import Link from "@/components/link";
 
 const LIMITE = 15;
 const PATH_CHAMADO = "/pedidos-pre-projetos-arthur-saboya";
@@ -404,63 +405,62 @@ export default function ListaPedidosPreProjetos() {
               </TableRow>
             ) : (
               itensFiltrados.map((row) => (
-                <TableRow
-                  key={row.id}
-                  className="cursor-pointer border-[#E5EAF2] hover:bg-[#F8FAFC]"
-                  onClick={() =>
-                    router.push(`${PATH_CHAMADO}/${encodeURIComponent(row.protocolo)}`)
-                  }
-                >
-                  <TableCell className="px-3 py-2.5 font-mono text-[13.5px] font-medium text-[#0F172A] first:pl-4 sm:first:pl-6">
-                    {row.protocolo}
-                  </TableCell>
-                  <TableCell className="max-w-[240px] px-3 py-2.5">
-                    <div className="truncate font-medium text-[#0F172A]">{row.nome}</div>
-                    <div className="truncate text-[11.5px] text-[#64748B]">{row.formacaoTexto}</div>
-                  </TableCell>
-                  <TableCell className="px-3 py-2.5">
-                    <StatusChip status={row.status} />
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap px-3 py-2.5 text-[13.5px] text-[#64748B]">
-                    {formatarDataHoraSaoPaulo(row.criadoEm)}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap px-3 py-2.5 text-[13.5px] text-[#64748B]">
-                    {row.dataAgendamento
-                      ? formatarDataHoraSaoPaulo(row.dataAgendamento)
-                      : "—"}
-                  </TableCell>
-                  <TableCell className="max-w-[200px] truncate px-3 py-2.5 text-[#64748B]">
-                    {row.coordenadoriaTexto?.trim() || "—"}
-                  </TableCell>
-                  <TableCell className="max-w-[220px] truncate px-3 py-2.5 text-[#64748B]">
-                    {row.tecnicoArthurNome?.trim() || "—"}
-                  </TableCell>
-                  <TableCell className="px-3 py-2.5">
-                    {podeConcluirNaTabela ? (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        className="h-8 rounded-md border-[#D7DFEA] px-2.5 text-xs"
-                        disabled={
-                          row.status !== "AGENDAMENTO_CRIADO" ||
-                          concluindoId === row.protocolo
-                        }
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          void handleConcluirAtendimento(row.protocolo);
-                        }}
-                      >
-                        Concluir
-                      </Button>
-                    ) : (
-                      <span className="text-[#94A3B8]">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="w-10 px-0 text-[#94A3B8] last:pr-4 sm:last:pr-6">
-                    <ChevronRight className="mx-auto h-4 w-4 shrink-0" aria-hidden />
-                  </TableCell>
-                </TableRow>
+                <Link href={`${PATH_CHAMADO}/${encodeURIComponent(row.protocolo)}`} passHref>
+                  <TableRow
+                    key={row.id}
+                    className="cursor-pointer border-[#E5EAF2] hover:bg-[#F8FAFC]"
+                  >
+                    <TableCell className="px-3 py-2.5 font-mono text-[13.5px] font-medium text-[#0F172A] first:pl-4 sm:first:pl-6">
+                      {row.protocolo}
+                    </TableCell>
+                    <TableCell className="max-w-[240px] px-3 py-2.5">
+                      <div className="truncate font-medium text-[#0F172A]">{row.nome}</div>
+                      <div className="truncate text-[11.5px] text-[#64748B]">{row.formacaoTexto}</div>
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5">
+                      <StatusChip status={row.status} />
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap px-3 py-2.5 text-[13.5px] text-[#64748B]">
+                      {formatarDataHoraSaoPaulo(row.criadoEm)}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap px-3 py-2.5 text-[13.5px] text-[#64748B]">
+                      {row.dataAgendamento
+                        ? formatarDataHoraSaoPaulo(row.dataAgendamento)
+                        : "—"}
+                    </TableCell>
+                    <TableCell className="max-w-[200px] truncate px-3 py-2.5 text-[#64748B]">
+                      {row.coordenadoriaTexto?.trim() || "—"}
+                    </TableCell>
+                    <TableCell className="max-w-[220px] truncate px-3 py-2.5 text-[#64748B]">
+                      {row.tecnicoArthurNome?.trim() || "—"}
+                    </TableCell>
+                    <TableCell className="px-3 py-2.5">
+                      {podeConcluirNaTabela ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="h-8 rounded-md border-[#D7DFEA] px-2.5 text-xs"
+                          disabled={
+                            row.status !== "AGENDAMENTO_CRIADO" ||
+                            concluindoId === row.protocolo
+                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void handleConcluirAtendimento(row.protocolo);
+                          }}
+                        >
+                          Concluir
+                        </Button>
+                      ) : (
+                        <span className="text-[#94A3B8]">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="w-10 px-0 text-[#94A3B8] last:pr-4 sm:last:pr-6">
+                      <ChevronRight className="mx-auto h-4 w-4 shrink-0" aria-hidden />
+                    </TableCell>
+                  </TableRow>
+                </Link>
               ))
             )}
           </TableBody>
