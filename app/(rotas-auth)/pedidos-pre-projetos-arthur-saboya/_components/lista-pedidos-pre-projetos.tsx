@@ -74,7 +74,6 @@ interface Stats {
 }
 
 export default function ListaPedidosPreProjetos() {
-  const router = useRouter();
   const { data: session, status } = useSession();
   const token = session?.access_token;
   const [buscaInput, setBuscaInput] = useState("");
@@ -405,9 +404,8 @@ export default function ListaPedidosPreProjetos() {
               </TableRow>
             ) : (
               itensFiltrados.map((row) => (
-                <Link href={`${PATH_CHAMADO}/${encodeURIComponent(row.protocolo)}`} passHref>
+                <Link href={`${PATH_CHAMADO}/${encodeURIComponent(row.protocolo)}`} passHref key={row.id}>
                   <TableRow
-                    key={row.id}
                     className="cursor-pointer border-[#E5EAF2] hover:bg-[#F8FAFC]"
                   >
                     <TableCell className="px-3 py-2.5 font-mono text-[13.5px] font-medium text-[#0F172A] first:pl-4 sm:first:pl-6">
