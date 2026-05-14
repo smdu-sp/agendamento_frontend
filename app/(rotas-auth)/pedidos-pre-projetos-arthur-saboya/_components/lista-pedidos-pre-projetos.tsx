@@ -20,7 +20,6 @@ import * as agendamento from "@/services/agendamentos";
 import * as usuario from "@/services/usuarios";
 import type { ISolicitacaoPreProjetoArthurSaboya } from "@/types/solicitacao-pre-projeto-arthur-saboya";
 import { formatarDataHoraSaoPaulo } from "@/lib/date-time";
-import Link from "@/components/link";
 
 const LIMITE = 15;
 const PATH_CHAMADO = "/pedidos-pre-projetos-arthur-saboya";
@@ -403,11 +402,16 @@ export default function ListaPedidosPreProjetos() {
               </TableRow>
             ) : (
               itensFiltrados.map((row) => (
-                <Link href={`${PATH_CHAMADO}/${encodeURIComponent(row.protocolo)}`} passHref key={row.id}>
-                  <TableRow
-                    className="cursor-pointer border-[#E5EAF2] hover:bg-[#F8FAFC]"
+                <TableRow
+                    key={row.id}
+                    className="relative cursor-pointer border-[#E5EAF2] hover:bg-[#F8FAFC]"
                   >
                     <TableCell className="px-3 py-2.5 font-mono text-[13.5px] font-medium text-[#0F172A] first:pl-4 sm:first:pl-6">
+                      <a
+                        href={`${PATH_CHAMADO}/${encodeURIComponent(row.protocolo)}`}
+                        className="absolute inset-0"
+                        aria-label={`Abrir pedido ${row.protocolo}`}
+                      />
                       {row.protocolo}
                     </TableCell>
                     <TableCell className="max-w-[240px] px-3 py-2.5">
@@ -457,7 +461,6 @@ export default function ListaPedidosPreProjetos() {
                       <ChevronRight className="mx-auto h-4 w-4 shrink-0" aria-hidden />
                     </TableCell>
                   </TableRow>
-                </Link>
               ))
             )}
           </TableBody>
