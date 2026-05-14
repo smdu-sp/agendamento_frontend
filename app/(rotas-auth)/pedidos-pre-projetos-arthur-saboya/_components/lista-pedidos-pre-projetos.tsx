@@ -3,7 +3,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { ChevronRight, Search } from "lucide-react";
 import { toast } from "sonner";
