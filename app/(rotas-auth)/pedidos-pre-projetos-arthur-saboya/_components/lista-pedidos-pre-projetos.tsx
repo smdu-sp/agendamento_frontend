@@ -408,7 +408,7 @@ export default function ListaPedidosPreProjetos() {
                   >
                     <TableCell className="px-3 py-2.5 font-mono text-[13.5px] font-medium text-[#0F172A] first:pl-4 sm:first:pl-6">
                       <a
-                        href={`${PATH_CHAMADO}/${encodeURIComponent(row.protocolo)}`}
+                        href={`/agendamento/${PATH_CHAMADO}/${encodeURIComponent(row.protocolo)}`}
                         className="absolute inset-0"
                         aria-label={`Abrir pedido ${row.protocolo}`}
                       />
