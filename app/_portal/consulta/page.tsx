@@ -96,9 +96,9 @@ export default function ConsultaPage() {
             <Search className="h-7 w-7 text-white" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-white sm:text-3xl">Consultar agendamentos</h1>
+            <h1 className="text-2xl font-bold text-white sm:text-3xl">Consultar atendimentos</h1>
             <p className="mt-1 max-w-2xl text-sm leading-snug text-white/90 sm:text-base">
-              Pré-projetos (Arthur Saboya): seus chamados e andamentos no estilo de helpdesk
+              Consulte seus atendimentos de dúvidas pré-projetos (Sala Arthur Saboya)
             </p>
           </div>
         </div>

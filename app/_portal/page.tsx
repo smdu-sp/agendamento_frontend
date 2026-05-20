@@ -55,7 +55,7 @@ export default function PortalHomePage() {
           <div className="container mx-auto px-4">
             <div className="mb-12 text-center">
               <h2 className="mb-2 text-3xl font-bold text-gray-800 md:text-4xl">
-                Escolha o Tipo de Agendamento
+                Escolha o Tipo de Atendimento
               </h2>
               <p className="text-gray-500">Selecione entre as opções abaixo:</p>
             </div>
@@ -88,7 +88,7 @@ export default function PortalHomePage() {
           </div>
         </section>
 
-        {/* ── Consultar Agendamento ── */}
+        {/* ──  age Agendamento ── */}
         <section className="border-y border-[#CBDAE2] bg-[#D1EBE8]/20">
           <div className="mx-auto w-full max-w-[1900px] px-4 py-[65px]">
             <div className="mx-auto flex min-h-[250px] w-full max-w-[667px] flex-col gap-6 rounded-2xl border border-[#CBDAE2] bg-white py-6 shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]">
@@ -99,7 +99,7 @@ export default function PortalHomePage() {
                 <h2
                   className={`${openSans.className} w-full max-w-[622px] text-[24px] font-extrabold leading-8 text-[#0E171E]`}
                 >
-                  Consultar Agendamento
+                  Consultar Atendimento
                 </h2>
                 <p
                   className={`${openSans.className} mt-2 w-full max-w-[487px] text-[16px] font-normal leading-6 text-[#4C575F]`}
@@ -114,7 +114,7 @@ export default function PortalHomePage() {
                   className={`${openSans.className} inline-flex h-10 w-[249px] items-center justify-center gap-2 rounded-[10px] bg-[#F5F9FB] px-4 text-[14px] font-normal text-[#0E171E] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors hover:bg-[#EAF4F7]`}
                 >
                   <Search className="h-4 w-4" style={{ strokeWidth: 1.3333 }} />
-                  Consultar Meu Agendamento
+                  Consultar Meu Atendimento
                 </Link>
               </div>
             </div>
