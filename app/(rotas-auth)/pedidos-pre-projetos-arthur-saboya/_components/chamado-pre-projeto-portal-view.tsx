@@ -43,7 +43,7 @@ function rotuloStatus(s: ISolicitacaoPreProjetoArthurSaboyaDetalhe["status"]) {
     case "SOLICITADO":
       return "Solicitado";
     case "RESPONDIDO":
-      return "Solucionado";
+      return "Concluído";
     case "AGUARDANDO_DATA":
       return "Aguardando data";
     case "AGENDAMENTO_CRIADO":
@@ -373,14 +373,17 @@ export default function ChamadoPreProjetoPortalView({
     setSalvando(false);
     if (!res.ok) {
       toast.error(
-        res.error ?? "Falha ao atualizar técnico da Sala Arthur Saboya.",
+        res.error ??
+          (chamado.status === "AGENDAMENTO_CRIADO"
+            ? "Falha ao atualizar técnico da Sala Arthur Saboya."
+            : "Falha ao enviar à coordenadoria."),
       );
       return;
     }
     toast.success(
       chamado.status === "AGENDAMENTO_CRIADO"
         ? "Técnico da Sala Arthur Saboya atualizado."
-        : "Solicitação enviada para a coordenadoria.",
+        : "Solicitação enviada para a coordenadoria. Aguardando confirmação de data/hora.",
     );
     setAgendarAberto(false);
     void carregarChamado();
@@ -639,7 +642,11 @@ export default function ChamadoPreProjetoPortalView({
                   size="sm"
                   variant="outline"
                   className="h-9 gap-2 rounded-lg border-[#D7DFEA] bg-transparent px-2.5 py-1.5 text-xs font-semibold text-[#334155] hover:bg-[#F8FAFC] disabled:opacity-55 sm:px-3 sm:text-[13px]"
-                  disabled={chamado.status !== "AGENDAMENTO_CRIADO" || salvando}
+                  disabled={
+                    !["AGUARDANDO_DATA", "AGENDAMENTO_CRIADO"].includes(
+                      chamado.status,
+                    ) || salvando
+                  }
                   onClick={abrirAtribuirTecnicoCoordenadoria}
                 >
                   <CheckCircle2 className="h-3.5 w-3.5" />

@@ -36,7 +36,7 @@ function rotuloStatus(s: ISolicitacaoPreProjetoArthurSaboya["status"]) {
     case "SOLICITADO":
       return "Solicitado";
     case "RESPONDIDO":
-      return "Solucionado";
+      return "Concluído";
     case "AGUARDANDO_DATA":
       return "Aguardando data";
     case "AGENDAMENTO_CRIADO":
@@ -227,14 +227,14 @@ export default function ListaPedidosPreProjetos() {
     count: number | undefined;
   }[] = [
     { k: "SOLICITADO", label: "Solicitados", count: stats?.solicitados },
-    { k: "", label: "Todos", count: stats?.total },
     {
       k: "AGUARDANDO_DATA",
       label: "Aguardando data",
       count: stats?.aguardando,
     },
-    { k: "RESPONDIDO", label: "Solucionados", count: stats?.respondidos },
-    { k: "AGENDAMENTO_CRIADO", label: "Enviados", count: stats?.enviados },
+    { k: "AGENDAMENTO_CRIADO", label: "Agendados", count: stats?.enviados },
+    { k: "RESPONDIDO", label: "Concluídos", count: stats?.respondidos },
+    { k: "", label: "Todos", count: stats?.total },
   ];
 
   const permissaoUsuario = String(

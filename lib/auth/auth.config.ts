@@ -49,7 +49,45 @@ export default {
 					return token;
 				}
 			}
-			if (user) token.user = user;
+			if (user) {
+				token.user = user;
+				return token;
+			}
+
+			// Refresh token antes que expire — precisa ser aqui no jwt callback
+			// para que os novos tokens sejam persistidos no cookie JWT.
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const userSession = token.user as any;
+			if (!userSession?.access_token || !userSession?.refresh_token || !API_URL) {
+				return token;
+			}
+
+			try {
+				const decoded = jwtDecode<{ exp: number }>(userSession.access_token);
+				if (decoded.exp * 1000 > Date.now()) {
+					return token; // token ainda válido
+				}
+			} catch {
+				return token;
+			}
+
+			// access_token expirado — tenta renovar
+			try {
+				const response = await fetch(`${API_URL}refresh`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ refresh_token: userSession.refresh_token }),
+				});
+				if (response.ok) {
+					const { access_token, refresh_token } = await response.json();
+					userSession.access_token = access_token;
+					userSession.refresh_token = refresh_token;
+					userSession.usuario = jwtDecode(access_token);
+				}
+			} catch {
+				// erro de rede — tenta novamente na próxima requisição
+			}
+
 			return token;
 		},
 		async session({ session, token }) {
@@ -57,7 +95,6 @@ export default {
 				//eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const userSession = token.user as any;
 				if (!userSession) {
-					// Retorna sessão padrão vazia - o NextAuth cuida do resto
 					return session;
 				}
 				session = userSession;
@@ -70,47 +107,6 @@ export default {
 					}
 				}
 
-				if (!session.usuario) {
-					return session;
-				}
-
-				const now = new Date();
-				if (session.usuario.exp * 1000 < now.getTime() && API_URL) {
-					try {
-						const response = await fetch(
-							`${API_URL}refresh`,
-							{
-								method: 'POST',
-								headers: {
-									'Content-Type': 'application/json',
-								},
-								body: JSON.stringify({
-									refresh_token: session.refresh_token,
-								}),
-							},
-						);
-						if (response.ok) {
-							const { access_token, refresh_token } = await response.json();
-							session.access_token = access_token;
-							session.refresh_token = refresh_token;
-							if (access_token) {
-								session.usuario = jwtDecode(access_token);
-							}
-						}
-					} catch {
-						// Ignora erro de refresh - mantém sessão atual
-					}
-				}
-				if (session.access_token && API_URL) {
-					fetch(
-						`${API_URL}usuarios/valida-usuario`,
-						{
-							headers: {
-								Authorization: `Bearer ${session.access_token}`,
-							},
-						},
-					).catch(() => {});
-				}
 				return session;
 			} catch {
 				return session;
