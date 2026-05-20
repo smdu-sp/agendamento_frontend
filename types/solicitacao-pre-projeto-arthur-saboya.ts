@@ -47,6 +47,7 @@ export interface ISolicitacaoPreProjetoArthurSaboya {
   tecnicoArthurEmail?: string | null;
   /** Sigla (e nome, se houver) da coordenadoria vinculada à solicitação ou à divisão. */
   coordenadoriaTexto?: string | null;
+  mensagens: Partial<IMensagemPreProjetoArthurSaboya>[];
 }
 
 export interface ISolicitacaoPreProjetoArthurSaboyaDetalhe

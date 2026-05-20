@@ -24,7 +24,12 @@ import { formatarDataHoraSaoPaulo } from "@/lib/date-time";
 const LIMITE = 15;
 const PATH_CHAMADO = "/pedidos-pre-projetos-arthur-saboya";
 
-type FiltroStatus = "" | "SOLICITADO" | "RESPONDIDO" | "AGUARDANDO_DATA" | "AGENDAMENTO_CRIADO";
+type FiltroStatus =
+  | ""
+  | "SOLICITADO"
+  | "RESPONDIDO"
+  | "AGUARDANDO_DATA"
+  | "AGENDAMENTO_CRIADO";
 
 function rotuloStatus(s: ISolicitacaoPreProjetoArthurSaboya["status"]) {
   switch (s) {
@@ -41,14 +46,22 @@ function rotuloStatus(s: ISolicitacaoPreProjetoArthurSaboya["status"]) {
   }
 }
 
-function StatusChip({ status }: { status: ISolicitacaoPreProjetoArthurSaboya["status"] }) {
+function StatusChip({
+  status,
+}: {
+  status: ISolicitacaoPreProjetoArthurSaboya["status"];
+}) {
   const configs: Record<string, { bg: string; text: string; dot: string }> = {
     SOLICITADO: { bg: "#EAF0FB", text: "#0A328D", dot: "#0A328D" },
     RESPONDIDO: { bg: "#EDF7F5", text: "#0f8578", dot: "#5CC9BD" },
     AGUARDANDO_DATA: { bg: "#FDF3EB", text: "#a94a08", dot: "#E56E14" },
     AGENDAMENTO_CRIADO: { bg: "#F3F0FB", text: "#4a2098", dot: "#7c3aed" },
   };
-  const cfg = configs[status] ?? { bg: "#F1F5F9", text: "#475569", dot: "#94A3B8" };
+  const cfg = configs[status] ?? {
+    bg: "#F1F5F9",
+    text: "#475569",
+    dot: "#94A3B8",
+  };
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-wide"
@@ -61,6 +74,21 @@ function StatusChip({ status }: { status: ISolicitacaoPreProjetoArthurSaboya["st
       {rotuloStatus(status)}
     </span>
   );
+}
+
+function NovaMensagem({ novaMensagem }: { novaMensagem: boolean }) {
+  return novaMensagem ? (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-wide"
+      style={{ backgroundColor: "#EDF7F5", color: "#0f8578" }}
+    >
+      <span
+        className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
+        style={{ backgroundColor: "#5CC9BD" }}
+      />
+      Novo
+    </span>
+  ) : null;
 }
 
 interface Stats {
@@ -84,16 +112,41 @@ export default function ListaPedidosPreProjetos() {
   const [erro, setErro] = useState<string | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [concluindoId, setConcluindoId] = useState<string | null>(null);
-  const [coordenadoriaUsuarioId, setCoordenadoriaUsuarioId] = useState<string>("");
+  const [coordenadoriaUsuarioId, setCoordenadoriaUsuarioId] =
+    useState<string>("");
 
   const carregarStats = useCallback(async () => {
     if (!token) return;
     const [resAll, resSol, resAguard, resResp, resEnv] = await Promise.all([
       agendamento.buscarSolicitacoesPortalArthurSaboya(token, 1, 1, "", ""),
-      agendamento.buscarSolicitacoesPortalArthurSaboya(token, 1, 1, "", "SOLICITADO"),
-      agendamento.buscarSolicitacoesPortalArthurSaboya(token, 1, 1, "", "AGUARDANDO_DATA"),
-      agendamento.buscarSolicitacoesPortalArthurSaboya(token, 1, 1, "", "RESPONDIDO"),
-      agendamento.buscarSolicitacoesPortalArthurSaboya(token, 1, 1, "", "AGENDAMENTO_CRIADO"),
+      agendamento.buscarSolicitacoesPortalArthurSaboya(
+        token,
+        1,
+        1,
+        "",
+        "SOLICITADO",
+      ),
+      agendamento.buscarSolicitacoesPortalArthurSaboya(
+        token,
+        1,
+        1,
+        "",
+        "AGUARDANDO_DATA",
+      ),
+      agendamento.buscarSolicitacoesPortalArthurSaboya(
+        token,
+        1,
+        1,
+        "",
+        "RESPONDIDO",
+      ),
+      agendamento.buscarSolicitacoesPortalArthurSaboya(
+        token,
+        1,
+        1,
+        "",
+        "AGENDAMENTO_CRIADO",
+      ),
     ]);
     setStats({
       total: resAll.data?.total ?? 0,
@@ -143,13 +196,16 @@ export default function ListaPedidosPreProjetos() {
 
   useEffect(() => {
     if (status === "loading" || !token) return;
-    const permissao = String((session?.usuario as { permissao?: string } | undefined)?.permissao ?? "");
+    const permissao = String(
+      (session?.usuario as { permissao?: string } | undefined)?.permissao ?? "",
+    );
     if (permissao !== "PONTO_FOCAL" && permissao !== "COORDENADOR") return;
     const userId = (session?.usuario as { sub?: string } | undefined)?.sub;
     if (!userId) return;
     void (async () => {
       const r = await usuario.buscarPorId(userId, token);
-      if (!r.ok || !r.data || Array.isArray(r.data) || !("id" in r.data)) return;
+      if (!r.ok || !r.data || Array.isArray(r.data) || !("id" in r.data))
+        return;
       const coordId = r.data.divisao?.coordenadoriaId?.trim();
       if (coordId) setCoordenadoriaUsuarioId(coordId);
     })();
@@ -165,23 +221,41 @@ export default function ListaPedidosPreProjetos() {
     );
   }
 
-  const FILTROS: { k: FiltroStatus; label: string; count: number | undefined }[] = [
+  const FILTROS: {
+    k: FiltroStatus;
+    label: string;
+    count: number | undefined;
+  }[] = [
     { k: "SOLICITADO", label: "Solicitados", count: stats?.solicitados },
     { k: "", label: "Todos", count: stats?.total },
-    { k: "AGUARDANDO_DATA", label: "Aguardando data", count: stats?.aguardando },
+    {
+      k: "AGUARDANDO_DATA",
+      label: "Aguardando data",
+      count: stats?.aguardando,
+    },
     { k: "RESPONDIDO", label: "Solucionados", count: stats?.respondidos },
     { k: "AGENDAMENTO_CRIADO", label: "Enviados", count: stats?.enviados },
   ];
 
-  const permissaoUsuario = String((session?.usuario as { permissao?: string } | undefined)?.permissao ?? "");
-  const permissaoReal = String((session?.usuario as { permissaoReal?: string } | undefined)?.permissaoReal ?? "");
-  const divisaoUsuario = (session?.usuario as { divisaoId?: string } | undefined)?.divisaoId?.trim();
+  const permissaoUsuario = String(
+    (session?.usuario as { permissao?: string } | undefined)?.permissao ?? "",
+  );
+  const permissaoReal = String(
+    (session?.usuario as { permissaoReal?: string } | undefined)
+      ?.permissaoReal ?? "",
+  );
+  const divisaoUsuario = (
+    session?.usuario as { divisaoId?: string } | undefined
+  )?.divisaoId?.trim();
   const divisaoArthur = process.env.NEXT_PUBLIC_DIVISAO_ID_PRE_PROJETOS?.trim();
-  const isDevRealOuEfetivo = permissaoUsuario === "DEV" || permissaoReal === "DEV";
-  const isAdmRealOuEfetivo = permissaoUsuario === "ADM" || permissaoReal === "ADM";
+  const isDevRealOuEfetivo =
+    permissaoUsuario === "DEV" || permissaoReal === "DEV";
+  const isAdmRealOuEfetivo =
+    permissaoUsuario === "ADM" || permissaoReal === "ADM";
   const isTecnicoCoordenadoria =
     permissaoUsuario === "TEC" &&
-    (!!divisaoUsuario && (!divisaoArthur || divisaoUsuario !== divisaoArthur));
+    !!divisaoUsuario &&
+    (!divisaoArthur || divisaoUsuario !== divisaoArthur);
   const isTecAs =
     permissaoUsuario === "ARTHUR_SABOYA" ||
     permissaoUsuario === "TEC_AS" ||
@@ -201,7 +275,10 @@ export default function ListaPedidosPreProjetos() {
 
   const itensFiltrados =
     !isDevRealOuEfetivo && isPontoFocalOuCoordenador && coordenadoriaUsuarioId
-      ? itens.filter((row) => (row.coordenadoriaId || "").trim() === coordenadoriaUsuarioId)
+      ? itens.filter(
+          (row) =>
+            (row.coordenadoriaId || "").trim() === coordenadoriaUsuarioId,
+        )
       : itens;
 
   const handleConcluirAtendimento = async (protocolo: string) => {
@@ -264,10 +341,15 @@ export default function ListaPedidosPreProjetos() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#64748B]">
               {s.label}
             </p>
-            <p className="text-2xl font-bold tracking-tight tabular-nums" style={{ color: s.accent }}>
+            <p
+              className="text-2xl font-bold tracking-tight tabular-nums"
+              style={{ color: s.accent }}
+            >
               {s.value ?? "—"}
             </p>
-            <p className="text-[11.5px] leading-snug text-[#64748B]">{s.trend}</p>
+            <p className="text-[11.5px] leading-snug text-[#64748B]">
+              {s.trend}
+            </p>
           </div>
         ))}
       </div>
@@ -331,8 +413,14 @@ export default function ListaPedidosPreProjetos() {
                     className="rounded-full px-1.5 py-px text-[11px] font-bold"
                     style={
                       active
-                        ? { backgroundColor: "rgba(10,50,141,0.1)", color: "#0A328D" }
-                        : { backgroundColor: "rgba(0,0,0,0.06)", color: "#64748B" }
+                        ? {
+                            backgroundColor: "rgba(10,50,141,0.1)",
+                            color: "#0A328D",
+                          }
+                        : {
+                            backgroundColor: "rgba(0,0,0,0.06)",
+                            color: "#64748B",
+                          }
                     }
                   >
                     {f.count}
@@ -356,56 +444,71 @@ export default function ListaPedidosPreProjetos() {
       <div className="overflow-hidden rounded-[14px] border border-[#E5EAF2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
         <div className="overflow-x-auto">
           <Table className="min-w-[980px] text-[14px]">
-          <TableHeader>
-            <TableRow className="border-[#E5EAF2] hover:bg-transparent">
-              <TableHead className="h-11 w-[140px] min-w-[120px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B] first:pl-4 sm:first:pl-6">
-                Protocolo
-              </TableHead>
-              <TableHead className="h-11 min-w-[180px] bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]">
-                Munícipe
-              </TableHead>
-              <TableHead className="h-11 w-[130px] min-w-[118px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]">
-                Status
-              </TableHead>
-              <TableHead className="h-11 w-[150px] min-w-[130px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]">
-                Abertura
-              </TableHead>
-              <TableHead className="h-11 w-[170px] min-w-[150px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]">
-                Data agendamento
-              </TableHead>
-              <TableHead className="h-11 min-w-[160px] bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]">
-                Coordenadoria
-              </TableHead>
-              <TableHead className="h-11 min-w-[170px] bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]">
-                Técnico Arthur Saboya
-              </TableHead>
-              <TableHead className="h-11 min-w-[130px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]">
-                Ação
-              </TableHead>
-              <TableHead className="h-11 w-10 bg-[#F8FAFC] px-0 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B] last:pr-4 sm:last:pr-6">
-                <span className="sr-only">Abrir</span>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {carregando ? (
+            <TableHeader>
               <TableRow className="border-[#E5EAF2] hover:bg-transparent">
-                <TableCell colSpan={9} className="py-10 text-center text-[#64748B]">
-                  Carregando…
-                </TableCell>
+                <TableHead></TableHead>
+                <TableHead className="h-11 w-[140px] min-w-[120px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B] first:pl-4 sm:first:pl-6">
+                  Protocolo
+                </TableHead>
+                <TableHead className="h-11 min-w-[180px] bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+                  Munícipe
+                </TableHead>
+                <TableHead className="h-11 w-[130px] min-w-[118px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+                  Status
+                </TableHead>
+                <TableHead className="h-11 w-[150px] min-w-[130px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+                  Abertura
+                </TableHead>
+                <TableHead className="h-11 w-[170px] min-w-[150px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+                  Data agendamento
+                </TableHead>
+                <TableHead className="h-11 min-w-[160px] bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+                  Coordenadoria
+                </TableHead>
+                <TableHead className="h-11 min-w-[170px] bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+                  Técnico Arthur Saboya
+                </TableHead>
+                <TableHead className="h-11 min-w-[130px] whitespace-nowrap bg-[#F8FAFC] px-3 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B]">
+                  Ação
+                </TableHead>
+                <TableHead className="h-11 w-10 bg-[#F8FAFC] px-0 text-[11.5px] font-semibold uppercase tracking-widest text-[#64748B] last:pr-4 sm:last:pr-6">
+                  <span className="sr-only">Abrir</span>
+                </TableHead>
               </TableRow>
-            ) : itensFiltrados.length === 0 ? (
-              <TableRow className="border-[#E5EAF2] hover:bg-transparent">
-                <TableCell colSpan={9} className="py-10 text-center text-[#64748B]">
-                  Nenhum pedido encontrado.
-                </TableCell>
-              </TableRow>
-            ) : (
-              itensFiltrados.map((row) => (
-                <TableRow
+            </TableHeader>
+            <TableBody>
+              {carregando ? (
+                <TableRow className="border-[#E5EAF2] hover:bg-transparent">
+                  <TableCell
+                    colSpan={9}
+                    className="py-10 text-center text-[#64748B]"
+                  >
+                    Carregando…
+                  </TableCell>
+                </TableRow>
+              ) : itensFiltrados.length === 0 ? (
+                <TableRow className="border-[#E5EAF2] hover:bg-transparent">
+                  <TableCell
+                    colSpan={9}
+                    className="py-10 text-center text-[#64748B]"
+                  >
+                    Nenhum pedido encontrado.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                itensFiltrados.map((row) => (
+                  <TableRow
                     key={row.id}
                     className="relative cursor-pointer border-[#E5EAF2] hover:bg-[#F8FAFC]"
                   >
+                    <TableCell>
+                      <NovaMensagem
+                        novaMensagem={
+                          row.mensagens.length > 0 &&
+                          row.mensagens[0].autor === "MUNICIPE"
+                        }
+                      />
+                    </TableCell>
                     <TableCell className="px-3 py-2.5 font-mono text-[13.5px] font-medium text-[#0F172A] first:pl-4 sm:first:pl-6">
                       <a
                         href={`/agendamento/${PATH_CHAMADO}/${encodeURIComponent(row.protocolo)}`}
@@ -415,8 +518,12 @@ export default function ListaPedidosPreProjetos() {
                       {row.protocolo}
                     </TableCell>
                     <TableCell className="max-w-[240px] px-3 py-2.5">
-                      <div className="truncate font-medium text-[#0F172A]">{row.nome}</div>
-                      <div className="truncate text-[11.5px] text-[#64748B]">{row.formacaoTexto}</div>
+                      <div className="truncate font-medium text-[#0F172A]">
+                        {row.nome}
+                      </div>
+                      <div className="truncate text-[11.5px] text-[#64748B]">
+                        {row.formacaoTexto}
+                      </div>
                     </TableCell>
                     <TableCell className="px-3 py-2.5">
                       <StatusChip status={row.status} />
@@ -458,13 +565,16 @@ export default function ListaPedidosPreProjetos() {
                       )}
                     </TableCell>
                     <TableCell className="w-10 px-0 text-[#94A3B8] last:pr-4 sm:last:pr-6">
-                      <ChevronRight className="mx-auto h-4 w-4 shrink-0" aria-hidden />
+                      <ChevronRight
+                        className="mx-auto h-4 w-4 shrink-0"
+                        aria-hidden
+                      />
                     </TableCell>
                   </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+                ))
+              )}
+            </TableBody>
+          </Table>
         </div>
 
         {total > LIMITE ? (
@@ -496,7 +606,9 @@ export default function ListaPedidosPreProjetos() {
             </div>
           </div>
         ) : total > 0 ? (
-          <p className="border-t border-[#E5EAF2] px-4 py-3.5 text-[13px] text-[#64748B] sm:px-5">{total} pedido(s).</p>
+          <p className="border-t border-[#E5EAF2] px-4 py-3.5 text-[13px] text-[#64748B] sm:px-5">
+            {total} pedido(s).
+          </p>
         ) : null}
       </div>
     </div>
