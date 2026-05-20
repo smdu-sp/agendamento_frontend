@@ -32,7 +32,7 @@ import { ModeToggle } from "@/components/toggle-theme";
 import { mensagensPreProjetoParaChat } from "@/lib/pre-projeto-chamado-mensagens";
 import { conectarChatPreProjetoTempoReal } from "@/lib/pre-projeto-chat-realtime";
 import { abrirOutlookComposeAgendamentoTecnico } from "@/lib/outlook-agendamento-teams";
-import { formatarDataHoraSaoPaulo } from "@/lib/date-time";
+import { formatarDataHoraSaoPaulo, instanteUtcRealDesdeDataHoraApi } from "@/lib/date-time";
 import type { ISolicitacaoPreProjetoArthurSaboyaDetalhe } from "@/types/solicitacao-pre-projeto-arthur-saboya";
 import type { ICoordenadoria } from "@/types/coordenadoria";
 
@@ -432,7 +432,7 @@ export default function ChamadoPreProjetoPortalView({
     }
 
     const dataBase = chamado.dataAgendamento
-      ? new Date(chamado.dataAgendamento)
+      ? instanteUtcRealDesdeDataHoraApi(chamado.dataAgendamento)
       : null;
     if (!dataBase || Number.isNaN(dataBase.getTime())) {
       toast.error("Data/hora do agendamento não está definida.");
@@ -469,7 +469,12 @@ export default function ChamadoPreProjetoPortalView({
       assunto,
       inicioIso,
       fimIso,
-      emailsParticipantes: [emailMunicipe, emailTecnico, emailTecnicoArthur],
+      emailsParticipantes: [
+        emailMunicipe,
+        emailTecnico,
+        emailTecnicoArthur,
+        "saboya_atendimento@prefeitura.sp.gov.br",
+      ],
       targetWindow: composeWindow,
     });
     toast.success("Agendamento confirmado.");
