@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import * as agendamento from "@/services/agendamentos";
 import * as coordenadorias from "@/services/coordenadorias";
 import * as usuario from "@/services/usuarios";
+import { StatusAgendamento } from "@/types/agendamento";
 import type { ITecnico } from "@/services/usuarios";
 import { ModeToggle } from "@/components/toggle-theme";
 import { mensagensPreProjetoParaChat } from "@/lib/pre-projeto-chamado-mensagens";
@@ -164,6 +165,8 @@ export default function ChamadoPreProjetoPortalView({
   const [tecnicoCoordenadoriaId, setTecnicoCoordenadoriaId] = useState("");
   const [coordenadoriaUsuarioId, setCoordenadoriaUsuarioId] = useState("");
   const [salvando, setSalvando] = useState(false);
+  const [agendamentoIdParaConfirmarOutlook, setAgendamentoIdParaConfirmarOutlook] = useState<string | null>(null);
+  const [confirmandoOutlook, setConfirmandoOutlook] = useState(false);
   const carregandoRealtimeRef = useRef(false);
 
   const mensagensChat = useMemo(
@@ -394,6 +397,27 @@ export default function ChamadoPreProjetoPortalView({
     setAtribuirCoordAberto(true);
   };
 
+  const handleConfirmarAgendadoOutlook = async (confirmado: boolean) => {
+    if (confirmado && agendamentoIdParaConfirmarOutlook) {
+      setConfirmandoOutlook(true);
+      try {
+        const res = await agendamento.atualizar(
+          agendamentoIdParaConfirmarOutlook,
+          { status: StatusAgendamento.AGENDADO },
+        );
+        if (res.ok) {
+          toast.success("Agendamento confirmado.");
+          void carregarChamado();
+        } else {
+          toast.error(res.error ?? "Não foi possível confirmar o agendamento.");
+        }
+      } finally {
+        setConfirmandoOutlook(false);
+      }
+    }
+    setAgendamentoIdParaConfirmarOutlook(null);
+  };
+
   const handleConfirmarEAgendar = async () => {
     if (!token || !chamado) return;
     if (!tecnicoCoordenadoriaId) {
@@ -477,8 +501,8 @@ export default function ChamadoPreProjetoPortalView({
       ],
       targetWindow: composeWindow,
     });
-    toast.success("Agendamento confirmado.");
     setAtribuirCoordAberto(false);
+    setAgendamentoIdParaConfirmarOutlook(res.data?.agendamentoId ?? null);
     void carregarChamado();
   };
 
@@ -890,6 +914,39 @@ export default function ChamadoPreProjetoPortalView({
               {chamado?.status === "AGENDAMENTO_CRIADO"
                 ? "Salvar troca"
                 : "Enviar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!agendamentoIdParaConfirmarOutlook}
+        onOpenChange={(open) => !open && void handleConfirmarAgendadoOutlook(false)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Foi agendado no Outlook?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm">
+            O Outlook Web foi aberto com os participantes preenchidos. Após
+            criar a reunião no Outlook, confirme aqui para atualizar o status
+            do agendamento para <strong>Agendado</strong>.
+          </p>
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => void handleConfirmarAgendadoOutlook(false)}
+              disabled={confirmandoOutlook}
+            >
+              Não
+            </Button>
+            <Button
+              type="button"
+              onClick={() => void handleConfirmarAgendadoOutlook(true)}
+              disabled={confirmandoOutlook}
+            >
+              {confirmandoOutlook ? "Atualizando…" : "Sim"}
             </Button>
           </DialogFooter>
         </DialogContent>
