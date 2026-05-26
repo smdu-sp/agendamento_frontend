@@ -85,13 +85,33 @@ export function obterEmailMunicipe(): string | null {
   return null;
 }
 
+function tokenEstaValido(token: string): boolean {
+  const payload = decodificarPayloadJwt(token);
+  if (!payload) return false;
+  const exp = payload.exp;
+  if (typeof exp !== "number") return true;
+  return Date.now() / 1000 < exp;
+}
+
 export function municipeEstaLogado(): boolean {
   if (typeof window === "undefined") return false;
-  return Boolean(localStorage.getItem(CHAVE_TOKEN));
+  const token = localStorage.getItem(CHAVE_TOKEN);
+  if (!token) return false;
+  if (!tokenEstaValido(token)) {
+    encerrarSessaoMunicipe();
+    return false;
+  }
+  return true;
 }
 
 /** Token JWT do portal munícipe (localStorage), para chamadas autenticadas à API. */
 export function obterTokenMunicipe(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem(CHAVE_TOKEN);
+  const token = localStorage.getItem(CHAVE_TOKEN);
+  if (!token) return null;
+  if (!tokenEstaValido(token)) {
+    encerrarSessaoMunicipe();
+    return null;
+  }
+  return token;
 }

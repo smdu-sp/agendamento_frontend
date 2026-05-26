@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/table"
 import {
   EVENTO_SESSAO_MUNICIPE,
+  encerrarSessaoMunicipe,
   municipeEstaLogado,
   obterTokenMunicipe,
 } from "@/lib/municipe-sessao"
@@ -57,6 +58,10 @@ export default function ConsultaPage() {
     setErro(null)
     const res = await agendamento.listarChamadosPreProjetosMunicipe(token, 1, 50)
     if (!res.ok || !res.data) {
+      if (res.status === 401) {
+        encerrarSessaoMunicipe()
+        return
+      }
       setErro(res.error ?? "Não foi possível carregar seus chamados.")
       setItens([])
       setTotal(0)
