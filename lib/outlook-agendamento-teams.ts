@@ -1,10 +1,15 @@
 /** @format */
 
+/** Duração padrão das reuniões da Sala Arthur Saboya (pré-projetos). */
+export const DURACAO_REUNIAO_ARTHUR_SABOYA_MS = 30 * 60 * 1000;
+
 /**
  * Texto legal exibido no corpo do convite (Teams / Outlook Web), com marcações
  * `[n]…[/n]` = negrito e `[l=url]…[/l]` = link.
  */
-export function corpoHtmlCondicoesAtendimentoTecnicoOutlook(): string {
+export function corpoHtmlCondicoesAtendimentoTecnicoOutlook(
+  dataHoraAtendimentoBrasilia?: string,
+): string {
   const textoCondicoes =
     "[n]CONDIÇÕES DO ATENDIMENTO - LEIA COM ATENÇÃO![/n]\r\n\r\n" +
     "A realização do atendimento é condicionada à aceitação das condições aqui descritas, nos termos do [l=https://legislacao.prefeitura.sp.gov.br/leis/lei-18375-de-29-de-dezembro-de-2025]artigo 21 da Lei nº 18.375, de 29 de dezembro de 2025[/l], e dos [l=https://legislacao.prefeitura.sp.gov.br/leis/portaria-secretaria-municipal-de-urbanismo-e-licenciamento-smul-167-de-4-de-dezembro-de-2024]artigos 7º e 8º da Portaria SMUL nº 167, de 4 de dezembro de 2024[/l]. \r\n\r\n" +
@@ -22,7 +27,12 @@ export function corpoHtmlCondicoesAtendimentoTecnicoOutlook(): string {
     )
     .replace(/\r\n\r\n/g, "</p><p>")
     .replace(/\r\n/g, "<br/>");
-  return `<p>${bodyHtml}</p>`;
+  const condicoes = `<p>${bodyHtml}</p>`;
+  if (!dataHoraAtendimentoBrasilia?.trim()) return condicoes;
+  return (
+    `<p><strong>Data e hora do atendimento (horário de Brasília):</strong> ${dataHoraAtendimentoBrasilia.trim()}</p>` +
+    condicoes
+  );
 }
 
 export type AbrirOutlookComposeAgendamentoParams = {
@@ -38,6 +48,8 @@ export type AbrirOutlookComposeAgendamentoParams = {
    * quando o compose é disparado após operações assíncronas).
    */
   targetWindow?: Window | null;
+  /** Ex.: "02/06/2026 às 14:30" — exibido no topo do corpo do convite. */
+  dataHoraAtendimentoBrasilia?: string;
 };
 
 /**
@@ -67,7 +79,9 @@ export function abrirOutlookComposeAgendamentoTecnico(
     startdt: params.inicioIso,
     enddt: params.fimIso,
     subject: params.assunto,
-    body: corpoHtmlCondicoesAtendimentoTecnicoOutlook(),
+    body: corpoHtmlCondicoesAtendimentoTecnicoOutlook(
+      params.dataHoraAtendimentoBrasilia,
+    ),
     hideattn: "true",
     online: "true",
   });

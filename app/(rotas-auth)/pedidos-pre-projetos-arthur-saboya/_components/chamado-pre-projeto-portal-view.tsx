@@ -32,7 +32,10 @@ import type { ITecnico } from "@/services/usuarios";
 import { ModeToggle } from "@/components/toggle-theme";
 import { mensagensPreProjetoParaChat } from "@/lib/pre-projeto-chamado-mensagens";
 import { conectarChatPreProjetoTempoReal } from "@/lib/pre-projeto-chat-realtime";
-import { abrirOutlookComposeAgendamentoTecnico } from "@/lib/outlook-agendamento-teams";
+import {
+  abrirOutlookComposeAgendamentoTecnico,
+  DURACAO_REUNIAO_ARTHUR_SABOYA_MS,
+} from "@/lib/outlook-agendamento-teams";
 import { formatarDataHoraSaoPaulo, instanteUtcRealDesdeDataHoraApi } from "@/lib/date-time";
 import type { ISolicitacaoPreProjetoArthurSaboyaDetalhe } from "@/types/solicitacao-pre-projeto-arthur-saboya";
 import type { ICoordenadoria } from "@/types/coordenadoria";
@@ -468,7 +471,13 @@ export default function ChamadoPreProjetoPortalView({
     const assunto =
       `Agendamento Técnico - ${coordSigla} - Protocolo: ${chamado.protocolo}`.trim();
     const inicioIso = dataBase.toISOString();
-    const fimIso = new Date(dataBase.getTime() + 60 * 60 * 1000).toISOString();
+    const fimIso = new Date(
+      dataBase.getTime() + DURACAO_REUNIAO_ARTHUR_SABOYA_MS,
+    ).toISOString();
+    const dataHoraAtendimentoBrasilia = formatarDataHoraSaoPaulo(
+      chamado.dataAgendamento!,
+      true,
+    );
     const composeWindow =
       typeof window !== "undefined" ? window.open("", "_blank") : null;
 
@@ -493,6 +502,7 @@ export default function ChamadoPreProjetoPortalView({
       assunto,
       inicioIso,
       fimIso,
+      dataHoraAtendimentoBrasilia,
       emailsParticipantes: [
         emailMunicipe,
         emailTecnico,
