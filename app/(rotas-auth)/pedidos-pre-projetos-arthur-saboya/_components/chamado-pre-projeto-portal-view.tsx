@@ -34,6 +34,7 @@ import { mensagensPreProjetoParaChat } from "@/lib/pre-projeto-chamado-mensagens
 import { conectarChatPreProjetoTempoReal } from "@/lib/pre-projeto-chat-realtime";
 import {
   abrirOutlookComposeAgendamentoTecnico,
+  copiarCorpoConviteOutlookAgendamentoTecnico,
   DURACAO_REUNIAO_ARTHUR_SABOYA_MS,
 } from "@/lib/outlook-agendamento-teams";
 import { formatarDataHoraSaoPaulo, instanteUtcRealDesdeDataHoraApi } from "@/lib/date-time";
@@ -480,6 +481,9 @@ export default function ChamadoPreProjetoPortalView({
     );
     const composeWindow =
       typeof window !== "undefined" ? window.open("", "_blank") : null;
+    const corpoCopiado = copiarCorpoConviteOutlookAgendamentoTecnico(
+      dataHoraAtendimentoBrasilia,
+    );
 
     setSalvando(true);
     const res =
@@ -503,6 +507,7 @@ export default function ChamadoPreProjetoPortalView({
       inicioIso,
       fimIso,
       dataHoraAtendimentoBrasilia,
+      corpoViaAreaTransferencia: true,
       emailsParticipantes: [
         emailMunicipe,
         emailTecnico,
@@ -511,6 +516,16 @@ export default function ChamadoPreProjetoPortalView({
       ],
       targetWindow: composeWindow,
     });
+    if (corpoCopiado) {
+      toast.info("Texto das condições copiado", {
+        description: "Cole no corpo do convite ao abrir o Outlook (Ctrl+V).",
+      });
+    } else {
+      toast.warning("Cole o texto das condições no convite", {
+        description:
+          "Não foi possível copiar automaticamente. O Outlook abrirá sem o corpo do convite.",
+      });
+    }
     setAtribuirCoordAberto(false);
     setAgendamentoIdParaConfirmarOutlook(res.data?.agendamentoId ?? null);
     void carregarChamado();

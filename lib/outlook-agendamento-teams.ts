@@ -10,6 +10,44 @@ const TEXTO_CONDICOES_ATENDIMENTO_TECNICO =
   "O atendimento tem caráter orientativo e não vincula a análise ou decisão do pedido.\r\n\r\n" +
   "O ingresso na reunião no horário agendado configura aceitação tácita destas condições.";
 
+function textoCondicoesSemMarcacao(): string {
+  return TEXTO_CONDICOES_ATENDIMENTO_TECNICO.replace(
+    /\[n\]([\s\S]*?)\[\/n\]/g,
+    "$1",
+  ).replace(/\[l=([\s\S]*?)\]([\s\S]*?)\[\/l\]/g, "$2 ($1)");
+}
+
+/** Texto legal em texto simples para colar no corpo do convite (Outlook Web). */
+export function corpoTextoPlanoCondicoesAtendimentoTecnicoOutlook(
+  dataHoraAtendimentoBrasilia?: string,
+): string {
+  const condicoes = textoCondicoesSemMarcacao();
+  if (!dataHoraAtendimentoBrasilia?.trim()) return condicoes;
+  return (
+    `Data e hora do atendimento (horário de Brasília): ${dataHoraAtendimentoBrasilia.trim()}\r\n\r\n` +
+    condicoes
+  );
+}
+
+/** Copia o corpo do convite para a área de transferência (gesto do usuário). */
+export function copiarCorpoConviteOutlookAgendamentoTecnico(
+  dataHoraAtendimentoBrasilia?: string,
+): boolean {
+  if (typeof navigator === "undefined" || !navigator.clipboard?.writeText) {
+    return false;
+  }
+  try {
+    void navigator.clipboard.writeText(
+      corpoTextoPlanoCondicoesAtendimentoTecnicoOutlook(
+        dataHoraAtendimentoBrasilia,
+      ),
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Texto legal exibido no corpo do convite (Teams / Outlook Web), com marcações
  * `[n]…[/n]` = negrito e `[l=url]…[/l]` = link.
@@ -49,16 +87,28 @@ export type AbrirOutlookComposeAgendamentoParams = {
   targetWindow?: Window | null;
   /** Ex.: "02/06/2026 às 14:30" — exibido no topo do corpo do convite. */
   dataHoraAtendimentoBrasilia?: string;
+  /**
+   * Não envia o corpo na URL (evita AADSTS90015 com muitos participantes).
+   * O chamador deve copiar o texto antes, se a ação for assíncrona.
+   */
+  corpoViaAreaTransferencia?: boolean;
+};
+
+export type AbrirOutlookComposeAgendamentoResultado = {
+  corpoCopiado: boolean;
 };
 
 /**
- * Abre o compose do Outlook Web com reunião online (Teams) e corpo das condições.
+ * Abre o compose do Outlook Web com reunião online (Teams).
+ * Por padrão o corpo vai na URL; com `corpoViaAreaTransferencia` o chamador cola manualmente.
  */
 export function abrirOutlookComposeAgendamentoTecnico(
   params: AbrirOutlookComposeAgendamentoParams,
-): void {
+): AbrirOutlookComposeAgendamentoResultado {
   const org = params.emailOrganizadorCoordenadoria.trim();
-  if (!org) return;
+  if (!org) return { corpoCopiado: false };
+
+  const corpoViaAreaTransferencia = params.corpoViaAreaTransferencia === true;
 
   const vistos = new Set<string>();
   const lista: string[] = [];
@@ -78,12 +128,17 @@ export function abrirOutlookComposeAgendamentoTecnico(
     startdt: params.inicioIso,
     enddt: params.fimIso,
     subject: params.assunto,
-    body: corpoHtmlCondicoesAtendimentoTecnicoOutlook(
-      params.dataHoraAtendimentoBrasilia,
-    ),
     hideattn: "true",
     online: "true",
   });
+  if (!corpoViaAreaTransferencia) {
+    paramsUrl.set(
+      "body",
+      corpoHtmlCondicoesAtendimentoTecnicoOutlook(
+        params.dataHoraAtendimentoBrasilia,
+      ),
+    );
+  }
   if (to) paramsUrl.set("to", to);
   paramsUrl.set("from", org);
 
@@ -92,8 +147,9 @@ export function abrirOutlookComposeAgendamentoTecnico(
   if (typeof window !== "undefined") {
     if (params.targetWindow && !params.targetWindow.closed) {
       params.targetWindow.location.href = url;
-      return;
+      return { corpoCopiado: false };
     }
     window.open(url, "_blank", "noopener,noreferrer");
   }
+  return { corpoCopiado: false };
 }
