@@ -467,10 +467,8 @@ export default function ChamadoPreProjetoPortalView({
       return;
     }
 
-    const coordSigla =
-      listaCoord.find((c) => c.id === chamado.coordenadoriaId)?.sigla ?? "";
     const assunto =
-      `Agendamento Técnico - ${coordSigla} - Protocolo: ${chamado.protocolo}`.trim();
+      `Sala Arthur Saboya - Protocolo: ${chamado.protocolo}`.trim();
     const inicioIso = dataBase.toISOString();
     const fimIso = new Date(
       dataBase.getTime() + DURACAO_REUNIAO_ARTHUR_SABOYA_MS,
