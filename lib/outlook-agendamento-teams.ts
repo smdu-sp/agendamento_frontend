@@ -3,6 +3,13 @@
 /** Duração padrão das reuniões da Sala Arthur Saboya (pré-projetos). */
 export const DURACAO_REUNIAO_ARTHUR_SABOYA_MS = 30 * 60 * 1000;
 
+const TEXTO_CONDICOES_ATENDIMENTO_TECNICO =
+  "[n]CONDIÇÕES DO ATENDIMENTO[/n]\r\n\r\n" +
+  "A participação implica aceitação das condições previstas na Lei nº 18.375/2025 (art. 21) e na Portaria SMUL nº 167/2024 (arts. 7º e 8º).\r\n\r\n" +
+  "O atendimento é remoto, via Microsoft Teams, com observância da LGPD.\r\n\r\n" +
+  "O atendimento tem caráter orientativo e não vincula a análise ou decisão do pedido.\r\n\r\n" +
+  "O ingresso na reunião no horário agendado configura aceitação tácita destas condições.";
+
 /**
  * Texto legal exibido no corpo do convite (Teams / Outlook Web), com marcações
  * `[n]…[/n]` = negrito e `[l=url]…[/l]` = link.
@@ -10,15 +17,7 @@ export const DURACAO_REUNIAO_ARTHUR_SABOYA_MS = 30 * 60 * 1000;
 export function corpoHtmlCondicoesAtendimentoTecnicoOutlook(
   dataHoraAtendimentoBrasilia?: string,
 ): string {
-  const textoCondicoes =
-    "[n]CONDIÇÕES DO ATENDIMENTO - LEIA COM ATENÇÃO![/n]\r\n\r\n" +
-    "A realização do atendimento é condicionada à aceitação das condições aqui descritas, nos termos do [l=https://legislacao.prefeitura.sp.gov.br/leis/lei-18375-de-29-de-dezembro-de-2025]artigo 21 da Lei nº 18.375, de 29 de dezembro de 2025[/l], e dos [l=https://legislacao.prefeitura.sp.gov.br/leis/portaria-secretaria-municipal-de-urbanismo-e-licenciamento-smul-167-de-4-de-dezembro-de-2024]artigos 7º e 8º da Portaria SMUL nº 167, de 4 de dezembro de 2024[/l]. \r\n\r\n" +
-    "Este atendimento será realizado exclusivamente por meio do Microsoft Teams (para informações sobre o aplicativo, [l=https://statics.teams.cdn.office.net/evergreen-assets/safelinks/2/atp-safelinks.html]acesse aqui[/l]), de maneira remota, asseguradas as disposições da [l=https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709compilado.htm]Lei Geral de Proteção de Dados Pessoais (LGPD).[/l]\r\n\r\n" +
-    "O atendimento técnico tem caráter meramente orientativo.\r\n\r\n" +
-    "As informações trocadas entre técnico e a parte interessada durante o atendimento técnico [n]não vinculam[/n], sob qualquer hipótese, a análise e a decisão do pedido.\r\n\r\n" +
-    "O ingresso e permanência na reunião remota na data e horário programados será considerado como aceitação tácita destas condições.";
-
-  const bodyHtml = textoCondicoes
+  const bodyHtml = TEXTO_CONDICOES_ATENDIMENTO_TECNICO
     .replace(/\[n\]([\s\S]*?)\[\/n\]/g, "<strong>$1</strong>")
     .replace(
       /\[l=([\s\S]*?)\]([\s\S]*?)\[\/l\]/g,
@@ -53,7 +52,7 @@ export type AbrirOutlookComposeAgendamentoParams = {
 };
 
 /**
- * Abre o compose do Outlook Web com reunião online (Teams), igual ao fluxo da lista de agendamentos.
+ * Abre o compose do Outlook Web com reunião online (Teams) e corpo das condições.
  */
 export function abrirOutlookComposeAgendamentoTecnico(
   params: AbrirOutlookComposeAgendamentoParams,
