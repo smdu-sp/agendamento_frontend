@@ -20,6 +20,11 @@ import * as agendamento from "@/services/agendamentos";
 import * as usuario from "@/services/usuarios";
 import type { ISolicitacaoPreProjetoArthurSaboya } from "@/types/solicitacao-pre-projeto-arthur-saboya";
 import { formatarDataHoraSaoPaulo } from "@/lib/date-time";
+import {
+  podeConcluirChamadoArthurSaboya,
+  rotuloBotaoConclusaoChamadoArthurSaboya,
+  statusPermiteConclusaoChamadoArthurSaboya,
+} from "@/lib/arthur-saboya-perfis";
 
 const LIMITE = 15;
 const PATH_CHAMADO = "/pedidos-pre-projetos-arthur-saboya";
@@ -244,34 +249,14 @@ export default function ListaPedidosPreProjetos() {
     (session?.usuario as { permissaoReal?: string } | undefined)
       ?.permissaoReal ?? "",
   );
-  const divisaoUsuario = (
-    session?.usuario as { divisaoId?: string } | undefined
-  )?.divisaoId?.trim();
-  const divisaoArthur = process.env.NEXT_PUBLIC_DIVISAO_ID_PRE_PROJETOS?.trim();
   const isDevRealOuEfetivo =
     permissaoUsuario === "DEV" || permissaoReal === "DEV";
-  const isAdmRealOuEfetivo =
-    permissaoUsuario === "ADM" || permissaoReal === "ADM";
-  const isTecnicoCoordenadoria =
-    permissaoUsuario === "TEC" &&
-    !!divisaoUsuario &&
-    (!divisaoArthur || divisaoUsuario !== divisaoArthur);
-  const isTecAs =
-    permissaoUsuario === "ARTHUR_SABOYA" ||
-    permissaoUsuario === "TEC_AS" ||
-    (permissaoUsuario === "TEC" &&
-      !!divisaoArthur &&
-      !!divisaoUsuario &&
-      divisaoUsuario === divisaoArthur);
   const isPontoFocalOuCoordenador =
     permissaoUsuario === "PONTO_FOCAL" || permissaoUsuario === "COORDENADOR";
-  const isAdmArthur =
-    isDevRealOuEfetivo ||
-    (isAdmRealOuEfetivo &&
-      !!divisaoArthur &&
-      !!divisaoUsuario &&
-      divisaoUsuario === divisaoArthur);
-  const podeConcluirNaTabela = isTecAs || isTecnicoCoordenadoria || isAdmArthur;
+  const podeConcluirNaTabela = podeConcluirChamadoArthurSaboya(
+    permissaoUsuario,
+    permissaoReal,
+  );
 
   const itensFiltrados =
     !isDevRealOuEfetivo && isPontoFocalOuCoordenador && coordenadoriaUsuarioId
@@ -550,15 +535,16 @@ export default function ListaPedidosPreProjetos() {
                           variant="outline"
                           className="h-8 rounded-md border-[#D7DFEA] px-2.5 text-xs"
                           disabled={
-                            row.status !== "AGENDAMENTO_CRIADO" ||
-                            concluindoId === row.protocolo
+                            !statusPermiteConclusaoChamadoArthurSaboya(
+                              row.status,
+                            ) || concluindoId === row.protocolo
                           }
                           onClick={(e) => {
                             e.stopPropagation();
                             void handleConcluirAtendimento(row.protocolo);
                           }}
                         >
-                          Concluir
+                          {rotuloBotaoConclusaoChamadoArthurSaboya(row.status)}
                         </Button>
                       ) : (
                         <span className="text-[#94A3B8]">—</span>

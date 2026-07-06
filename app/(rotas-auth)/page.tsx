@@ -7,6 +7,8 @@ import { IPermissao } from "@/types/usuario";
 import * as agendamento from "@/services/agendamentos";
 import { IAgendamento } from "@/types/agendamento";
 import { AppPageShell } from "@/components/layout/app-page-shell";
+import { usuarioTemAcessoSomenteArthurSaboya } from "@/lib/pedidos-pre-projetos-arthur-saboya-acesso";
+import { ROTA_PEDIDOS_ARTHUR_SABOYA } from "@/lib/pedidos-arthur-saboya-route";
 import ImportarPlanilha from "./_components/importar-planilha";
 import ListaAgendamentos from "./_components/lista-agendamentos";
 
@@ -32,6 +34,10 @@ async function Home({
   const session = await auth();
   if (!session) {
     redirect("/login");
+  }
+
+  if (usuarioTemAcessoSomenteArthurSaboya(session.usuario ?? null)) {
+    redirect(ROTA_PEDIDOS_ARTHUR_SABOYA);
   }
 
   const permissao = session.usuario?.permissao;

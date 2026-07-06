@@ -38,6 +38,13 @@ import {
   DURACAO_REUNIAO_ARTHUR_SABOYA_MS,
 } from "@/lib/outlook-agendamento-teams";
 import { formatarDataHoraSaoPaulo, instanteUtcRealDesdeDataHoraApi } from "@/lib/date-time";
+import {
+  isAdmArthurSaboya,
+  isTecnicoArthurSaboya,
+  podeConcluirChamadoArthurSaboya,
+  rotuloBotaoConclusaoChamadoArthurSaboya,
+  statusPermiteConclusaoChamadoArthurSaboya,
+} from "@/lib/arthur-saboya-perfis";
 import type { ISolicitacaoPreProjetoArthurSaboyaDetalhe } from "@/types/solicitacao-pre-projeto-arthur-saboya";
 import type { ICoordenadoria } from "@/types/coordenadoria";
 
@@ -303,7 +310,11 @@ export default function ChamadoPreProjetoPortalView({
       toast.error(res.error ?? "Não foi possível atualizar o status.");
       return;
     }
-    toast.success("Status atualizado para Solucionado.");
+    toast.success(
+      chamado.status === "AGENDAMENTO_CRIADO"
+        ? "Atendimento concluído com sucesso."
+        : "Status atualizado para Solucionado.",
+    );
     setConfirmAberto(false);
     void carregarChamado();
   };
@@ -554,7 +565,7 @@ export default function ChamadoPreProjetoPortalView({
   const isAdmRealOuEfetivo =
     permissaoUsuario === "ADM" || permissaoReal === "ADM";
   const isTecAs =
-    permissaoUsuario === "ARTHUR_SABOYA" ||
+    isTecnicoArthurSaboya(permissaoUsuario) ||
     permissaoUsuario === "TEC_AS" ||
     (permissaoUsuario === "TEC" &&
       !!divisaoArthur &&
@@ -564,17 +575,28 @@ export default function ChamadoPreProjetoPortalView({
     isTecAs ||
     isDevRealOuEfetivo ||
     isAdmRealOuEfetivo ||
+    isAdmArthurSaboya(permissaoUsuario) ||
     (permissaoUsuario === "PONTO_FOCAL" &&
       !!divisaoArthur &&
       !!divisaoUsuario &&
       divisaoUsuario === divisaoArthur);
   const tecnicoArthurPodeEnviarMensagem =
-    isTecAs || isDevRealOuEfetivo || isAdmRealOuEfetivo;
+    isTecAs ||
+    isDevRealOuEfetivo ||
+    isAdmRealOuEfetivo ||
+    isAdmArthurSaboya(permissaoUsuario);
   const usuarioPodeAtribuirCoordenadoria =
     permissaoUsuario === "COORDENADOR" ||
     (permissaoUsuario === "PONTO_FOCAL" && !usuarioArthur) ||
     permissaoUsuario === "ADM" ||
     permissaoUsuario === "DEV";
+  const podeConcluirChamado = podeConcluirChamadoArthurSaboya(
+    permissaoUsuario,
+    permissaoReal,
+  );
+  const chamadoPermiteConclusao = statusPermiteConclusaoChamadoArthurSaboya(
+    chamado?.status,
+  );
   const coordRestrito =
     !isDevRealOuEfetivo &&
     (permissaoUsuario === "PONTO_FOCAL" ||
@@ -657,17 +679,19 @@ export default function ChamadoPreProjetoPortalView({
             <div className="flex w-full flex-wrap justify-end gap-2 sm:ml-auto sm:w-auto">
               {usuarioArthur ? (
                 <>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className="h-9 gap-2 rounded-lg border-[#D7DFEA] bg-transparent px-2.5 py-1.5 text-xs font-semibold text-[#334155] hover:bg-[#F8FAFC] disabled:opacity-55 sm:px-3 sm:text-[13px]"
-                    disabled={chamado.status !== "SOLICITADO" || salvando}
-                    onClick={() => setConfirmAberto(true)}
-                  >
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    Marcar solucionado
-                  </Button>
+                  {podeConcluirChamado ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-9 gap-2 rounded-lg border-[#D7DFEA] bg-transparent px-2.5 py-1.5 text-xs font-semibold text-[#334155] hover:bg-[#F8FAFC] disabled:opacity-55 sm:px-3 sm:text-[13px]"
+                      disabled={!chamadoPermiteConclusao || salvando}
+                      onClick={() => setConfirmAberto(true)}
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      {rotuloBotaoConclusaoChamadoArthurSaboya(chamado.status)}
+                    </Button>
+                  ) : null}
                   <Button
                     type="button"
                     size="sm"
@@ -810,8 +834,18 @@ export default function ChamadoPreProjetoPortalView({
             <DialogTitle>Confirmar status</DialogTitle>
           </DialogHeader>
           <p className="text-sm">
-            Confirma que a dúvida foi solucionada? O status passa para{" "}
-            <strong>Solucionado</strong>.
+            {chamado?.status === "AGENDAMENTO_CRIADO" ? (
+              <>
+                Confirma a conclusão do atendimento agendado? O chamado passa
+                para <strong>Solucionado</strong> e o agendamento vinculado é
+                marcado como atendido.
+              </>
+            ) : (
+              <>
+                Confirma que a dúvida foi solucionada? O status passa para{" "}
+                <strong>Solucionado</strong>.
+              </>
+            )}
           </p>
           <DialogFooter className="gap-2">
             <Button

@@ -38,7 +38,11 @@ import {
 } from "@/components/ui/sidebar";
 import { validaUsuario } from "@/services/usuarios";
 import { IUsuario } from "@/types/usuario";
-import { usuarioPodeAcessarPedidosPreProjetosArthurSaboya } from "@/lib/pedidos-pre-projetos-arthur-saboya-acesso";
+import {
+  usuarioPodeAcessarPedidosPreProjetosArthurSaboya,
+  usuarioTemAcessoSomenteArthurSaboya,
+} from "@/lib/pedidos-pre-projetos-arthur-saboya-acesso";
+import { ROTA_PEDIDOS_ARTHUR_SABOYA } from "@/lib/pedidos-arthur-saboya-route";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 import Link from "../link";
 
@@ -67,13 +71,19 @@ export async function NavMain() {
     {
       icone: House,
       titulo: "Página Inicial",
-      url: "/",
+      url: usuarioTemAcessoSomenteArthurSaboya(usuario)
+        ? ROTA_PEDIDOS_ARTHUR_SABOYA
+        : "/",
     },
-    {
-      icone: CalendarSearch,
-      titulo: "Agendamentos",
-      url: "/agendamentos",
-    },
+    ...(!usuario || usuarioTemAcessoSomenteArthurSaboya(usuario)
+      ? []
+      : [
+          {
+            icone: CalendarSearch,
+            titulo: "Agendamentos",
+            url: "/agendamentos",
+          },
+        ]),
   ];
 
   const menuAdmin: IMenu[] = [
