@@ -203,12 +203,20 @@ export async function NavMain() {
                 ),
               )}
               {usuario && usuarioPodeAcessarPedidosPreProjetosArthurSaboya(usuario) && (
-                <SidebarMenuItem className="z-50">
-                  <Link href="/pedidos-pre-projetos-arthur-saboya">
-                    <ClipboardList />
-                    <span>Pedidos Arthur Saboya</span>
-                  </Link>
-                </SidebarMenuItem>
+                <>
+                  <SidebarMenuItem className="z-50">
+                    <Link href="/pedidos-pre-projetos-arthur-saboya">
+                      <ClipboardList />
+                      <span>Pedidos Arthur Saboya</span>
+                    </Link>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem className="z-50">
+                    <Link href="/dashboard-arthur-saboya">
+                      <LayoutDashboard />
+                      <span>Dashboard Arthur Saboya</span>
+                    </Link>
+                  </SidebarMenuItem>
+                </>
               )}
             </SidebarMenu>
           </>

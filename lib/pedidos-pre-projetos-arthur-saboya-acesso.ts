@@ -14,7 +14,7 @@ import {
  * - ADM/DEV: acesso total.
  */
 export function usuarioPodeAcessarPedidosPreProjetosArthurSaboya(
-  usuario: IUsuario | null,
+  usuario: { permissao?: string | null } | IUsuario | null,
 ): boolean {
   if (!usuario?.permissao) return false;
   const p = String(usuario.permissao);
@@ -27,7 +27,7 @@ export function usuarioPodeAcessarPedidosPreProjetosArthurSaboya(
 }
 
 export function usuarioTemAcessoSomenteArthurSaboya(
-  usuario: IUsuario | null,
+  usuario: { permissao?: string | null } | IUsuario | null,
 ): boolean {
   return isAdmArthurSaboya(usuario?.permissao ? String(usuario.permissao) : null);
 }

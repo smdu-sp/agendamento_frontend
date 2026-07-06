@@ -35,6 +35,7 @@ export function usaDivisaoFixaArthurSaboya(permissao?: string | null): boolean {
 
 export const STATUS_QUE_PERMITEM_CONCLUSAO_CHAMADO = [
   "SOLICITADO",
+  "AGUARDANDO_DATA",
   "AGENDAMENTO_CRIADO",
 ] as const;
 
@@ -60,5 +61,6 @@ export function rotuloBotaoConclusaoChamadoArthurSaboya(
   status?: string | null,
 ): string {
   if (status === "AGENDAMENTO_CRIADO") return "Concluir atendimento";
+  if (status === "AGUARDANDO_DATA") return "Encerrar chamado";
   return "Marcar solucionado";
 }

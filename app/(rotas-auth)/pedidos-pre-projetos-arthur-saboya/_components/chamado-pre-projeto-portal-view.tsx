@@ -840,6 +840,12 @@ export default function ChamadoPreProjetoPortalView({
                 para <strong>Solucionado</strong> e o agendamento vinculado é
                 marcado como atendido.
               </>
+            ) : chamado?.status === "AGUARDANDO_DATA" ? (
+              <>
+                Confirma o encerramento deste chamado encaminhado à
+                coordenadoria? O status passa para <strong>Solucionado</strong>{" "}
+                sem necessidade de agendamento técnico.
+              </>
             ) : (
               <>
                 Confirma que a dúvida foi solucionada? O status passa para{" "}

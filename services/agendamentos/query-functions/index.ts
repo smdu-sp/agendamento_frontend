@@ -23,3 +23,4 @@ export { buscarPorId } from "./buscar-por-id";
 export { getUltimaImportacaoPlanilha, type IUltimaImportacaoPlanilha } from "./ultima-importacao-planilha";
 export { getUltimaImportacaoOutlook, type IUltimaImportacaoOutlook } from "./ultima-importacao-outlook";
 export { getDashboard, type TipoPeriodoDashboard } from "./dashboard";
+export { getDashboardArthurSaboya } from "./dashboard-arthur-saboya";

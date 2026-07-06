@@ -18,6 +18,7 @@ export {
   getUltimaImportacaoPlanilha,
   getUltimaImportacaoOutlook,
   getDashboard,
+  getDashboardArthurSaboya,
 } from "./query-functions";
 export type { IUltimaImportacaoPlanilha, IUltimaImportacaoOutlook } from "./query-functions";
 
