@@ -40,12 +40,14 @@ export default function ModalDelete({
 
 		startTransition(() => {
 			void (async () => {
-				const resp = await motivo.desativar(id, session.access_token);
+				const resp = status
+					? await motivo.atualizar(id, { status: true }, session.access_token)
+					: await motivo.desativar(id, session.access_token);
 				if (resp.error) {
 					toast.error('Algo deu errado', { description: resp.error });
 				}
 				if (resp.ok) {
-					toast.success(status ? 'Motivo Desativado' : 'Motivo Ativado');
+					toast.success(status ? 'Motivo Ativado' : 'Motivo Desativado');
 					router.refresh();
 				}
 			})();

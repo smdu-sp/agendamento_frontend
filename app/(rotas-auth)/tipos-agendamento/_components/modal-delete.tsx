@@ -40,12 +40,14 @@ export default function ModalDelete({
 
 		startTransition(() => {
 			void (async () => {
-				const resp = await tipoAgendamentoService.desativar(id, session.access_token);
+				const resp = status
+					? await tipoAgendamentoService.atualizar(id, { status: true }, session.access_token)
+					: await tipoAgendamentoService.desativar(id, session.access_token);
 				if (resp.error) {
 					toast.error('Algo deu errado', { description: resp.error });
 				}
 				if (resp.ok) {
-					toast.success(status ? 'Tipo de agendamento desativado' : 'Tipo de agendamento ativado');
+					toast.success(status ? 'Tipo de agendamento ativado' : 'Tipo de agendamento desativado');
 					router.refresh();
 				}
 			})();
