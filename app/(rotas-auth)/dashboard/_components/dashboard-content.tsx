@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useEffectivePermissao } from "@/providers/ImpersonationProvider";
+import { isAdmGlobal } from "@/lib/arthur-saboya-perfis";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { IUsuario, IUsuarioSession } from "@/types/usuario";
@@ -101,12 +102,12 @@ export default function DashboardContent() {
   const requestIdRef = useRef(0);
 
   const permissao = String(effectivePermissao ?? session?.usuario?.permissao ?? "");
-  const isAdmOuDev = permissao === "ADM" || permissao === "DEV";
+  const isAdmOuDev = isAdmGlobal(permissao) || permissao === "DEV";
   const isPontoFocal = permissao === "PONTO_FOCAL";
   const isCoordenador = permissao === "COORDENADOR";
   const isDiretor = permissao === "DIRETOR";
   const podeVerDashboard =
-    permissao === "ADM" ||
+    isAdmGlobal(permissao) ||
     permissao === "DEV" ||
     permissao === "PONTO_FOCAL" ||
     permissao === "COORDENADOR" ||

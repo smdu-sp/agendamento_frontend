@@ -33,6 +33,7 @@ import type { IDashboardArthurSaboya } from "@/types/dashboard-arthur-saboya";
 import type { ICoordenadoria } from "@/types/coordenadoria";
 import type { IUsuario, IUsuarioSession } from "@/types/usuario";
 import { usuarioPodeAcessarPedidosPreProjetosArthurSaboya } from "@/lib/pedidos-pre-projetos-arthur-saboya-acesso";
+import { isAdministradorSistema } from "@/lib/arthur-saboya-perfis";
 import { useEffectivePermissao } from "@/providers/ImpersonationProvider";
 import {
   Card,
@@ -173,7 +174,8 @@ export default function DashboardArthurSaboyaContent() {
   const permissao = String(
     effectivePermissao ?? session?.usuario?.permissao ?? "",
   );
-  const isAdmOuDev = permissao === "ADM" || permissao === "DEV";
+  const isAdmOuDev =
+    isAdministradorSistema(permissao) || permissao === "DEV";
   const isCoordenador = permissao === "COORDENADOR";
   const isPontoFocal = permissao === "PONTO_FOCAL";
   const podeVer =

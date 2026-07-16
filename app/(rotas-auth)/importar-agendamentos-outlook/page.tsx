@@ -7,6 +7,7 @@ import { AppPageShell } from '@/components/layout/app-page-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import ImportarAgendamentosOutlookForm from './_components/importar-agendamentos-outlook-form';
 import * as agendamento from '@/services/agendamentos';
+import { isAdmGlobal } from '@/lib/arthur-saboya-perfis';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -17,7 +18,7 @@ export default async function ImportarAgendamentosOutlookPage() {
 	}
 
 	const permissao = session.usuario?.permissao;
-	const isAdm = permissao as unknown as IPermissao === IPermissao.ADM || permissao === 'ADM';
+	const isAdm = isAdmGlobal(String(permissao ?? ''));
 	const isDev = permissao as unknown as IPermissao === IPermissao.DEV || permissao === 'DEV';
 	if (!isAdm && !isDev) {
 		redirect('/');

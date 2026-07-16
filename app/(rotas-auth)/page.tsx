@@ -8,6 +8,7 @@ import * as agendamento from "@/services/agendamentos";
 import { IAgendamento } from "@/types/agendamento";
 import { AppPageShell } from "@/components/layout/app-page-shell";
 import { usuarioTemAcessoSomenteArthurSaboya } from "@/lib/pedidos-pre-projetos-arthur-saboya-acesso";
+import { isAdmGlobal } from "@/lib/arthur-saboya-perfis";
 import { ROTA_PEDIDOS_ARTHUR_SABOYA } from "@/lib/pedidos-arthur-saboya-route";
 import ImportarPlanilha from "./_components/importar-planilha";
 import ListaAgendamentos from "./_components/lista-agendamentos";
@@ -136,10 +137,9 @@ async function Home({
       breadcrumbs={[{ label: "Agendamentos" }]}
       hidePageTitle
       actions={
-        (session.usuario?.permissao as unknown as IPermissao === IPermissao.ADM ||
-          session.usuario?.permissao as unknown as IPermissao === IPermissao.DEV) && (
-          <ImportarPlanilha />
-        )
+        (isAdmGlobal(String(session.usuario?.permissao ?? "")) ||
+          (session.usuario?.permissao as unknown as IPermissao) ===
+            IPermissao.DEV) && <ImportarPlanilha />
       }
     >
       <ListaAgendamentos

@@ -44,17 +44,26 @@ export async function atualizar(
         status: 500,
       };
     }
+    const rawMessage = (dataResponse as { message?: unknown })?.message;
+    const errorMessage = Array.isArray(rawMessage)
+      ? rawMessage.join(' ')
+      : typeof rawMessage === 'string'
+        ? rawMessage
+        : 'Erro ao atualizar usuário.';
     return {
       ok: false,
-      error: (dataResponse as any)?.message ?? 'Erro ao atualizar usuário.',
+      error: errorMessage,
       data: null,
-      status: (dataResponse as any)?.statusCode ?? response.status ?? 500,
+      status: (dataResponse as { statusCode?: number })?.statusCode ?? response.status ?? 500,
     };
   } catch (error) {
     console.log(error);
     return {
       ok: false,
-      error: 'Erro ao atualizar usuário.',
+      error:
+        error instanceof Error && /fetch|ECONNREFUSED|network/i.test(error.message)
+          ? 'API indisponível. Verifique se o backend está em execução.'
+          : 'Erro ao atualizar usuário.',
       data: null,
       status: 500,
     };

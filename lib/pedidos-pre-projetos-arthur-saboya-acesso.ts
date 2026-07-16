@@ -2,7 +2,8 @@
 
 import type { IUsuario } from "@/types/usuario";
 import {
-  isAdmArthurSaboya,
+  isAdministradorSistema,
+  isAcessoSomenteArthurSaboya,
   isTecnicoArthurSaboya,
 } from "@/lib/arthur-saboya-perfis";
 
@@ -12,13 +13,14 @@ import {
  * - ARTHUR_SABOYA / ADM_ARTHUR_SABOYA: acesso aos pedidos da Sala Arthur Saboya.
  * - COORDENADOR/PONTO_FOCAL: acesso com filtro por coordenadoria.
  * - ADM/DEV: acesso total.
+ * - ADM_ARTHUR_SABOYA: acesso aos pedidos Arthur (sem agendamentos gerais).
  */
 export function usuarioPodeAcessarPedidosPreProjetosArthurSaboya(
   usuario: { permissao?: string | null } | IUsuario | null,
 ): boolean {
   if (!usuario?.permissao) return false;
   const p = String(usuario.permissao);
-  if (p === "DEV" || p === "ADM") return true;
+  if (p === "DEV" || isAdministradorSistema(p)) return true;
   if (isTecnicoArthurSaboya(p) || p === "TEC_AS") return true;
   if (p === "TEC") return true;
   if (p === "COORDENADOR") return true;
@@ -26,8 +28,11 @@ export function usuarioPodeAcessarPedidosPreProjetosArthurSaboya(
   return false;
 }
 
+/** Home/lista de agendamentos gerais bloqueadas; só fluxo Arthur Saboya. */
 export function usuarioTemAcessoSomenteArthurSaboya(
   usuario: { permissao?: string | null } | IUsuario | null,
 ): boolean {
-  return isAdmArthurSaboya(usuario?.permissao ? String(usuario.permissao) : null);
+  return isAcessoSomenteArthurSaboya(
+    usuario?.permissao ? String(usuario.permissao) : null,
+  );
 }

@@ -31,6 +31,7 @@ import AtribuirTecnico from "./atribuir-tecnico";
 import ConfirmarAtendimento from "./confirmar-atendimento";
 import { Pencil, CheckCircle2 } from "lucide-react";
 import { StatusAgendamento } from "@/types/agendamento";
+import { isAdmGlobal } from "@/lib/arthur-saboya-perfis";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -460,7 +461,7 @@ export default function ListaAgendamentos({
                   const isPontoFocal = permissao === "PONTO_FOCAL";
                   const isCoordenador = permissao === "COORDENADOR";
                   const isTecnico = permissao === "TEC";
-                  const isAdm = permissao === "ADM";
+                  const isAdm = isAdmGlobal(permissao);
                   const isDev = permissao === "DEV";
                   const semTecnico = !agend.tecnico;
                   // Atribuir/editar técnico: Ponto Focal e Coordenador (quando há coordenadoria); ADM/DEV só quando status Atendido ou Não Realizado

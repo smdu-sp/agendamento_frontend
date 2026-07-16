@@ -40,6 +40,7 @@ import {
 import { formatarDataHoraSaoPaulo, instanteUtcRealDesdeDataHoraApi } from "@/lib/date-time";
 import {
   isAdmArthurSaboya,
+  isAdministradorSistema,
   isTecnicoArthurSaboya,
   podeConcluirChamadoArthurSaboya,
   rotuloBotaoConclusaoChamadoArthurSaboya,
@@ -563,7 +564,10 @@ export default function ChamadoPreProjetoPortalView({
   const isDevRealOuEfetivo =
     permissaoUsuario === "DEV" || permissaoReal === "DEV";
   const isAdmRealOuEfetivo =
-    permissaoUsuario === "ADM" || permissaoReal === "ADM";
+    permissaoUsuario === "ADM" ||
+    permissaoReal === "ADM" ||
+    isAdmArthurSaboya(permissaoUsuario) ||
+    isAdmArthurSaboya(permissaoReal);
   const isTecAs =
     isTecnicoArthurSaboya(permissaoUsuario) ||
     permissaoUsuario === "TEC_AS" ||
@@ -588,7 +592,7 @@ export default function ChamadoPreProjetoPortalView({
   const usuarioPodeAtribuirCoordenadoria =
     permissaoUsuario === "COORDENADOR" ||
     (permissaoUsuario === "PONTO_FOCAL" && !usuarioArthur) ||
-    permissaoUsuario === "ADM" ||
+    isAdministradorSistema(permissaoUsuario) ||
     permissaoUsuario === "DEV";
   const podeConcluirChamado = podeConcluirChamadoArthurSaboya(
     permissaoUsuario,

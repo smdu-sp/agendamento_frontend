@@ -42,6 +42,10 @@ import {
   usuarioPodeAcessarPedidosPreProjetosArthurSaboya,
   usuarioTemAcessoSomenteArthurSaboya,
 } from "@/lib/pedidos-pre-projetos-arthur-saboya-acesso";
+import {
+  isAdmArthurSaboya,
+  isAdministradorSistema,
+} from "@/lib/arthur-saboya-perfis";
 import { ROTA_PEDIDOS_ARTHUR_SABOYA } from "@/lib/pedidos-arthur-saboya-route";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 import Link from "../link";
@@ -223,24 +227,28 @@ export async function NavMain() {
         )}
         {usuario &&
           usuario.permissao &&
-          ["DEV", "ADM", "PONTO_FOCAL", "COORDENADOR", "DIRETOR"].includes(
+          (["DEV", "PONTO_FOCAL", "COORDENADOR", "DIRETOR"].includes(
             usuario.permissao.toString(),
-          ) && (
+          ) ||
+            isAdministradorSistema(usuario.permissao.toString())) && (
             <>
               <SidebarGroupLabel>
-                {["DEV", "ADM"].includes(usuario.permissao.toString())
+                {usuario.permissao.toString() === "DEV" ||
+                isAdministradorSistema(usuario.permissao.toString())
                   ? "Administração"
                   : usuario.permissao.toString() === "DIRETOR"
                     ? "Divisão"
                     : "Coordenadoria"}
               </SidebarGroupLabel>
               <SidebarMenu>
-                <SidebarMenuItem className="z-50">
-                  <Link href="/dashboard">
-                    <LayoutDashboard />
-                    <span>Dashboard</span>
-                  </Link>
-                </SidebarMenuItem>
+                {!isAdmArthurSaboya(usuario.permissao.toString()) && (
+                  <SidebarMenuItem className="z-50">
+                    <Link href="/dashboard">
+                      <LayoutDashboard />
+                      <span>Dashboard</span>
+                    </Link>
+                  </SidebarMenuItem>
+                )}
                 {!["DIRETOR"].includes(usuario.permissao.toString()) && (
                   <SidebarMenuItem className="z-50">
                     <Link href="/usuarios">
@@ -249,13 +257,24 @@ export async function NavMain() {
                     </Link>
                   </SidebarMenuItem>
                 )}
-                {["DEV", "ADM"].includes(usuario.permissao.toString()) &&
+                {(usuario.permissao.toString() === "DEV" ||
+                  isAdministradorSistema(usuario.permissao.toString())) &&
                   menuAdmin
                     .filter((item) => {
                       if (item.titulo === "Usuários") return false;
-                      const podeEstrutura = ["ADM", "DEV"].includes(
-                        usuario?.permissao?.toString() ?? "",
-                      );
+                      // Importações são de agendamentos gerais — fora do escopo Arthur
+                      if (
+                        isAdmArthurSaboya(usuario.permissao.toString()) &&
+                        (item.titulo === "Importar Agendamentos" ||
+                          item.titulo === "Importar Outlook")
+                      ) {
+                        return false;
+                      }
+                      const podeEstrutura =
+                        usuario?.permissao?.toString() === "DEV" ||
+                        isAdministradorSistema(
+                          usuario?.permissao?.toString() ?? "",
+                        );
                       if (
                         !podeEstrutura &&
                         (item.titulo === "Coordenadorias" ||

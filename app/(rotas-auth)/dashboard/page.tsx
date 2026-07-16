@@ -3,6 +3,10 @@
 import { auth } from "@/lib/auth/auth";
 import { redirect } from "next/navigation";
 import { AppPageShell } from "@/components/layout/app-page-shell";
+import {
+  isAdmArthurSaboya,
+  isAdmGlobal,
+} from "@/lib/arthur-saboya-perfis";
 import DashboardContent from "./_components/dashboard-content";
 
 export const metadata = {
@@ -16,8 +20,12 @@ export default async function DashboardPage() {
   if (!session) redirect("/login");
 
   const permissao = String(session.usuario?.permissao ?? "");
+  if (isAdmArthurSaboya(permissao)) {
+    redirect("/dashboard-arthur-saboya");
+  }
+
   const podeVerDashboard =
-    permissao === "ADM" ||
+    isAdmGlobal(permissao) ||
     permissao === "DEV" ||
     permissao === "PONTO_FOCAL" ||
     permissao === "COORDENADOR" ||
