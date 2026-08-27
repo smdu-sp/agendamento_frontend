@@ -13,7 +13,7 @@ export function ArthurSaboyaFooter() {
           {/* Logo + descrição */}
           <div className="space-y-4">
             <Image
-              src={pmspLogo.src}
+              src={"/Logo_pmsp_h.png"}
               alt="Prefeitura de São Paulo"
               width={pmspLogo.width}
               height={pmspLogo.height}

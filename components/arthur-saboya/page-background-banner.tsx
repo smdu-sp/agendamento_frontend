@@ -1,6 +1,5 @@
 import Image from "next/image"
 import type { ReactNode } from "react"
-import bannerFundo from "@/public/1900x200.png"
 import { openSans } from "@/lib/fonts"
 
 interface ArthurSaboyaPageBackgroundBannerProps {
@@ -20,7 +19,7 @@ export function ArthurSaboyaPageBackgroundBanner({
         className={`relative mx-auto w-full max-w-[1900px] ${children ? "min-h-[200px]" : "h-[200px]"}`}
       >
         <Image
-          src={bannerFundo}
+          src="/1900x200.png"
           alt=""
           aria-hidden
           className={

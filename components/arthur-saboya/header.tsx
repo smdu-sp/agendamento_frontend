@@ -40,7 +40,7 @@ export function ArthurSaboyaHeader() {
         {/* Logo — direita */}
         <Link href={PUBLIC_HOME} className="ml-auto md:ml-0">
           <Image
-            src={pmspLogo.src}
+            src={"/Logo_pmsp_h.png"}
             alt="Prefeitura de São Paulo"
             width={pmspLogo.width}
             height={pmspLogo.height}

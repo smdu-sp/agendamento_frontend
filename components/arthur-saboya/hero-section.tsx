@@ -1,5 +1,4 @@
-import bannerDesktop from "@/public/Banner1900x500.png"
-import bannerMobile from "@/public/banner1000x500.png"
+
 import Image from "next/image"
 
 export function ArthurSaboyaHeroSection() {
@@ -8,7 +7,7 @@ export function ArthurSaboyaHeroSection() {
       {/* Desktop */}
       <div className="relative mx-auto hidden aspect-190/50 w-full max-w-[1900px] sm:block">
         <Image
-          src={bannerDesktop}
+          src="/Banner1900x500.png"
           alt="Portal de Agendamento Técnico"
           fill
           className="object-cover object-center"
@@ -19,7 +18,7 @@ export function ArthurSaboyaHeroSection() {
       {/* Mobile */}
       <div className="relative mx-auto block aspect-100/50 w-full sm:hidden">
         <Image
-          src={bannerMobile}
+          src="/banner1000x500.png"
           alt="Portal de Agendamento Técnico"
           fill
           className="object-cover object-center"

@@ -2,8 +2,6 @@
 
 'use client';
 
-import claro from '@/public/smul_icone_azul.png';
-import escuro from '@/public/smul_icone_branco.png';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
@@ -28,7 +26,7 @@ export default function MiniLogo() {
 			<Image
 				width={1200}
 				height={1200}
-				src={tema === 'dark' ? escuro.src : claro.src}
+				src={tema === 'dark' ? '/smul_branco.png' : '/smul_azul.png'}
 				alt='PMSP'
 			/>
 		</div>
