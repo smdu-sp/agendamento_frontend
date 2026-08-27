@@ -23,7 +23,7 @@ export async function criar(data: ICreateAgendamento): Promise<IRespostaAgendame
 	});
 	const dataResponse = await response.json();
 	if (response.status === 201) {
-		revalidateTag('agendamentos');
+		revalidateTag('agendamentos', 'max');
 		return {
 			ok: true,
 			error: null,

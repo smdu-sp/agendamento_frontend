@@ -21,7 +21,7 @@ export async function desativar(id: string) {
 	console.log(desativado);
 	const dataResponse = await desativado.json();
 	if (desativado.status === 200) {
-		revalidateTag('users');
+		revalidateTag('users', 'max');
 		return {
 			ok: true,
 			error: null,

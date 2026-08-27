@@ -26,8 +26,8 @@ export async function atualizar(
     });
     const dataResponse = await response.json();
     if (response.status === 200) {
-      revalidateTag('users');
-      revalidateTag('user-by-id');
+      revalidateTag('users', 'max');
+      revalidateTag('user-by-id', 'max');
       revalidatePath('/');
       return {
         ok: true,

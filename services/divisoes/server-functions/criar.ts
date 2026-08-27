@@ -23,7 +23,7 @@ export async function criar(data: ICreateDivisao): Promise<IRespostaDivisao> {
 	});
 	const dataResponse = await response.json();
 	if (response.status === 201) {
-		revalidateTag('divisoes');
+		revalidateTag('divisoes', 'max');
 		return { ok: true, error: null, data: dataResponse as IDivisao, status: 201 };
 	}
 	if (!dataResponse)

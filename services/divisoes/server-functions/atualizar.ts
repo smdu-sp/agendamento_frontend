@@ -23,7 +23,7 @@ export async function atualizar(id: string, data: IUpdateDivisao): Promise<IResp
 	});
 	const dataResponse = await response.json();
 	if (response.status === 200) {
-		revalidateTag('divisoes');
+		revalidateTag('divisoes', 'max');
 		return { ok: true, error: null, data: dataResponse as IDivisao, status: 200 };
 	}
 	if (!dataResponse)

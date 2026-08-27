@@ -23,7 +23,7 @@ export async function criar(data: ICreateUsuario): Promise<IRespostaUsuario> {
 	});
 	const dataResponse = await response.json();
 	if (response.status === 201) {
-		revalidateTag('users');
+		revalidateTag('users', 'max');
 		return {
 			ok: true,
 			error: null,

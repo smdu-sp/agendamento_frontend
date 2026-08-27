@@ -22,7 +22,7 @@ export async function desativar(id: string): Promise<IRespostaDivisao> {
 	});
 	const dataResponse = await response.json();
 	if (response.status === 200) {
-		revalidateTag('divisoes');
+		revalidateTag('divisoes', 'max');
 		return { ok: true, error: null, data: dataResponse as { desativado: boolean }, status: 200 };
 	}
 	if (!dataResponse)

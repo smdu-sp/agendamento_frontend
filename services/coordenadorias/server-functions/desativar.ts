@@ -22,7 +22,7 @@ export async function desativar(id: string): Promise<IRespostaCoordenadoria> {
 	});
 	const dataResponse = await response.json();
 	if (response.status === 200) {
-		revalidateTag('coordenadorias');
+		revalidateTag('coordenadorias', 'max');
 		return {
 			ok: true,
 			error: null,

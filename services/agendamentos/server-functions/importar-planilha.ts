@@ -37,7 +37,7 @@ export async function importarPlanilha(
 		}
 
 		if (response.ok && (response.status === 200 || response.status === 201)) {
-			revalidateTag('agendamentos');
+			revalidateTag('agendamentos', 'max');
 			return {
 				ok: true,
 				error: null,

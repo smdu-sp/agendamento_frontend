@@ -22,7 +22,7 @@ export async function autorizar(id: string): Promise<IRespostaUsuario> {
 	});
 	const dataResponse = await autorizado.json();
 	if (autorizado.status === 200) {
-		revalidateTag('users');
+		revalidateTag('users', 'max');
 		return {
 			ok: true,
 			error: null,

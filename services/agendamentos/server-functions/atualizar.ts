@@ -26,7 +26,7 @@ export async function atualizar(
 	});
 	const dataResponse = await response.json();
 	if (response.status === 200) {
-		revalidateTag('agendamentos');
+		revalidateTag('agendamentos', 'max');
 		return {
 			ok: true,
 			error: null,

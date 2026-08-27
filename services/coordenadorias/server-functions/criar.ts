@@ -23,7 +23,7 @@ export async function criar(data: ICreateCoordenadoria): Promise<IRespostaCoorde
 	});
 	const dataResponse = await response.json();
 	if (response.status === 201) {
-		revalidateTag('coordenadorias');
+		revalidateTag('coordenadorias', 'max');
 		return {
 			ok: true,
 			error: null,
