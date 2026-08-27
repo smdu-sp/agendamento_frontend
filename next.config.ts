@@ -9,8 +9,10 @@ const nextConfig: NextConfig = {
 	images: {
 		// Server CPU doesn't support the x86-64-v2 instruction set required by
 		// current sharp/libvips prebuilt binaries, so on-the-fly optimization
-		// fails at runtime (returns null). Serve images as-is instead.
-		unoptimized: true,
+		// fails at runtime (returns null). Custom loader serves images as-is
+		// (with basePath applied) instead of going through /_next/image.
+		loader: 'custom',
+		loaderFile: './lib/image-loader.ts',
 	},
 	env: {
 		NEXT_PUBLIC_BASE_PATH: '/agendamento'
