@@ -11,10 +11,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { InputSenhaComToggle } from "@/components/ui/input-senha-com-toggle";
 import { Label } from "@/components/ui/label";
+import { TurnstileWidget } from "@/components/turnstile-widget";
 import { salvarSessaoMunicipe } from "@/lib/municipe-sessao";
 import { toast } from "sonner";
 
-type TokenResponse = { access_token: string };
+type TokenResponse = { access_token: string | null; emailEnviado?: boolean };
 
 const getApiBase = () =>
   (process.env.NEXT_PUBLIC_AGENDAMENTOS_API_URL || process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
@@ -40,6 +41,7 @@ function FormularioCadastro() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   const proxima = destinoAposLoginSeguro(searchParams.get("proxima"));
 
@@ -67,13 +69,18 @@ function FormularioCadastro() {
         nome: nome.trim(),
         email: email.trim(),
         senha,
+        turnstileToken,
       });
-      salvarSessaoMunicipe(data.access_token);
-      toast.success("Conta criada com sucesso.");
       setNome("");
       setEmail("");
       setSenha("");
-      router.replace(proxima ?? "/portal");
+      if (data.access_token) {
+        salvarSessaoMunicipe(data.access_token);
+        toast.success("Conta criada com sucesso.");
+        router.replace(proxima ?? "/portal");
+      } else {
+        toast.success("Cadastro recebido — verifique seu e-mail.");
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Não foi possível criar a conta.");
     } finally {
@@ -117,7 +124,8 @@ function FormularioCadastro() {
               required
             />
           </div>
-          <Button type="submit" disabled={carregando} className="w-full">
+          <TurnstileWidget onTokenChange={setTurnstileToken} />
+          <Button type="submit" disabled={carregando || !turnstileToken} className="w-full">
             {carregando ? "Criando conta..." : "Criar conta"}
           </Button>
         </form>

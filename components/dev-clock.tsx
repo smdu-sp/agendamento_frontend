@@ -36,6 +36,7 @@ function Row({ label, info, error }: { label: string; info: TimeInfo | null; err
 export function DevClock() {
   const { data: session } = useSession();
   const permissao = (session?.usuario as { permissao?: string } | undefined)?.permissao;
+  const accessToken = session?.access_token;
 
   const [browser, setBrowser] = useState<TimeInfo | null>(null);
   const [nextjs, setNextjs] = useState<TimeInfo | null>(null);
@@ -65,9 +66,12 @@ export function DevClock() {
 
     async function fetchBackend() {
       const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
-      if (!base) return;
+      if (!base || !accessToken) return;
       try {
-        const r = await fetch(`${base}/debug/time`, { cache: "no-store" });
+        const r = await fetch(`${base}/debug/time`, {
+          cache: "no-store",
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
         if (r.ok) {
           setBackend(await r.json());
           setBackendError(false);
@@ -92,7 +96,7 @@ export function DevClock() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [permissao]);
+  }, [permissao, accessToken]);
 
   if (permissao !== "DEV" || !visible) return null;
 

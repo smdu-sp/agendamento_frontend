@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { TurnstileWidget } from "@/components/turnstile-widget"
 import {
   EVENTO_SESSAO_MUNICIPE,
   municipeEstaLogado,
@@ -49,6 +50,7 @@ export default function PreProjetosPage() {
   const [protocoloExibido, setProtocoloExibido] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   useEffect(() => {
     const sync = () => setAutenticado(municipeEstaLogado())
@@ -103,6 +105,7 @@ export default function PreProjetosPage() {
           naturezaDuvida: formData.naturezaDuvida,
           ...(formData.naturezaDuvida === "outra" && { naturezaOutro: formData.naturezaOutro.trim() }),
           descricao: formData.descricao.trim(),
+          turnstileToken,
         }),
       })
       const data = (await res.json().catch(() => null)) as {
@@ -198,7 +201,8 @@ export default function PreProjetosPage() {
                       </div>
                       <div className="space-y-2"><Label htmlFor="descricao">Descreva brevemente sua dúvida ou indique o amparo legal que precisa compreender melhor.</Label><Textarea id="descricao" name="descricao" value={formData.descricao} onChange={handleInputChange} rows={6} required /></div>
                       <div className="rounded-lg border border-border bg-muted/50 p-4"><p className="text-sm text-muted-foreground">Ao enviar este formulário, você concorda com o tratamento dos seus dados pessoais conforme a Lei Geral de Proteção de Dados (LGPD).</p></div>
-                      <div className="flex justify-end pt-2"><Button type="submit" className="bg-[#E56E14] text-white hover:bg-[#CC5F10]" disabled={!isFormValid || submitting}><Send className="mr-2 h-4 w-4" />{submitting ? "Enviando..." : "Enviar Solicitação"}</Button></div>
+                      <TurnstileWidget onTokenChange={setTurnstileToken} />
+                      <div className="flex justify-end pt-2"><Button type="submit" className="bg-[#E56E14] text-white hover:bg-[#CC5F10]" disabled={!isFormValid || !turnstileToken || submitting}><Send className="mr-2 h-4 w-4" />{submitting ? "Enviando..." : "Enviar Solicitação"}</Button></div>
                     </form>
                   </CardContent>
                 </Card>

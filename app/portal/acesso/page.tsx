@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { InputSenhaComToggle } from "@/components/ui/input-senha-com-toggle";
 import { Label } from "@/components/ui/label";
+import { TurnstileWidget } from "@/components/turnstile-widget";
 import { salvarSessaoMunicipe } from "@/lib/municipe-sessao";
 import { toast } from "sonner";
 
@@ -127,6 +128,7 @@ function FormularioRecuperacao() {
   const [carregandoRecuperacao, setCarregandoRecuperacao] = useState(false);
   const [linkRecuperacao, setLinkRecuperacao] = useState<string | null>(null);
   const [emailRecuperacao, setEmailRecuperacao] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   async function requisicao<T>(rota: string, body: unknown): Promise<T> {
     if (!apiBase) throw new Error("Configure NEXT_PUBLIC_AGENDAMENTOS_API_URL no frontend.");
@@ -153,6 +155,7 @@ function FormularioRecuperacao() {
         "/municipes/auth/solicitar-redefinicao-senha",
         {
           email: emailRecuperacao,
+          turnstileToken,
         },
       );
       setLinkRecuperacao(data.linkRedefinicao ?? null);
@@ -182,10 +185,13 @@ function FormularioRecuperacao() {
               required
             />
           </div>
-          <Button type="submit" disabled={carregandoRecuperacao} className="md:self-end">
+          <Button type="submit" disabled={carregandoRecuperacao || !turnstileToken} className="md:self-end">
             {carregandoRecuperacao ? "Solicitando..." : "Solicitar redefinição"}
           </Button>
         </form>
+        <div className="mt-4">
+          <TurnstileWidget onTokenChange={setTurnstileToken} />
+        </div>
         {linkRecuperacao ? (
           <p className="mt-4 text-sm text-muted-foreground">
             Ambiente local:{" "}
