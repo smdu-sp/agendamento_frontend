@@ -4,7 +4,7 @@ import Credentials from 'next-auth/providers/credentials';
 import type { NextAuthConfig } from 'next-auth';
 import { jwtDecode } from 'jwt-decode';
 
-// URL interna para chamadas server-side (dentro do Docker)
+// URL interna para chamadas server-side (backend na mesma máquina).
 // Fallback para NEXT_PUBLIC_API_URL em dev local.
 const RAW_API_URL = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || '';
 const API_URL = RAW_API_URL && !RAW_API_URL.endsWith('/') ? `${RAW_API_URL}/` : RAW_API_URL;
@@ -19,7 +19,10 @@ export default {
 			},
 			type: 'credentials',
 			async authorize(credentials) {
-				if (!credentials?.login || !credentials?.senha || !API_URL) return null;
+				if (!credentials?.login || !credentials?.senha || !API_URL) {
+					console.error('[authorize] Requisição abortada. API_URL:', API_URL, 'credenciais presentes:', !!credentials?.login && !!credentials?.senha);
+					return null;
+				}
 				const { login, senha } = credentials;
 				try {
 					const response = await fetch(`${API_URL}login`, {
@@ -29,7 +32,9 @@ export default {
 					});
 					const usuario = await response.json();
 					if (usuario && response.ok) return usuario;
-				} catch {
+					console.error('[authorize] Backend retornou erro. status:', response.status, 'body:', usuario);
+				} catch (error) {
+					console.error('[authorize] Falha ao chamar o backend em', `${API_URL}login`, error);
 					return null;
 				}
 				return null;
