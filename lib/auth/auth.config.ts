@@ -19,10 +19,7 @@ export default {
 			},
 			type: 'credentials',
 			async authorize(credentials) {
-				if (!credentials?.login || !credentials?.senha || !API_URL) {
-					console.error('[authorize] Requisição abortada. API_URL:', API_URL, 'credenciais presentes:', !!credentials?.login && !!credentials?.senha);
-					return null;
-				}
+				if (!credentials?.login || !credentials?.senha || !API_URL) return null;
 				const { login, senha } = credentials;
 				try {
 					const response = await fetch(`${API_URL}login`, {
@@ -32,9 +29,7 @@ export default {
 					});
 					const usuario = await response.json();
 					if (usuario && response.ok) return usuario;
-					console.error('[authorize] Backend retornou erro. status:', response.status, 'body:', usuario);
-				} catch (error) {
-					console.error('[authorize] Falha ao chamar o backend em', `${API_URL}login`, error);
+				} catch {
 					return null;
 				}
 				return null;
