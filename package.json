@@ -78,5 +78,8 @@
     "eslint-config-next": "15.2.0-canary.71",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "allowScripts": {
+    "unrs-resolver@1.11.1": true
   }
 }
